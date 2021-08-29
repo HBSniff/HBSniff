@@ -1,5 +1,6 @@
 package io.github.hzjdev.hqlsniffer;
 
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import java.io.Serializable;
@@ -10,9 +11,18 @@ import java.util.Objects;
 public class Parametre implements Serializable {
     String type;
     String name;
+    List<String> modifiers;
     String position;
     List<String> annotations;
     Declaration typeDeclaration;
+
+    public List<String> getModifiers() {
+        return modifiers;
+    }
+
+    public void setModifiers(List<String> modifiers) {
+        this.modifiers = modifiers;
+    }
 
     public String getPosition() {
         return position;
@@ -36,6 +46,14 @@ public class Parametre implements Serializable {
         this.type = type;
         this.name = name;
         this.annotations = new ArrayList<>();
+        this.modifiers = new ArrayList<>();
+    }
+
+    public Parametre populateModifiers(List<Modifier> ms){
+        for(Modifier m: ms){
+            modifiers.add(m.getKeyword().asString());
+        }
+        return this;
     }
 
     public String getType() {
@@ -75,6 +93,15 @@ public class Parametre implements Serializable {
     public boolean annotationIncludes(String s){
         for(String annotation: annotations){
             if (annotation.contains(s)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isStatic(){
+        for(String modifier: modifiers){
+            if(Modifier.Keyword.STATIC.asString().equals(modifier)){
                 return true;
             }
         }

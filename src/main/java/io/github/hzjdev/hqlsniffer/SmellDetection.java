@@ -1,7 +1,6 @@
 package io.github.hzjdev.hqlsniffer;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
@@ -210,7 +209,7 @@ public class SmellDetection {
                                                             List<Declaration> relatedComponent = new ArrayList<>();
                                                             relatedComponent.add(d);
                                                             smell.setComponent(parentField.toString())
-                                                                    .setName("OneToManyNPlusOne Candidate")
+                                                                    .setName("MissingOneToMany")
                                                                     .setRelatedComponent(relatedComponent);
                                                             smell.setPosition(targetField.getPosition());
 

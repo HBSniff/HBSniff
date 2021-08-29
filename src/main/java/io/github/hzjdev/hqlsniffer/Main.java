@@ -1,7 +1,5 @@
 package io.github.hzjdev.hqlsniffer;
 
-import antlr.RecognitionException;
-import antlr.TokenStreamException;
 import antlr.collections.AST;
 
 import com.github.javaparser.ParseProblemException;
@@ -17,12 +15,7 @@ import com.github.javaparser.ast.stmt.ReturnStmt;
 import org.hibernate.hql.internal.antlr.HqlTokenTypes;
 import org.hibernate.hql.internal.ast.HqlParser;
 
-import javax.json.Json;
-import javax.json.stream.JsonGenerator;
-import javax.json.stream.JsonGeneratorFactory;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -596,6 +589,7 @@ public class Main {
                             params.add(new Parametre(type,name)
                                     .setTypeDeclaration(declaration)
                                     .setPosition(extractParametrePosition(p))
+                                    .populateModifiers(p.getModifiers())
                                     .populateAnnotations(p.getAnnotations())
                             );
                         }
@@ -707,6 +701,10 @@ public class Main {
         return res;
     }
     // find type declaration
+
+    public static Declaration getTypeFromCache(String retType){
+        return declarationCache.get(retType);
+    }
     public static Declaration findTypeDeclaration(String retType, List<CompilationUnit> cus, Integer level) {
         Declaration d = null;
         if(Const.builtinTypes.contains(retType)){
