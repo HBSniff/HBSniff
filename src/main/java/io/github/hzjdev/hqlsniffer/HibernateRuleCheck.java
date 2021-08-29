@@ -2,22 +2,27 @@ package io.github.hzjdev.hqlsniffer;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.TypeDeclaration;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static io.github.hzjdev.hqlsniffer.Main.findTypeDeclaration;
+import static io.github.hzjdev.hqlsniffer.Main.getTypeFromCache;
 
 // transferred code from https://github.com/tacianosilva/designtests
 // M. Silva, D. Serey, J. Figueiredo, J. Brunet. Automated design tests to check Hibernate design recommendations. SBES 2019
 
 public class HibernateRuleCheck {
 
-    private Set<Declaration> resultsTrue;
+    private Set<Declaration> resultsTrue = new HashSet<>();
 
-    private Set<Declaration> resultsFalse;
+    private Set<Declaration> resultsFalse = new HashSet<>();
 
-    private String report;
+    private String report = "";
 
     public void addReport(final String s){
         this.report += s;
@@ -138,33 +143,12 @@ public class HibernateRuleCheck {
         return null;
     }
 
-    public final boolean isList(final Declaration node) {
-        if (Utils.isList(node)) {
-            return true;
-        }
-        return false;
-    }
-
-    public final boolean isSet(final Declaration node) {
-        if (Utils.isSet(node)) {
-            return true;
-        }
-        return false;
-    }
-
-    public final boolean isCollection(final Declaration node) {
-        if (Utils.isCollection(node)) {
-            return true;
-        }
-        return false;
-    }
-
     public final Parametre getIdentifierProperty(final Declaration entity) {
         List<Parametre> declaredFields = entity.getFields();
         for (Parametre fieldNode : declaredFields) {
             List<String> annotations = fieldNode.getAnnotations();
-            CompilationUnit id = new CompilationUnit("javax.persistence.Id");
-            if (annotations.contains(id)) {
+            String ID="@Id";
+            if (annotations.contains(ID)) {
                 return fieldNode;
             }
         }
@@ -172,7 +156,7 @@ public class HibernateRuleCheck {
     }
 
     
-    public final boolean hashCodeAndEqualsNotUseIdentifierPropertyRule(List<Declaration> classes) {
+    public final boolean hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
         for (Declaration entityNode : classes) {
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
@@ -212,7 +196,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean hashCodeAndEqualsRule(List<Declaration> classes) {
+    public final boolean hashCodeAndEqualsRule(Set<Declaration> classes) {
         for (Declaration entityNode : classes) {
 
             Declaration equalsMethod = getEqualsMethod(entityNode);
@@ -254,7 +238,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean noArgumentConstructorRule(List<Declaration> classes) {
+    public final boolean noArgumentConstructorRule(Set<Declaration> classes) {
 
 
         for (Declaration entityNode : classes) {
@@ -282,7 +266,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean noFinalClassRule(List<Declaration> classes) {
+    public final boolean noFinalClassRule(Set<Declaration> classes) {
 
         for (Declaration entityNode : classes) {
 
@@ -302,7 +286,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean ProvideGetsSetsFieldsRule(List<Declaration> classes) {
+    public final boolean provideGetsSetsFieldsRule(Set<Declaration> classes) {
 
 
         for (Declaration entityNode : classes) {
@@ -340,7 +324,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean provideIdentifierPropertyRule(List<Declaration> classes) {
+    public final boolean provideIdentifierPropertyRule(Set<Declaration> classes) {
 
 
         for (Declaration entityNode : classes) {
@@ -358,7 +342,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean useInterfaceSetOrListRule(List<Declaration> allModelClasses) {
+    public final boolean useInterfaceSetOrListRule(Set<Declaration> allModelClasses) {
 
         for (Declaration entityNode : allModelClasses) {
 
@@ -389,7 +373,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean useListCollectionRule(List<Declaration> allModelClasses) {
+    public final boolean useListCollectionRule(Set<Declaration> allModelClasses) {
 
         for (Declaration entityNode : allModelClasses) {
 
@@ -418,7 +402,7 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean useSetCollectionRule(List<Declaration> allModelClasses) {
+    public final boolean useSetCollectionRule(Set<Declaration> allModelClasses) {
 
         for (Declaration entityNode : allModelClasses) {
 
@@ -445,6 +429,27 @@ public class HibernateRuleCheck {
             }
         }
         return this.isEmptyReport();
+    }
+
+    public void check(List<CompilationUnit> cus){
+        Set<Declaration> declrs = new HashSet<>();
+        for(CompilationUnit cu: cus){
+            for(TypeDeclaration td: cu.getTypes()){
+                Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
+                if(d!=null) {
+                    declrs.add(d);
+                }
+            }
+        }
+        hashCodeAndEqualsNotUseIdentifierPropertyRule(declrs);
+        hashCodeAndEqualsRule(declrs);
+        noArgumentConstructorRule(declrs);
+        noFinalClassRule(declrs);
+        provideGetsSetsFieldsRule(declrs);
+        provideIdentifierPropertyRule(declrs);
+        useInterfaceSetOrListRule(declrs);
+        useListCollectionRule(declrs);
+        useSetCollectionRule(declrs);
     }
 
 }

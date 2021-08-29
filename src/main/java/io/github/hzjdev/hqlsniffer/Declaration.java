@@ -51,19 +51,35 @@ public class Declaration implements Serializable {
         declarationType="class";
         constructors = new ArrayList<>();
         members = new ArrayList<>();
-
+        fields = new ArrayList<>();
         for(Object bd: td.getMembers()){
             if (bd instanceof MethodDeclaration){
                 members.add(new Declaration(cu, (MethodDeclaration)bd));
             }
         }
         for(Object cd: td.getConstructors()){
-            constructors.add(new Declaration(cu, (MethodDeclaration)cd));
+            constructors.add(new Declaration(cu, (ConstructorDeclaration)cd));
         }
 
         rawCU = cu;
         rawBD = td;
     }
+
+    public Declaration(CompilationUnit cu, ConstructorDeclaration cd){
+        setName(cd.getNameAsString());
+        cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));
+        cd.getRange().ifPresent(s -> this.setPosition(s.toString()));
+        this.setBody(cd.toString());
+        declarationType="constructor";
+        parametres = new ArrayList<>();
+        for(Parameter p :cd.getParameters()){
+            parametres.add(new Parametre(p.getTypeAsString(),p.getNameAsString()));
+        }
+
+        rawCU = cu;
+        rawBD = cd;
+    }
+
 
     public Declaration findDeclaration(String name){
         for(Declaration d: members){
