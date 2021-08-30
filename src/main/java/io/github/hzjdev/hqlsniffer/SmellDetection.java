@@ -353,6 +353,7 @@ public class SmellDetection {
         setCusCache(cus);
         List<CompilationUnit> entities = getEntities(cus);
         new HibernateRuleCheck().check(entities);
+        new Metrics().exec(entities);
         getOneToManyNPlusOne(entities, psr);
         List<Smell> eagerFetches = getEagerFetches(entities, psr);
         List<Result> hqls = getHqlNodes(cus);

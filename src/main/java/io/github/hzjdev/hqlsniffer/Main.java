@@ -378,6 +378,20 @@ public class Main {
         cleanSubAST(fc);
     }
 
+    public static List<Declaration> getSuperClassDeclarations(Declaration classNode){
+        List<Declaration> result = new ArrayList<>();
+        if(classNode == null){
+            return result;
+        }
+        List<String> superClasses = classNode.getSuperClass();
+        for(String superClass : superClasses) {
+            Declaration superClassD = findTypeDeclaration(superClass);
+            result.add(superClassD);
+            getSuperClassDeclarations(superClassD);
+        }
+        return result;
+    }
+
     public static void extractValuesAST(AST ast,List<String> res){
         if(ast == null) return;
         if(ast.getFirstChild()!=null && ast.getFirstChild().getNextSibling() != null && ast.getFirstChild().getNextSibling().getType() == HqlTokenTypes.COLON){

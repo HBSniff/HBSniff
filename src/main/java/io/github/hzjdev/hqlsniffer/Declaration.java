@@ -3,6 +3,7 @@ package io.github.hzjdev.hqlsniffer;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -26,6 +27,22 @@ public class Declaration implements Serializable {
 
     CompilationUnit rawCU;
     BodyDeclaration rawBD;
+
+    public List<String> getAnnotations(){
+        List<String> results = new ArrayList<>();
+        BodyDeclaration toProcess = null;
+        if (rawBD instanceof TypeDeclaration){
+            toProcess = getClassDeclr();
+        }else if(rawBD instanceof MethodDeclaration){
+            toProcess = rawBD.asMethodDeclaration();
+        }
+        if(toProcess!=null) {
+            for (Object annotation : toProcess.getAnnotations()) {
+                results.add(annotation.toString());
+            }
+        }
+        return results;
+    }
 
     public ClassOrInterfaceDeclaration getClassDeclr(){
         return this.getRawCU().findFirst(ClassOrInterfaceDeclaration.class).orElse(null);

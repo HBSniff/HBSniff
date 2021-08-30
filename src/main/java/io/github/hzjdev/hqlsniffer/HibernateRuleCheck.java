@@ -12,8 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static io.github.hzjdev.hqlsniffer.Main.findTypeDeclaration;
-import static io.github.hzjdev.hqlsniffer.Main.getTypeFromCache;
+import static io.github.hzjdev.hqlsniffer.Main.*;
 
 // transferred code from https://github.com/tacianosilva/designtests
 // M. Silva, D. Serey, J. Figueiredo, J. Brunet. Automated design tests to check Hibernate design recommendations. SBES 2019
@@ -185,19 +184,6 @@ public class HibernateRuleCheck {
         return null;
     }
 
-    public List<Declaration> getSuperClassDeclarations(Declaration classNode){
-        List<Declaration> result = new ArrayList<>();
-        if(classNode == null){
-            return result;
-        }
-        List<String> superClasses = classNode.getSuperClass();
-        for(String superClass : superClasses) {
-            Declaration superClassD = findTypeDeclaration(superClass);
-            result.add(superClassD);
-            getSuperClassDeclarations(superClassD);
-        }
-        return result;
-    }
     public final boolean hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
         for (Declaration entityNode : classes) {
             Declaration equalsMethod = getEqualsMethod(entityNode);
