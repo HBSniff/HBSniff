@@ -1,14 +1,15 @@
 package io.github.hzjdev.hqlsniffer;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Declaration implements Serializable {
     String name;
@@ -26,14 +27,51 @@ public class Declaration implements Serializable {
     CompilationUnit rawCU;
     BodyDeclaration rawBD;
 
-    public List<String> getAccessedFieldNames(){
-        List<FieldAccessExpr> fas = rawBD.findAll(FieldAccessExpr.class);
-        List<String> result = new ArrayList<String>();
-        for(FieldAccessExpr fa: fas){
-            result.add(fa.getNameAsString());
+    public ClassOrInterfaceDeclaration getClassDeclr(){
+        return this.getRawCU().findFirst(ClassOrInterfaceDeclaration.class).orElse(null);
+    }
+
+
+    public Set<String> getAccessedFieldNames(List<Declaration> parents){
+        Set<String> result = new HashSet<>(getAccessedFieldNamesInner(parents));
+        List<MethodCallExpr> mcs = rawBD.findAll(MethodCallExpr.class);
+        for(MethodCallExpr mc: mcs){
+            boolean skip = false;
+            for(Node n: mc.getChildNodes()){
+                if (n instanceof MethodCallExpr){
+                    skip = true;
+                    break;
+                }
+            }
+            if(skip) continue;
+            for(Declaration parent: parents) {
+                Declaration md = parent.findDeclaration(mc.getNameAsString());
+                if (md != null) {
+                    result.addAll(md.getAccessedFieldNamesInner(parents));
+                }
+            }
         }
         return result;
     }
+
+    private List<String> getAccessedFieldNamesInner(List<Declaration> parents){
+        List<NameExpr> nes = rawBD.findAll(NameExpr.class);
+        List<String> result = new ArrayList<>();
+        Set<Parametre> fields = new HashSet<>();
+        for(Declaration d: parents){
+            fields.addAll(d.getFields());
+        }
+        for (NameExpr ne : nes) {
+            for (Parametre field : fields) {
+                if (field.getName().equals(ne.getNameAsString())) {
+                    result.add(ne.getNameAsString());
+                }
+            }
+        }
+
+        return result;
+    }
+
     public List<Parametre> getFields() {
         return fields;
     }
@@ -82,6 +120,7 @@ public class Declaration implements Serializable {
 
 
     public Declaration findDeclaration(String name){
+        if(members == null) return null;
         for(Declaration d: members){
             if (d.getName().equals(name)){
                 return d;
@@ -116,6 +155,18 @@ public class Declaration implements Serializable {
         }
         return result;
     }
+
+    public List<String> getImplementedInterface(){
+        List<String> result = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> classes = getRawCU().findAll(ClassOrInterfaceDeclaration.class);
+        for(ClassOrInterfaceDeclaration clazz: classes){
+            for (ClassOrInterfaceType ct: clazz.getImplementedTypes()) {
+                result.add(ct.getNameAsString());
+            }
+        }
+        return result;
+    }
+
 
     public CompilationUnit getRawCU() {
         return rawCU;

@@ -350,8 +350,9 @@ public class SmellDetection {
         ProjectSmellReport psr = new ProjectSmellReport();
         List<CompilationUnit> cus = new ArrayList<>();
         parseFrom(root_path+"\\"+project, cus);
+        setCusCache(cus);
         List<CompilationUnit> entities = getEntities(cus);
-        new HibernateRuleCheck().check(cus);
+        new HibernateRuleCheck().check(entities);
         getOneToManyNPlusOne(entities, psr);
         List<Smell> eagerFetches = getEagerFetches(entities, psr);
         List<Result> hqls = getHqlNodes(cus);

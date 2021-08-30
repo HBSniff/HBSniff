@@ -27,6 +27,7 @@ import static io.github.hzjdev.hqlsniffer.Const.LEVEL_TO_PARSE;
 public class Main {
 
     public static Map<String, Declaration> declarationCache = new HashMap<>();
+    public static List<CompilationUnit> cusCache;
     // Copied from CSDN
     public static List<CompilationUnit> parseFrom(String DirPath, List<CompilationUnit> results ) {
         File dirfile = new File( DirPath );//根据DirPath实例化一个File对象
@@ -705,8 +706,20 @@ public class Main {
     public static Declaration getTypeFromCache(String retType){
         return declarationCache.get(retType);
     }
+
+
+    public static Declaration findTypeDeclaration(String retType){
+        return findTypeDeclaration(retType, cusCache, 1);
+    }
+
+    public static void setCusCache(List<CompilationUnit> cus){
+        cusCache = cus;
+    }
     public static Declaration findTypeDeclaration(String retType, List<CompilationUnit> cus, Integer level) {
         Declaration d = null;
+        if(cusCache == null){
+            cusCache = cus;
+        }
         if(Const.builtinTypes.contains(retType)){
             return null;
         }

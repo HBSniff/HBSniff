@@ -2,6 +2,8 @@ package io.github.hzjdev.hqlsniffer;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 
 
@@ -61,7 +63,7 @@ public class HibernateRuleCheck {
         String type = fieldNode.getType();
 
         String setName = "set" + fieldName.substring(0, 1).toUpperCase()
-                + fieldName.substring(1) + "(" + type + ")";
+                + fieldName.substring(1);
 
         Declaration methodNode = entityNode.findDeclaration(setName);
 
@@ -69,13 +71,14 @@ public class HibernateRuleCheck {
             return false;
         }
 
+        if ((methodNode.getParametres()!=null) && !(methodNode.getParametres().size()==1 && methodNode.getParametres().get(0).getType().equals(type))) {
+            return false;
+        }
+
         String methodName = methodNode.getName();
         String methodType = methodNode.getReturnTypeName();
 
-        if (methodName.equals(setName) && methodType.equals("void")) {
-            return true;
-        }
-        return false;
+        return methodName.equals(setName) && (methodType.equals("void") || methodType.equals(entityNode.getName()));
     }
 
     /**
@@ -97,41 +100,61 @@ public class HibernateRuleCheck {
         }
 
         String methodGetField = strGetOrIs + shortFieldName.substring(0, 1).toUpperCase()
-                + shortFieldName.substring(1) + "()";
+                + shortFieldName.substring(1);
 
         Declaration methodNode = entityNode.findDeclaration(methodGetField);
 
-        if (methodNode == null) {
+        if (methodNode == null || (methodNode.getParametres()!=null && methodNode.getParametres().size()>0) ) {
             return false;
         }
 
         String methodName = methodNode.getName();
         String methodType = methodNode.getReturnTypeName();
 
-        if (methodName.equals(methodGetField) && methodType.equals(type)) {
-            return true;
-        }
-
-        return false;
+        return methodName.equals(methodGetField) && methodType.equals(type);
     }
 
 
     protected final Declaration getEqualsMethod(final Declaration classNode) {
-        Declaration equalsMethod = classNode.findDeclaration("equals(java.lang.Object)");
-//        CompilationUnit superClass = classNode.getSuperClass();
-//        if (equalsMethod == null && !getObjectClass().equals(superClass)) {
-//            equalsMethod = classNode.getInheritedMethod("equals(java.lang.Object)");
-//        }
-        return equalsMethod;
+        if(classNode==null) return null;
+        boolean check = false;
+        Declaration toJudge = classNode.findDeclaration("equals");
+        if(toJudge!=null) {
+            List<Parametre> params = toJudge.getParametres();
+            if (params != null && params.size() == 1) {
+                Parametre p = params.get(0);
+                check = p.getType().equals("Object");
+            }
+        }
+        if(!check){
+            for(Declaration superClassEntity : getSuperClassDeclarations(classNode)){
+                toJudge = getEqualsMethod(superClassEntity);
+                if(toJudge != null){
+                    return toJudge;
+                }
+            }
+        }
+        return toJudge;
     }
 
+
     protected final Declaration getHashCodeMethod(final Declaration classNode) {
-        Declaration hashCodeMethod = classNode.findDeclaration("hashCode()");
-//        CompilationUnit superClass = classNode.getSuperClass();
-//        if (hashCodeMethod == null && !getObjectClass().equals(superClass)) {
-//            hashCodeMethod = classNode.getInheritedMethod("hashCode()");
-//        }
-        return hashCodeMethod;
+        if(classNode==null) return null;
+        boolean check = false;
+        Declaration toJudge = classNode.findDeclaration("hashCode");
+        if(toJudge!=null) {
+            List<Parametre> params = toJudge.getParametres();
+            check = params == null || params.size() == 0;
+        }
+        if(!check){
+            for(Declaration superClassEntity : getSuperClassDeclarations(classNode)){
+                toJudge = getEqualsMethod(superClassEntity);
+                if(toJudge != null){
+                    return toJudge;
+                }
+            }
+        }
+        return toJudge;
     }
 
     protected final Declaration getMethod(final Declaration classNode, final String methodName) {
@@ -144,6 +167,7 @@ public class HibernateRuleCheck {
     }
 
     public final Parametre getIdentifierProperty(final Declaration entity) {
+        if(entity == null) return null;
         List<Parametre> declaredFields = entity.getFields();
         for (Parametre fieldNode : declaredFields) {
             List<String> annotations = fieldNode.getAnnotations();
@@ -152,10 +176,28 @@ public class HibernateRuleCheck {
                 return fieldNode;
             }
         }
+        for(Declaration superClassEntity : getSuperClassDeclarations(entity)){
+            Parametre fieldNode = getIdentifierProperty(superClassEntity);
+            if(fieldNode != null){
+                return fieldNode;
+            }
+        }
         return null;
     }
 
-    
+    public List<Declaration> getSuperClassDeclarations(Declaration classNode){
+        List<Declaration> result = new ArrayList<>();
+        if(classNode == null){
+            return result;
+        }
+        List<String> superClasses = classNode.getSuperClass();
+        for(String superClass : superClasses) {
+            Declaration superClassD = findTypeDeclaration(superClass);
+            result.add(superClassD);
+            getSuperClassDeclarations(superClassD);
+        }
+        return result;
+    }
     public final boolean hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
         for (Declaration entityNode : classes) {
             Declaration equalsMethod = getEqualsMethod(entityNode);
@@ -163,14 +205,15 @@ public class HibernateRuleCheck {
 
             Parametre field = getIdentifierProperty(entityNode);
 
-            List<String> accessedFieldsEquals = null;
-            List<String> accessedFieldsHash = null;
-
+            Set<String> accessedFieldsEquals = null;
+            Set<String> accessedFieldsHash = null;
+            List<Declaration> parents = getSuperClassDeclarations(entityNode);
+            parents.add(entityNode);
             if (equalsMethod != null) {
-                accessedFieldsEquals = equalsMethod.getAccessedFieldNames();
+                accessedFieldsEquals = equalsMethod.getAccessedFieldNames(parents);
             }
             if (hashCodeMethod != null) {
-                accessedFieldsHash = hashCodeMethod.getAccessedFieldNames();
+                accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
             }
 
             boolean contem = false;
@@ -221,20 +264,29 @@ public class HibernateRuleCheck {
         return this.isEmptyReport();
     }
 
-    public final boolean checkRule(List<Declaration> classes) {
-
+    public final boolean checkRule(Set<Declaration> classes) {
         for (Declaration entityNode : classes) {
-            String serializable = "java.io.Serializable";
-            List<String> superClasses = entityNode.getSuperClass();
-            if (!superClasses.contains(serializable)) {
-                //TODO: checkIfSuperClassesImplementsSerializable//&& !superClass.implementsInterface(serializable)
+            boolean pass = false;
+            String serializable = "Serializable";
+            for(Declaration superclass: getSuperClassDeclarations(entityNode)){
+                if(pass){
+                    break;
+                }
+                for(String i:superclass.getImplementedInterface()){
+                    if(i.equals(serializable)){
+                        this.addResultTrue(entityNode);
+                        pass = true;
+                        break;
+                    }
+                }
+            }
+            if(!pass) {
                 this.addReport("The class <" + entityNode.getName() + "> "
                         + "doesn't implements interface Serializable.\n");
                 this.addResultFalse(entityNode);
-            } else {
-                this.addResultTrue(entityNode);
             }
         }
+
         return this.isEmptyReport();
     }
 
@@ -270,12 +322,8 @@ public class HibernateRuleCheck {
 
         for (Declaration entityNode : classes) {
 
-            List<Parametre> members = entityNode.getFields();
-            Set<String> modifiers = new HashSet<>();
-            for (Parametre m :members){
-                modifiers.addAll(m.getModifiers());
-            }
-            if (modifiers.contains(Modifier.Keyword.FINAL.asString())) {
+            ClassOrInterfaceDeclaration cid = entityNode.getClassDeclr();
+            if (cid.getModifiers()!=null && cid.getModifiers().contains(Modifier.finalModifier())) {
                 this.addReport("The class <" + entityNode.getName()
                         + "> can't to be a final class.\n");
                 addResultFalse(entityNode);
@@ -351,7 +399,9 @@ public class HibernateRuleCheck {
 
             for (Parametre fieldNode : declaredFields) {
                 String type = fieldNode.getType();
-
+                if(type.contains("<")){
+                    type = type.split("<")[0];
+                }
                 if (Utils.isCollection(type) && !type.equals(Utils.SET_NAME)
                         && !type.equals(Utils.LIST_NAME)) {
                     this.addReport("The field <"
@@ -382,7 +432,9 @@ public class HibernateRuleCheck {
 
             for (Parametre fieldNode : declaredFields) {
                 String type = fieldNode.getType();
-
+                if(type.contains("<")){
+                    type = type.split("<")[0];
+                }
                 if (Utils.isCollection(type) && !Utils.isList(type)) {
                     this.addReport("The field <" + fieldNode.getName()
                             + "> of the class <" + fieldNode.getName()
@@ -411,7 +463,9 @@ public class HibernateRuleCheck {
 
             for (Parametre fieldNode : declaredFields) {
                 String type = fieldNode.getType();
-
+                if(type.contains("<")){
+                    type = type.split("<")[0];
+                }
                 if (Utils.isCollection(type) && !Utils.isSet(type)) {
                     this.addReport("The field <" + fieldNode.getName()
                             + "> of the class <" + fieldNode.getName()
@@ -448,8 +502,18 @@ public class HibernateRuleCheck {
         provideGetsSetsFieldsRule(declrs);
         provideIdentifierPropertyRule(declrs);
         useInterfaceSetOrListRule(declrs);
-        useListCollectionRule(declrs);
+//        useListCollectionRule(declrs);
         useSetCollectionRule(declrs);
+        checkRule(declrs);
+    }
+
+    public Set<Declaration> getResultsTrue() {
+        return resultsTrue;
+    }
+
+
+    public Set<Declaration> getResultsFalse() {
+        return resultsFalse;
     }
 
 }
