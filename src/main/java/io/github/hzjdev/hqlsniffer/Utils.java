@@ -1,8 +1,11 @@
 package io.github.hzjdev.hqlsniffer;
 
+import com.github.javaparser.Range;
+import com.github.javaparser.ast.Node;
 import com.google.common.collect.Lists;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class Utils {
 
@@ -34,7 +37,33 @@ public class Utils {
             return false;
         }
 
-        /**
+        public static String cleanHql(String hql){
+    //        if(hql.startsWith("\"")){
+    //            hql = hql.replaceFirst("\"","");
+    //        }
+            hql = hql.replaceAll("\\+","");
+            hql = hql.replaceAll("\"","");
+            Pattern pattern = Pattern.compile(" +");
+            hql = pattern.matcher(hql).replaceAll(" ");
+            return hql;
+        }
+
+    public static String extractParametrePosition(Node p){
+        Range a = p.getRange().orElse(null);
+        return a== null ? "" : a.toString();
+    }
+
+    public static String extractTypeFromExpression(String expr){
+        if(expr != null) {
+            if (expr.contains("<")) {
+                String[] tmp = expr.split("<");
+                expr = tmp[tmp.length - 1].split(">")[0];
+            }
+            expr = expr.replaceAll("\\[]", "");
+        }
+        return expr;
+    }
+    /**
          * Checks if the class name represents a collection of the Set type.
          * @param  name A complete class name with your package.
          * @return True if if the class name is a Set.

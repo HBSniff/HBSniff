@@ -9,17 +9,8 @@ public class Smell implements Serializable {
     String position;
     String className;
     String component;
-    Double intensity;
     List<Declaration> relatedComponent;
 
-    public Double getIntensity() {
-        return intensity;
-    }
-
-    public Smell setIntensity(Double intensity) {
-        this.intensity = intensity;
-        return this;
-    }
 
     public String getClassName() {
         return className;

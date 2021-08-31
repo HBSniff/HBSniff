@@ -98,6 +98,10 @@ public class Declaration implements Serializable {
         return this;
     }
 
+    public Declaration(CompilationUnit cu){
+        this(cu, cu.getTypes().get(0));
+    }
+
     public Declaration(CompilationUnit cu, TypeDeclaration td){
         setName(td.getNameAsString());
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));

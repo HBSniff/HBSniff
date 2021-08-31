@@ -1,35 +1,38 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.metric;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import io.github.hzjdev.hqlsniffer.Declaration;
+import io.github.hzjdev.hqlsniffer.Parametre;
+import io.github.hzjdev.hqlsniffer.Metric;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.hzjdev.hqlsniffer.Main.findTypeDeclaration;
-import static io.github.hzjdev.hqlsniffer.Main.getSuperClassDeclarations;
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
 
 /**
  * Implementing Mapping Metrics: {TATI,NCT,NCRF,ANV}
  * Paper: S. Holder, J. Buchan, S. G. MacDonell. Towards a Metrics Suite for Object-Relational Mappings. MBSDI 2008. 43-54
  */
-public class Metrics {
+public class MappingMetrics {
     /**
      * Table Accesses for Type Identification
      * @param entities
      * @return
      */
 
-    public Map<String, Set<String>> inheritanceMap = new HashMap<>();
-    public Map<String, Set<String>> relatedInheritanceMap = new HashMap<>();
-    public Map<String, Set<String>> correspondingInheritanceMap = new HashMap<>();
-    public Map<String, Set<String>> referencedFields = new HashMap<>();
+    public static Map<String, Set<String>> inheritanceMap = new HashMap<>();
+    public static Map<String, Set<String>> relatedInheritanceMap = new HashMap<>();
+    public static Map<String, Set<String>> correspondingInheritanceMap = new HashMap<>();
+    public static Map<String, Set<String>> referencedFields = new HashMap<>();
 
-    private Smell initSmell(Declaration entity){
-        return new Smell().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
+    private static Metric initMetric(Declaration entity){
+        return new Metric().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
 
-    public void initInheritance(List<Declaration> entities){
+    public static void initInheritance(List<Declaration> entities){
         for(Declaration entity: entities){
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
             String entityName = entity.getName();
@@ -65,7 +68,7 @@ public class Metrics {
         }
     }
 
-    public List<Declaration> getEntitiesWithTableAnnotation(List<Declaration> entities){
+    public static List<Declaration> getEntitiesWithTableAnnotation(List<Declaration> entities){
         if(entities == null) return null;
         return entities.stream().filter(sc->{
             boolean keep = false;
@@ -84,12 +87,12 @@ public class Metrics {
      * @param entities
      * @return
      */
-    public List<Smell> TATI(List<Declaration> entities){
-        List<Smell> result = new ArrayList<>();
+    public static List<Metric> TATI(List<Declaration> entities){
+        List<Metric> result = new ArrayList<>();
         for(Declaration entity: entities){
             Set<String> correspondingTables = relatedInheritanceMap.get(entity.getName());
             if(correspondingTables != null) {
-                Smell s = initSmell(entity)
+                Metric s = initMetric(entity)
                         .setName("TATI")
                         .setComponent(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
@@ -104,12 +107,12 @@ public class Metrics {
      * @param entities
      * @return
      */
-    public List<Smell> NCT(List<Declaration> entities){
-        List<Smell> result = new ArrayList<>();
+    public static List<Metric> NCT(List<Declaration> entities){
+        List<Metric> result = new ArrayList<>();
         for(Declaration entity: entities){
             Set<String> correspondingTables = referencedFields.get(entity.getName());
             if(correspondingTables != null) {
-                Smell s = initSmell(entity)
+                Metric s = initMetric(entity)
                         .setName("NCT")
                         .setComponent(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
@@ -124,12 +127,12 @@ public class Metrics {
      * @param entities
      * @return
      */
-    public List<Smell> NCRF(List<Declaration> entities){
-        List<Smell> result = new ArrayList<>();
+    public static List<Metric> NCRF(List<Declaration> entities){
+        List<Metric> result = new ArrayList<>();
         for(Declaration entity: entities){
             Set<String> correspondingTables = inheritanceMap.get(entity.getName());
             if(correspondingTables != null) {
-                Smell s = initSmell(entity)
+                Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setComponent(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
@@ -144,8 +147,8 @@ public class Metrics {
      * @param entities
      * @return
      */
-    public List<Smell> ANV(List<Declaration> entities){
-        List<Smell> result = new ArrayList<>();
+    public static List<Metric> ANV(List<Declaration> entities){
+        List<Metric> result = new ArrayList<>();
         String components = "";
         for(Declaration entity: entities){
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
@@ -176,7 +179,7 @@ public class Metrics {
             components += String.join(",", fieldNames);
             numOwnFields = fieldNames.size();
 
-            Smell s = initSmell(entity)
+            Metric s = initMetric(entity)
                     .setName("NCRF")
                     .setComponent(components)
                     .setIntensity(numOwnFields * numCorrespondingFields + 0.0);
@@ -185,7 +188,7 @@ public class Metrics {
         return result;
     }
 
-    public void exec(List<CompilationUnit> cus){
+    public static List<Metric> exec(List<CompilationUnit> cus){
         List<Declaration> entities = new ArrayList<>();
         for(CompilationUnit cu: cus){
             for(TypeDeclaration td: cu.getTypes()){
@@ -197,10 +200,10 @@ public class Metrics {
         }
         entities = getEntitiesWithTableAnnotation(entities);
         initInheritance(entities);
-        TATI(entities);
-        NCT(entities);
-        NCRF(entities);
-        ANV(entities);
-
+        List<Metric> result = TATI(entities);
+        result.addAll(NCT(entities));
+        result.addAll(NCRF(entities));
+        result.addAll(ANV(entities));
+        return result;
     }
 }
