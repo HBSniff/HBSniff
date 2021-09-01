@@ -15,7 +15,8 @@ public class GetterSetter extends SmellDetector {
 
     /**
      * Verifies if exists set method for the field.
-     * @param fieldNode The field contained in the class.
+     *
+     * @param fieldNode  The field contained in the class.
      * @param entityNode Entity that contains the field.
      * @return True if exists set method in the entity for the field.
      */
@@ -32,7 +33,7 @@ public class GetterSetter extends SmellDetector {
             return false;
         }
 
-        if ((methodNode.getParametres()!=null) && !(methodNode.getParametres().size()==1 && methodNode.getParametres().get(0).getType().equals(type))) {
+        if ((methodNode.getParametres() != null) && !(methodNode.getParametres().size() == 1 && methodNode.getParametres().get(0).getType().equals(type))) {
             return false;
         }
 
@@ -44,7 +45,8 @@ public class GetterSetter extends SmellDetector {
 
     /**
      * Verifies if exists get method for the field.
-     * @param fieldNode The field contained in the class.
+     *
+     * @param fieldNode  The field contained in the class.
      * @param entityNode Entity that contains the field.
      * @return True if exists get method in the entity for the field.
      */
@@ -65,7 +67,7 @@ public class GetterSetter extends SmellDetector {
 
         Declaration methodNode = entityNode.findDeclaration(methodGetField);
 
-        if (methodNode == null || (methodNode.getParametres()!=null && methodNode.getParametres().size()>0) ) {
+        if (methodNode == null || (methodNode.getParametres() != null && methodNode.getParametres().size() > 0)) {
             return false;
         }
 

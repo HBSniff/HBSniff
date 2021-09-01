@@ -17,17 +17,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 
 public class MissingOneToMany extends SmellDetector {
 
 
-
     public List<Smell> getOneToManyNPlusOne(List<CompilationUnit> cus) {
         List<Smell> result = new ArrayList<>();
-        for (CompilationUnit cu: cus){
-            for(TypeDeclaration cuType: cu.getTypes()) {
+        for (CompilationUnit cu : cus) {
+            for (TypeDeclaration cuType : cu.getTypes()) {
                 String typeName = cuType.getNameAsString();
                 List<NormalAnnotationExpr> annotations = cuType.findAll(NormalAnnotationExpr.class);
                 for (NormalAnnotationExpr annotation : annotations) {
@@ -47,9 +46,9 @@ public class MissingOneToMany extends SmellDetector {
                                         String type = extractTypeFromExpression(t.toString());
                                         d = findTypeDeclaration(type, cus, 1);
                                         if (d != null) {
-                                            for(Parametre targetField :d.getFields()){
+                                            for (Parametre targetField : d.getFields()) {
 
-                                                if(!targetField.getType().equals(typeName)){
+                                                if (!targetField.getType().equals(typeName)) {
                                                     continue;
                                                 }
                                                 if (!targetField.annotationIncludes("ManyToOne")) {

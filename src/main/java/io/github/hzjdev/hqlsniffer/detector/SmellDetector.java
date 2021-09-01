@@ -3,8 +3,8 @@ package io.github.hzjdev.hqlsniffer.detector;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.HashSet;
@@ -31,16 +31,16 @@ public abstract class SmellDetector {
 
     public HashSet<Declaration> entityDeclarations;
 
-    protected static Smell initSmell(Declaration entity){
+    protected static Smell initSmell(Declaration entity) {
         return new Smell().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
 
-    public SmellDetector populateContext(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellJSONReport psr){
+    public SmellDetector populateContext(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellJSONReport psr) {
         this.psr = psr;
         this.cus = cus;
         this.hqls = hqls;
         this.entities = entities;
-        if(cus!=null) {
+        if (cus != null) {
             declarations = new HashSet<>();
             entityDeclarations = new HashSet<>();
             for (CompilationUnit cu : cus) {
@@ -48,7 +48,7 @@ public abstract class SmellDetector {
                     Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
                     if (d != null) {
                         declarations.add(d);
-                        if (entities.contains(d)){
+                        if (entities.contains(d)) {
                             entityDeclarations.add(d);
                         }
                     }

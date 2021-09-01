@@ -16,24 +16,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hqlsniffer.utils.Utils.cleanHql;
 import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
-import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
 
 public class Fetch extends SmellDetector {
 
     public List<Smell> getEagerFetches(List<CompilationUnit> cus) {
         List<Smell> eagerFetches = new ArrayList<>();
-        for (CompilationUnit cu: cus){
+        for (CompilationUnit cu : cus) {
             List<NormalAnnotationExpr> annotations = cu.findAll(NormalAnnotationExpr.class);
-            for (NormalAnnotationExpr annotation: annotations) {
-                for(MemberValuePair mvp : annotation.getPairs()){
-                    if(mvp.getValue().toString().contains("EAGER")){
+            for (NormalAnnotationExpr annotation : annotations) {
+                for (MemberValuePair mvp : annotation.getPairs()) {
+                    if (mvp.getValue().toString().contains("EAGER")) {
                         Optional<Node> parentField = mvp.getParentNode();
-                        while(parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)){
+                        while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
                             parentField = parentField.get().getParentNode();
                         }
-                        if(parentField.isPresent()) {
+                        if (parentField.isPresent()) {
                             FieldDeclaration pf = (FieldDeclaration) parentField.get();
                             Declaration d;
                             final Smell smell = new Smell();
@@ -58,7 +58,7 @@ public class Fetch extends SmellDetector {
                                 cu.getStorage().ifPresent(s -> smell.setFile(s.getPath().toString()));
 
                                 Declaration parentDeclaration = new Declaration(cu);
-                                if(parentDeclaration != null) {
+                                if (parentDeclaration != null) {
                                     smell.setClassName(parentDeclaration.getName());
 
                                     List<Smell> smells = psr.getSmells().get(parentDeclaration);
@@ -80,16 +80,16 @@ public class Fetch extends SmellDetector {
 
     public List<Smell> getJoinFetch(List<HqlAndContext> hqls, List<CompilationUnit> cus, List<Smell> eagerFetches) {
         List<Smell> joinFetchSmell = new ArrayList<>();
-        for (HqlAndContext hql_: hqls) {
+        for (HqlAndContext hql_ : hqls) {
             StringBuilder hql = new StringBuilder();
-            for (String hql__: hql_.getHql()){
+            for (String hql__ : hql_.getHql()) {
                 hql.append(hql__).append(' ');
             }
             String hql_s = hql.toString().toLowerCase();
-            if(!hql_s.contains("join fetch")){
+            if (!hql_s.contains("join fetch")) {
                 String from_entity = null;
                 hql_s = cleanHql(hql_s);
-                if(!hql_s.startsWith("delete") && !hql_s.startsWith("update") && !hql_s.startsWith("insert")) {
+                if (!hql_s.startsWith("delete") && !hql_s.startsWith("update") && !hql_s.startsWith("insert")) {
                     try {
                         from_entity = hql_s.split("from ")[1].split(" ")[0];
                     } catch (Exception e) {

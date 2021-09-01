@@ -11,6 +11,14 @@ public class Metric extends Smell {
     @Expose
     Double intensity;
 
+    public static List<String[]> toCSV(List<Metric> lines) {
+        String[] heads = {"metric", "file", "className", "comment", "position", "value"};
+        List<String[]> result = new ArrayList<>();
+        result.add(heads);
+        result.addAll(lines.stream().map(Metric::getLine).collect(Collectors.toList()));
+        return result;
+    }
+
     public Double getIntensity() {
         return intensity;
     }
@@ -58,16 +66,8 @@ public class Metric extends Smell {
 
     public String[] getLine() {
         return new String[]{
-            this.getName(), this.getFile(), this.getClassName(), this.getComment(), this.getPosition(), this.getIntensity().toString(),
+                this.getName(), this.getFile(), this.getClassName(), this.getComment(), this.getPosition(), this.getIntensity().toString(),
         };
-    }
-
-    public static List<String[]> toCSV(List<Metric> lines){
-        String[] heads = {"metric","file","className","comment","position","value"};
-        List<String[]> result = new ArrayList<>();
-        result.add(heads);
-        result.addAll(lines.stream().map(Metric::getLine).collect(Collectors.toList()));
-        return result;
     }
 
 }

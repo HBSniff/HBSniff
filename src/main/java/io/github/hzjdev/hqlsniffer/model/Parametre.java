@@ -29,6 +29,13 @@ public class Parametre implements Serializable {
     @Expose(serialize = false)
     Declaration typeDeclaration;
 
+    public Parametre(String type, String name) {
+        this.type = type;
+        this.name = name;
+        this.annotations = new ArrayList<>();
+        this.modifiers = new ArrayList<>();
+    }
+
     public List<String> getModifiers() {
         return modifiers;
     }
@@ -55,15 +62,8 @@ public class Parametre implements Serializable {
         return this;
     }
 
-    public Parametre(String type, String name) {
-        this.type = type;
-        this.name = name;
-        this.annotations = new ArrayList<>();
-        this.modifiers = new ArrayList<>();
-    }
-
-    public Parametre populateModifiers(List<Modifier> ms){
-        for(Modifier m: ms){
+    public Parametre populateModifiers(List<Modifier> ms) {
+        for (Modifier m : ms) {
             modifiers.add(m.getKeyword().asString());
         }
         return this;
@@ -95,26 +95,26 @@ public class Parametre implements Serializable {
         this.annotations = annotations;
     }
 
-    public Parametre populateAnnotations(List<AnnotationExpr> annotationExprs){
-        for (AnnotationExpr expr: annotationExprs){
+    public Parametre populateAnnotations(List<AnnotationExpr> annotationExprs) {
+        for (AnnotationExpr expr : annotationExprs) {
             annotations.add(expr.toString());
         }
         return this;
 
     }
 
-    public boolean annotationIncludes(String s){
-        for(String annotation: annotations){
-            if (annotation.contains(s)){
+    public boolean annotationIncludes(String s) {
+        for (String annotation : annotations) {
+            if (annotation.contains(s)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isStatic(){
-        for(String modifier: modifiers){
-            if(Modifier.Keyword.STATIC.asString().equals(modifier)){
+    public boolean isStatic() {
+        for (String modifier : modifiers) {
+            if (Modifier.Keyword.STATIC.asString().equals(modifier)) {
                 return true;
             }
         }

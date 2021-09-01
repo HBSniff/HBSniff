@@ -5,7 +5,6 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +15,8 @@ public class FinalEntity extends SmellDetector {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
             ClassOrInterfaceDeclaration cid = entityNode.getClassDeclr();
-            if(cid==null) continue;
-            if (cid.getModifiers()!=null && cid.getModifiers().contains(Modifier.finalModifier())) {
+            if (cid == null) continue;
+            if (cid.getModifiers() != null && cid.getModifiers().contains(Modifier.finalModifier())) {
                 Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule");
                 psr.getSmells().get(entityNode).add(smell);
                 smells.add(smell);

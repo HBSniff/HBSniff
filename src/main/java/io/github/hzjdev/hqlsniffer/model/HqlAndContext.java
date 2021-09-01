@@ -14,7 +14,7 @@ public class HqlAndContext implements Serializable {
     String methodBody;
     String cleanedHql;
     List<Declaration> hqlFromType;
-    Map<String,String> aliasMap;
+    Map<String, String> aliasMap;
     String fullPath;
     String createQueryPosition;
     String methodPosition;
@@ -23,6 +23,10 @@ public class HqlAndContext implements Serializable {
     Declaration returnTypeDeclaration;
     List<Declaration> calledIn;
 
+
+    public HqlAndContext() {
+        setId(UUID.randomUUID().toString().replaceAll("-", ""));
+    }
 
     public Map<String, String> getAliasMap() {
         return aliasMap;
@@ -92,7 +96,6 @@ public class HqlAndContext implements Serializable {
         return this;
     }
 
-
     public String getFullPath() {
         return fullPath;
     }
@@ -120,10 +123,6 @@ public class HqlAndContext implements Serializable {
         return this;
     }
 
-    public HqlAndContext() {
-        setId(UUID.randomUUID().toString().replaceAll("-", ""));
-    }
-
     public List<String> getHql() {
         return hql;
     }
@@ -134,13 +133,12 @@ public class HqlAndContext implements Serializable {
     }
 
     public HqlAndContext setHql(String hql) {
-        if(this.hql == null){
+        if (this.hql == null) {
             this.hql = new ArrayList<>();
         }
         this.hql.add(hql);
         return this;
     }
-
 
 
     public String getReturnType() {

@@ -15,20 +15,20 @@ import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDecla
 public class HashCodeAndEquals extends SmellDetector {
 
     protected final Declaration getEqualsMethod(final Declaration classNode) {
-        if(classNode==null) return null;
+        if (classNode == null) return null;
         boolean check = false;
         Declaration toJudge = classNode.findDeclaration("equals");
-        if(toJudge!=null) {
+        if (toJudge != null) {
             List<Parametre> params = toJudge.getParametres();
             if (params != null && params.size() == 1) {
                 Parametre p = params.get(0);
                 check = p.getType().equals("Object");
             }
         }
-        if(!check){
-            for(Declaration superClassEntity : getSuperClassDeclarations(classNode)){
+        if (!check) {
+            for (Declaration superClassEntity : getSuperClassDeclarations(classNode)) {
                 toJudge = getEqualsMethod(superClassEntity);
-                if(toJudge != null){
+                if (toJudge != null) {
                     return toJudge;
                 }
             }
@@ -38,23 +38,24 @@ public class HashCodeAndEquals extends SmellDetector {
 
 
     protected final Declaration getHashCodeMethod(final Declaration classNode) {
-        if(classNode==null) return null;
+        if (classNode == null) return null;
         boolean check = false;
         Declaration toJudge = classNode.findDeclaration("hashCode");
-        if(toJudge!=null) {
+        if (toJudge != null) {
             List<Parametre> params = toJudge.getParametres();
             check = params == null || params.size() == 0;
         }
-        if(!check){
-            for(Declaration superClassEntity : getSuperClassDeclarations(classNode)){
+        if (!check) {
+            for (Declaration superClassEntity : getSuperClassDeclarations(classNode)) {
                 toJudge = getEqualsMethod(superClassEntity);
-                if(toJudge != null){
+                if (toJudge != null) {
                     return toJudge;
                 }
             }
         }
         return toJudge;
     }
+
     public final List<Smell> hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
@@ -76,14 +77,14 @@ public class HashCodeAndEquals extends SmellDetector {
                 accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
             }
 
-            if (accessedFieldsEquals != null && field!=null && !accessedFieldsEquals.contains(field.getName())) {
-                comment +=("The class does not contain the identifier property <"
+            if (accessedFieldsEquals != null && field != null && !accessedFieldsEquals.contains(field.getName())) {
+                comment += ("The class does not contain the identifier property <"
                         + field.getName() + "> in the equals method.\n");
                 smelly = true;
             }
 
-            if (accessedFieldsHash != null && field!=null && !accessedFieldsHash.contains(field.getName())) {
-                comment +=("The class does not contain the identifier property <"
+            if (accessedFieldsHash != null && field != null && !accessedFieldsHash.contains(field.getName())) {
+                comment += ("The class does not contain the identifier property <"
                         + field.getName() + "> in the hashCode method.\n");
                 smelly = true;
             }

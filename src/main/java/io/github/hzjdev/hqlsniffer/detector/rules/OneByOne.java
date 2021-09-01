@@ -16,18 +16,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 
 public class OneByOne extends SmellDetector {
 
     public List<Smell> getOneByOne(List<CompilationUnit> cus) {
         List<Smell> lazyFetches = new ArrayList<>();
-        for (CompilationUnit cu: cus){
+        for (CompilationUnit cu : cus) {
             List<NormalAnnotationExpr> annotations = cu.findAll(NormalAnnotationExpr.class);
-            for (NormalAnnotationExpr annotation: annotations) {
-                for(MemberValuePair mvp : annotation.getPairs()){
-                    if(annotation.getNameAsString().contains("ToMany") && mvp.getValue().toString().contains("LAZY")) {
+            for (NormalAnnotationExpr annotation : annotations) {
+                for (MemberValuePair mvp : annotation.getPairs()) {
+                    if (annotation.getNameAsString().contains("ToMany") && mvp.getValue().toString().contains("LAZY")) {
                         Optional<Node> parentField = mvp.getParentNode();
                         while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
                             parentField = parentField.get().getParentNode();

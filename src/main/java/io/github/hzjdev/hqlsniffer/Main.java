@@ -4,29 +4,36 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.opencsv.CSVWriter;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetectorFactory;
 import io.github.hzjdev.hqlsniffer.metric.MappingMetrics;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
 import io.github.hzjdev.hqlsniffer.model.output.Metric;
 import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellCSVLine;
 import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
-import io.github.hzjdev.hqlsniffer.detector.*;
-import java.io.*;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.*;
 import static io.github.hzjdev.hqlsniffer.parser.HqlExtractor.getHqlNodes;
 
 public class Main {
 
-    public static void outputSmells(String jsonPath, String csvPath, ProjectSmellJSONReport results){
+    public static void outputSmells(String jsonPath, String csvPath, ProjectSmellJSONReport results) {
         //wirte to csv
         List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
         try (FileOutputStream fos = new FileOutputStream(csvPath);
              OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
              CSVWriter writer = new CSVWriter(osw)) {
-             writer.writeAll(csvContent);
-        }catch(IOException e){
-            System.out.println("Output path unavailable: "+csvPath);
+            writer.writeAll(csvContent);
+        } catch (IOException e) {
+            System.out.println("Output path unavailable: " + csvPath);
         }
 
         //write to json
@@ -36,27 +43,27 @@ public class Main {
                 .create();
         try (PrintWriter out = new PrintWriter(jsonPath)) {
             out.println(gs.toJson(results));
-        }catch(IOException e){
-            System.out.println("Output path unavailable: "+jsonPath);
+        } catch (IOException e) {
+            System.out.println("Output path unavailable: " + jsonPath);
         }
     }
 
-    public static void outputMetrics(String csvPath, List<Metric> metrics){
+    public static void outputMetrics(String csvPath, List<Metric> metrics) {
         //wirte to csv
         List<String[]> csvContent = Metric.toCSV(metrics);
         try (FileOutputStream fos = new FileOutputStream(csvPath);
              OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
              CSVWriter writer = new CSVWriter(osw)) {
             writer.writeAll(csvContent);
-        }catch(IOException e){
-            System.out.println("Output path unavailable: "+csvPath);
+        } catch (IOException e) {
+            System.out.println("Output path unavailable: " + csvPath);
         }
     }
 
-    public static void exec(String project, String root_path, String output_path){
+    public static void exec(String project, String root_path, String output_path) {
         //init context
         List<CompilationUnit> cus = new ArrayList<>();
-        parseFromDir(root_path+"\\"+project, cus);
+        parseFromDir(root_path + "\\" + project, cus);
         setCusCache(cus);
         List<CompilationUnit> entities = getEntities(cus);
         ProjectSmellJSONReport psr = ProjectSmellJSONReport.fromCompilationUnits(cus);
@@ -69,27 +76,27 @@ public class Main {
         List<Metric> metrics = MappingMetrics.exec(entities);
 
         //output
-        outputSmells(output_path+"\\"+project+"_smells.json", output_path+"\\"+project+"_smells.csv", psr);
-        outputMetrics(output_path+"\\"+project+"_metrics.csv",  metrics);
+        outputSmells(output_path + "\\" + project + "_smells.json", output_path + "\\" + project + "_smells.csv", psr);
+        outputMetrics(output_path + "\\" + project + "_metrics.csv", metrics);
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         String project;
         String root_path;
         String output_path;
         try {
             project = args[0];
-        }catch (Exception e){
+        } catch (Exception e) {
             project = "SpringBlog";
         }
         try {
             root_path = args[1];
-        }catch (Exception e){
+        } catch (Exception e) {
             root_path = "D:\\tools\\hql\\projects";
         }
         try {
             output_path = args[2];
-        }catch (Exception e){
+        } catch (Exception e) {
             output_path = "D:\\tools\\hql\\projects";
         }
         exec(project, root_path, output_path);

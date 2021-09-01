@@ -8,7 +8,8 @@ import io.github.hzjdev.hqlsniffer.model.output.Metric;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.hzjdev.hqlsniffer.parser.EntityParser.*;
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.genDeclarationsFromCompilationUnits;
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
 
 /**
  * Implementing Mapping Metrics: {TATI,NCT,NCRF,ANV}
@@ -17,6 +18,7 @@ import static io.github.hzjdev.hqlsniffer.parser.EntityParser.*;
 public class MappingMetrics {
     /**
      * Table Accesses for Type Identification
+     *
      * @param entities
      * @return
      */
@@ -26,16 +28,16 @@ public class MappingMetrics {
     public static Map<String, Set<String>> correspondingInheritanceMap = new HashMap<>();
     public static Map<String, Set<String>> referencedFields = new HashMap<>();
 
-    private static Metric initMetric(Declaration entity){
+    private static Metric initMetric(Declaration entity) {
         return new Metric().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
 
-    public static void initInheritance(List<Declaration> entities){
-        for(Declaration entity: entities){
+    public static void initInheritance(List<Declaration> entities) {
+        for (Declaration entity : entities) {
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
             String entityName = entity.getName();
             relatedInheritanceMap.computeIfAbsent(entityName, k -> new HashSet<>());
-            for(Declaration superClass: superClasses){
+            for (Declaration superClass : superClasses) {
                 String superClassName = superClass.getName();
                 inheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
                 inheritanceMap.get(superClassName).add(entityName);
@@ -49,29 +51,29 @@ public class MappingMetrics {
 
             }
         }
-        for(Declaration entity: entities) {
+        for (Declaration entity : entities) {
             String typeName = entity.getName();
-            Set<String> corresponding =  correspondingInheritanceMap.get(typeName);
-            if(corresponding == null){
+            Set<String> corresponding = correspondingInheritanceMap.get(typeName);
+            if (corresponding == null) {
                 corresponding = new HashSet<>();
             }
-            for(Parametre p :entity.getFields()){
+            for (Parametre p : entity.getFields()) {
                 final String parametreTypeName = p.getType().split("<")[0];
-                Declaration t = entities.stream().filter(i->i.getName().equals(parametreTypeName)).findFirst().orElse(null);
-                if(t!=null){
+                Declaration t = entities.stream().filter(i -> i.getName().equals(parametreTypeName)).findFirst().orElse(null);
+                if (t != null) {
                     corresponding.add(parametreTypeName);
                 }
             }
-            referencedFields.put(typeName,corresponding);
+            referencedFields.put(typeName, corresponding);
         }
     }
 
-    public static List<Declaration> getEntitiesWithTableAnnotation(List<Declaration> entities){
-        if(entities == null) return null;
-        return entities.stream().filter(sc->{
+    public static List<Declaration> getEntitiesWithTableAnnotation(List<Declaration> entities) {
+        if (entities == null) return null;
+        return entities.stream().filter(sc -> {
             boolean keep = false;
-            for(String annotation: sc.getAnnotations()){
-                if (annotation.contains("@Table")){
+            for (String annotation : sc.getAnnotations()) {
+                if (annotation.contains("@Table")) {
                     keep = true;
                     break;
                 }
@@ -82,14 +84,15 @@ public class MappingMetrics {
 
     /**
      * Table Accesses for Type Identification
+     *
      * @param entities
      * @return
      */
-    public static List<Metric> TATI(List<Declaration> entities){
+    public static List<Metric> TATI(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
-        for(Declaration entity: entities){
+        for (Declaration entity : entities) {
             Set<String> correspondingTables = relatedInheritanceMap.get(entity.getName());
-            if(correspondingTables != null) {
+            if (correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("TATI")
                         .setComment(String.join(",", correspondingTables))
@@ -102,14 +105,15 @@ public class MappingMetrics {
 
     /**
      * Number of Corresponding Tables
+     *
      * @param entities
      * @return
      */
-    public static List<Metric> NCT(List<Declaration> entities){
+    public static List<Metric> NCT(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
-        for(Declaration entity: entities){
+        for (Declaration entity : entities) {
             Set<String> correspondingTables = referencedFields.get(entity.getName());
-            if(correspondingTables != null) {
+            if (correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("NCT")
                         .setComment(String.join(",", correspondingTables))
@@ -122,14 +126,15 @@ public class MappingMetrics {
 
     /**
      * Number of Corresponding Relational Fields
+     *
      * @param entities
      * @return
      */
-    public static List<Metric> NCRF(List<Declaration> entities){
+    public static List<Metric> NCRF(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
-        for(Declaration entity: entities){
+        for (Declaration entity : entities) {
             Set<String> correspondingTables = inheritanceMap.get(entity.getName());
-            if(correspondingTables != null) {
+            if (correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setComment(String.join(",", correspondingTables))
@@ -142,37 +147,38 @@ public class MappingMetrics {
 
     /**
      * Additional Null Values
+     *
      * @param entities
      * @return
      */
-    public static List<Metric> ANV(List<Declaration> entities){
+    public static List<Metric> ANV(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
         String components = "";
-        for(Declaration entity: entities){
+        for (Declaration entity : entities) {
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
-            if(superClasses.size() <1) continue;
+            if (superClasses.size() < 1) continue;
 
-            Declaration topClass = superClasses.get(superClasses.size()-1);
+            Declaration topClass = superClasses.get(superClasses.size() - 1);
             Set<String> correspondingTables = inheritanceMap.get(topClass.getName());
-            if(correspondingTables == null) continue;
+            if (correspondingTables == null) continue;
             correspondingTables.remove(entity.getName());
             int numCorrespondingFields = 0;
             int numOwnFields = 0;
 
-            for(String table: correspondingTables){
-                Declaration t = entities.stream().filter(e->e.getName().equals(table)).findFirst().orElse(null);
+            for (String table : correspondingTables) {
+                Declaration t = entities.stream().filter(e -> e.getName().equals(table)).findFirst().orElse(null);
 
                 List<Parametre> fields;
-                if(t!=null){
+                if (t != null) {
                     fields = t.getFields();
-                    List<String> fieldNames = fields.stream().filter(f->f.getAnnotations().contains("@Id")).map(ff->entity.getName()+"::"+ff.getName()).collect(Collectors.toList());
+                    List<String> fieldNames = fields.stream().filter(f -> f.getAnnotations().contains("@Id")).map(ff -> entity.getName() + "::" + ff.getName()).collect(Collectors.toList());
                     components += String.join(",", fieldNames);
                     numCorrespondingFields += fieldNames.size();
                 }
 
             }
             List<Parametre> ownFields = entity.getFields();
-            List<String> fieldNames = ownFields.stream().filter(f->f.getAnnotations().contains("@Id")).map(ff->entity.getName()+"::"+ff.getName()).collect(Collectors.toList());
+            List<String> fieldNames = ownFields.stream().filter(f -> f.getAnnotations().contains("@Id")).map(ff -> entity.getName() + "::" + ff.getName()).collect(Collectors.toList());
             components += " | ";
             components += String.join(",", fieldNames);
             numOwnFields = fieldNames.size();
@@ -186,7 +192,7 @@ public class MappingMetrics {
         return result;
     }
 
-    public static List<Metric> exec(List<CompilationUnit> cus){
+    public static List<Metric> exec(List<CompilationUnit> cus) {
         List<Declaration> entities = genDeclarationsFromCompilationUnits(cus);
         entities = getEntitiesWithTableAnnotation(entities);
         initInheritance(entities);

@@ -22,7 +22,7 @@ public class CollectionField extends SmellDetector {
             StringBuilder comment = new StringBuilder();
             for (Parametre fieldNode : declaredFields) {
                 String type = fieldNode.getType();
-                if(type.contains("<")){
+                if (type.contains("<")) {
                     type = type.split("<")[0];
                 }
                 if (Utils.isCollection(type) && !type.equals(Utils.SET_NAME)
@@ -53,7 +53,7 @@ public class CollectionField extends SmellDetector {
 
             for (Parametre fieldNode : declaredFields) {
                 String type = fieldNode.getType();
-                if(type.contains("<")){
+                if (type.contains("<")) {
                     type = type.split("<")[0];
                 }
                 if (Utils.isCollection(type) && !Utils.isSet(type)) {

@@ -9,23 +9,23 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.Parametre;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
 
 public class HqlExtractor {
     public static List<HqlAndContext> getHqlNodes(List<CompilationUnit> cus) {
         List<HqlAndContext> hqlAndContexts = new ArrayList<>();
-        for (CompilationUnit cu: cus){
+        for (CompilationUnit cu : cus) {
             List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
-            for (MethodCallExpr mce: mces) {
-                if(mce.getNameAsString().equals("createQuery")){
+            for (MethodCallExpr mce : mces) {
+                if (mce.getNameAsString().equals("createQuery")) {
                     String hql = null;
 //                    String returnType = null;
                     String methodName = null;
@@ -39,19 +39,19 @@ public class HqlExtractor {
                     List<Parametre> params = new ArrayList<>();
 
                     // There may be no arguments
-                    if(mce.getArguments().size()>0) {
+                    if (mce.getArguments().size() > 0) {
                         // the first parametre of createQuery method call, may be hql or an identifier
                         try {
-                            if(mce.getArgument(0).isStringLiteralExpr()) {
+                            if (mce.getArgument(0).isStringLiteralExpr()) {
                                 hqlCandidate = mce.getArgument(0).asStringLiteralExpr().getValue();
                                 foundStrLitr = true;
-                            }else if(mce.getArgument(0).isBinaryExpr()){
+                            } else if (mce.getArgument(0).isBinaryExpr()) {
                                 hqlCandidate = concatBinaryExpr(mce.getArgument(0).asBinaryExpr());
                                 foundStrLitr = true;
-                            }else{
+                            } else {
                                 hqlCandidate = mce.getArgument(0).toString();
                             }
-                            if(hqlCandidate.endsWith(".class")){
+                            if (hqlCandidate.endsWith(".class")) {
                                 // the case of .createQuery(Domain.class)
                                 continue;
                             }
@@ -65,7 +65,7 @@ public class HqlExtractor {
 
                     // find the parent method body of createQuery statement
                     Optional<Node> parentMethod = mce.getParentNode();
-                    while(parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)){
+                    while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
                         parentMethod = parentMethod.get().getParentNode();
                     }
                     MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
@@ -76,16 +76,16 @@ public class HqlExtractor {
                         methodName = parent.getNameAsString();
                         parent.getRange().ifPresent(s -> hqlAndContext.setMethodPosition(s.toString()));
                         List<ReturnStmt> rstmt = parent.findAll(ReturnStmt.class);
-                        if(rstmt.size()>0) {
-                            rstmt.get(rstmt.size()-1).asReturnStmt().getExpression().ifPresent(s ->
+                        if (rstmt.size() > 0) {
+                            rstmt.get(rstmt.size() - 1).asReturnStmt().getExpression().ifPresent(s ->
                                     hqlAndContext.setReturnExpression(s.toString())
                             );
                         }
-                        for(Parameter p: parent.getParameters()) {
+                        for (Parameter p : parent.getParameters()) {
                             String type = p.getTypeAsString();
                             String name = p.getNameAsString();
                             Declaration declaration = findTypeDeclaration(type, cus, 1);
-                            params.add(new Parametre(type,name)
+                            params.add(new Parametre(type, name)
                                     .setTypeDeclaration(declaration)
                                     .setPosition(extractParametrePosition(p))
                                     .populateModifiers(p.getModifiers())
@@ -99,38 +99,37 @@ public class HqlExtractor {
                     }
 
                     // find hql
-                    if(foundStrLitr){
+                    if (foundStrLitr) {
                         // the easiest case
                         hql = hqlCandidate;
                         hqlAndContext.setHql(hql);
-                    }else{
+                    } else {
                         // looking at the method body
                         List<String> hqls = new ArrayList<>();
-                        if(parent!=null) {
+                        if (parent != null) {
                             List<ExpressionStmt> statements = parent.findAll(ExpressionStmt.class);
-                            for(ExpressionStmt statement : statements){
-                                if(statement.getExpression() instanceof VariableDeclarationExpr) {
+                            for (ExpressionStmt statement : statements) {
+                                if (statement.getExpression() instanceof VariableDeclarationExpr) {
                                     for (VariableDeclarator vd : statement.getExpression().asVariableDeclarationExpr().getVariables()) {
                                         if (vd != null && vd.getNameAsString().equals(hqlCandidate)) {
                                             vd.getInitializer().ifPresent(init -> {
                                                 String tmp = null;
                                                 if (init.isBinaryExpr()) {
                                                     tmp = concatBinaryExpr(init.asBinaryExpr());
-                                                }else if (init.isLiteralExpr()) {
+                                                } else if (init.isLiteralExpr()) {
                                                     tmp = extractLiteralExpr(init.asLiteralExpr());
-                                                }else{
-                                                    if  (!init.toString().contains(".class")) {
+                                                } else {
+                                                    if (!init.toString().contains(".class")) {
                                                         tmp = init.toString();
                                                     }
                                                 }
-                                                if(tmp!=null){
+                                                if (tmp != null) {
                                                     hqls.add(tmp);
                                                 }
                                             });
                                         }
                                     }
-                                }
-                                else if(statement.getExpression() instanceof AssignExpr) {
+                                } else if (statement.getExpression() instanceof AssignExpr) {
                                     List<String> extractedHql = extractHqlExpr(hqlCandidate, statement.getExpression().asAssignExpr());
                                     hqls.addAll(extractedHql);
                                 }
@@ -140,16 +139,16 @@ public class HqlExtractor {
                         hqlAndContext.setHql(hqls);
                     }
                     // if hql is not found this entity is useless
-                    if(hqlAndContext.getHql()!=null && hqlAndContext.getHql().size()>0) {
+                    if (hqlAndContext.getHql() != null && hqlAndContext.getHql().size() > 0) {
                         hqlAndContexts.add(hqlAndContext);
-                    }else{
+                    } else {
 
                         // TODO: LOGGING
                         System.out.println("\n##HQL Not Found");
-                        System.out.println("Candidate:"+hqlCandidate);
-                        System.out.println("File:"+ hqlAndContext.getFullPath());
-                        System.out.println("Method:"+ hqlAndContext.getMethodName());
-                        System.out.println("Position:"+ hqlAndContext.getCreateQueryPosition());
+                        System.out.println("Candidate:" + hqlCandidate);
+                        System.out.println("File:" + hqlAndContext.getFullPath());
+                        System.out.println("Method:" + hqlAndContext.getMethodName());
+                        System.out.println("Position:" + hqlAndContext.getCreateQueryPosition());
                     }
                 }
             }
@@ -157,39 +156,40 @@ public class HqlExtractor {
         return hqlAndContexts;
     }
 
-    public static String extractLiteralExpr(LiteralExpr le){
-        if(le instanceof StringLiteralExpr){
+    public static String extractLiteralExpr(LiteralExpr le) {
+        if (le instanceof StringLiteralExpr) {
             return ((StringLiteralExpr) le).getValue();
-        }else if(le instanceof CharLiteralExpr){
+        } else if (le instanceof CharLiteralExpr) {
             return ((CharLiteralExpr) le).getValue();
-        }else if(le instanceof TextBlockLiteralExpr){
+        } else if (le instanceof TextBlockLiteralExpr) {
             return ((TextBlockLiteralExpr) le).getValue();
-        }else{
+        } else {
             return le.toString();
         }
     }
-    public static String concatBinaryExpr(BinaryExpr expr){
+
+    public static String concatBinaryExpr(BinaryExpr expr) {
         StringBuilder hql_concatenated = new StringBuilder();
         String op = expr.asBinaryExpr().getOperator().toString();
         if (op.equals("PLUS")) {
-            for(Node e : expr.getChildNodes()){
-                if(e instanceof LiteralExpr) {
+            for (Node e : expr.getChildNodes()) {
+                if (e instanceof LiteralExpr) {
                     hql_concatenated.append(extractLiteralExpr((LiteralExpr) e));
-                }else if(e instanceof BinaryExpr){
+                } else if (e instanceof BinaryExpr) {
                     hql_concatenated.append(concatBinaryExpr(((BinaryExpr) e).asBinaryExpr()));
-                }else if(e instanceof NameExpr){
-                    hql_concatenated.append(":"+((NameExpr) e).asNameExpr().getNameAsString());
-                }else if(e instanceof MethodCallExpr) {
+                } else if (e instanceof NameExpr) {
+                    hql_concatenated.append(":" + ((NameExpr) e).asNameExpr().getNameAsString());
+                } else if (e instanceof MethodCallExpr) {
                     hql_concatenated.append(extractMethodCallExpr((MethodCallExpr) e));
-                }else if(e instanceof EnclosedExpr) {
-                    Expression inner =  ((EnclosedExpr) e).asEnclosedExpr().getInner();
-                    if(inner.isConditionalExpr()){
-                        hql_concatenated.append(":"+((EnclosedExpr) e).asEnclosedExpr().getInner().asConditionalExpr().getCondition().toString());
-                    }else{
-                        System.out.println("#99"+e.toString());
+                } else if (e instanceof EnclosedExpr) {
+                    Expression inner = ((EnclosedExpr) e).asEnclosedExpr().getInner();
+                    if (inner.isConditionalExpr()) {
+                        hql_concatenated.append(":" + ((EnclosedExpr) e).asEnclosedExpr().getInner().asConditionalExpr().getCondition().toString());
+                    } else {
+                        System.out.println("#99" + e.toString());
                     }
-                }else{
-                    System.out.println("#99"+e.toString());
+                } else {
+                    System.out.println("#99" + e.toString());
                 }
             }
         }
@@ -197,35 +197,34 @@ public class HqlExtractor {
     }
 
 
-    public static String extractMethodCallExpr(MethodCallExpr mce){
+    public static String extractMethodCallExpr(MethodCallExpr mce) {
         Optional<Expression> e = mce.getScope();
-        if(e.isPresent() && e.get().isMethodCallExpr()){
-            if(e.get().asMethodCallExpr().getScope().isPresent() ){
+        if (e.isPresent() && e.get().isMethodCallExpr()) {
+            if (e.get().asMethodCallExpr().getScope().isPresent()) {
                 Expression expr = e.get().asMethodCallExpr().getScope().get();
-                if(expr.isNameExpr()) {
+                if (expr.isNameExpr()) {
                     return ":" + e.get().asMethodCallExpr().getScope().get().asNameExpr().getNameAsString();
-                }
-                else if(expr.isMethodCallExpr()){
+                } else if (expr.isMethodCallExpr()) {
                     return extractMethodCallExpr(expr.asMethodCallExpr());
-                }
-                else{
+                } else {
                     return "";
                 }
             }
         }
         return "";
     }
-    public static List<String> extractHqlExpr(String hqlCandidate, AssignExpr statement){
+
+    public static List<String> extractHqlExpr(String hqlCandidate, AssignExpr statement) {
         List<String> hqls = new ArrayList<>();
         Expression expr = statement.getValue();
-        if(expr.isCastExpr()){
-            expr =expr.asCastExpr().getExpression();
+        if (expr.isCastExpr()) {
+            expr = expr.asCastExpr().getExpression();
         }
-        if(expr.isLiteralExpr()) {
+        if (expr.isLiteralExpr()) {
             String content = null;
-            if(expr.isStringLiteralExpr()) {
+            if (expr.isStringLiteralExpr()) {
                 content = expr.asStringLiteralExpr().getValue();
-            }else{
+            } else {
                 content = expr.toString();
             }
             String target = statement.getTarget().toString();
@@ -238,19 +237,19 @@ public class HqlExtractor {
                     hqls.add(content);
                 }
             }
-        }else if(expr.isBinaryExpr()){
+        } else if (expr.isBinaryExpr()) {
             String res = concatBinaryExpr(expr.asBinaryExpr());
-            if(!res.isEmpty()){
+            if (!res.isEmpty()) {
                 hqls.add(res);
             }
-        }else if(expr.isEnclosedExpr()){
+        } else if (expr.isEnclosedExpr()) {
             // ()
-        }else if(expr.isMethodCallExpr()){
-            if(((MethodCallExpr) expr).getScope().isPresent()) {
+        } else if (expr.isMethodCallExpr()) {
+            if (((MethodCallExpr) expr).getScope().isPresent()) {
                 hqls.add(extractMethodCallExpr(expr.asMethodCallExpr()));
             }
-        }else{
-            System.out.println("#84"+expr);
+        } else {
+            System.out.println("#84" + expr);
         }
         return hqls;
     }

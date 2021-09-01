@@ -18,18 +18,18 @@ public class NotSerializable extends SmellDetector {
         for (Declaration entityNode : classes) {
             boolean pass = false;
             String serializable = "Serializable";
-            for(Declaration superclass: getSuperClassDeclarations(entityNode)){
-                if(pass){
+            for (Declaration superclass : getSuperClassDeclarations(entityNode)) {
+                if (pass) {
                     break;
                 }
-                for(String i:superclass.getImplementedInterface()){
-                    if(i.equals(serializable)){
+                for (String i : superclass.getImplementedInterface()) {
+                    if (i.equals(serializable)) {
                         pass = true;
                         break;
                     }
                 }
             }
-            if(!pass) {
+            if (!pass) {
                 Smell smell = initSmell(entityNode).setName("NotSerializable");
                 psr.getSmells().get(entityNode).add(smell);
                 smells.add(smell);

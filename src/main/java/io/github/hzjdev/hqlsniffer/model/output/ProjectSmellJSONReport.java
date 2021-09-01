@@ -15,23 +15,24 @@ import static io.github.hzjdev.hqlsniffer.parser.EntityParser.genDeclarationsFro
 public class ProjectSmellJSONReport implements Serializable {
 
     @Expose
-    Map<Declaration,List<Smell>> smells;
+    Map<Declaration, List<Smell>> smells;
 
     public ProjectSmellJSONReport() {
         smells = new HashMap<>();
+    }
+
+    public static ProjectSmellJSONReport fromCompilationUnits(List<CompilationUnit> entities) {
+        ProjectSmellJSONReport toReturn = new ProjectSmellJSONReport();
+        for (Declaration d : genDeclarationsFromCompilationUnits(entities)) {
+            toReturn.getSmells().put(d, new ArrayList<>());
+        }
+        return toReturn;
     }
 
     public Map<Declaration, List<Smell>> getSmells() {
         return smells;
     }
 
-    public static ProjectSmellJSONReport fromCompilationUnits(List<CompilationUnit> entities){
-        ProjectSmellJSONReport toReturn = new ProjectSmellJSONReport();
-        for(Declaration d: genDeclarationsFromCompilationUnits(entities)){
-            toReturn.getSmells().put(d,new ArrayList<>());
-        }
-        return toReturn;
-    }
     public ProjectSmellJSONReport setSmells(Map<Declaration, List<Smell>> smells) {
         this.smells = smells;
         return this;
