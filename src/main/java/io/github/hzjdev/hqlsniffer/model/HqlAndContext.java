@@ -1,4 +1,4 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class Result implements Serializable {
+public class HqlAndContext implements Serializable {
     String id;
     List<String> hql;
     String returnType;
@@ -60,7 +60,7 @@ public class Result implements Serializable {
         return methodBody;
     }
 
-    public Result setMethodBody(String methodBody) {
+    public HqlAndContext setMethodBody(String methodBody) {
         this.methodBody = methodBody;
         return this;
     }
@@ -69,7 +69,7 @@ public class Result implements Serializable {
         return returnExpression;
     }
 
-    public Result setReturnExpression(String returnExpression) {
+    public HqlAndContext setReturnExpression(String returnExpression) {
         this.returnExpression = returnExpression;
         return this;
     }
@@ -78,7 +78,7 @@ public class Result implements Serializable {
         return methodPosition;
     }
 
-    public Result setMethodPosition(String methodPosition) {
+    public HqlAndContext setMethodPosition(String methodPosition) {
         this.methodPosition = methodPosition;
         return this;
     }
@@ -87,7 +87,7 @@ public class Result implements Serializable {
         return returnTypeDeclaration;
     }
 
-    public Result setReturnTypeDeclaration(Declaration returnTypeDeclaration) {
+    public HqlAndContext setReturnTypeDeclaration(Declaration returnTypeDeclaration) {
         this.returnTypeDeclaration = returnTypeDeclaration;
         return this;
     }
@@ -97,7 +97,7 @@ public class Result implements Serializable {
         return fullPath;
     }
 
-    public Result setFullPath(String fullPath) {
+    public HqlAndContext setFullPath(String fullPath) {
         this.fullPath = fullPath;
         return this;
     }
@@ -106,7 +106,7 @@ public class Result implements Serializable {
         return calledIn;
     }
 
-    public Result setCalledIn(List<Declaration> calledIn) {
+    public HqlAndContext setCalledIn(List<Declaration> calledIn) {
         this.calledIn = calledIn;
         return this;
     }
@@ -115,12 +115,12 @@ public class Result implements Serializable {
         return createQueryPosition;
     }
 
-    public Result setCreateQueryPosition(String createQueryPosition) {
+    public HqlAndContext setCreateQueryPosition(String createQueryPosition) {
         this.createQueryPosition = createQueryPosition;
         return this;
     }
 
-    public Result() {
+    public HqlAndContext() {
         setId(UUID.randomUUID().toString().replaceAll("-", ""));
     }
 
@@ -128,12 +128,12 @@ public class Result implements Serializable {
         return hql;
     }
 
-    public Result setHql(List<String> hql) {
+    public HqlAndContext setHql(List<String> hql) {
         this.hql = hql;
         return this;
     }
 
-    public Result setHql(String hql) {
+    public HqlAndContext setHql(String hql) {
         if(this.hql == null){
             this.hql = new ArrayList<>();
         }
@@ -147,7 +147,7 @@ public class Result implements Serializable {
         return returnType;
     }
 
-    public Result setReturnType(String returnType) {
+    public HqlAndContext setReturnType(String returnType) {
         this.returnType = returnType;
         return this;
     }
@@ -156,7 +156,7 @@ public class Result implements Serializable {
         return methodName;
     }
 
-    public Result setMethodName(String methodName) {
+    public HqlAndContext setMethodName(String methodName) {
         this.methodName = methodName;
         return this;
     }
@@ -165,7 +165,7 @@ public class Result implements Serializable {
         return params;
     }
 
-    public Result setParams(List<Parametre> params) {
+    public HqlAndContext setParams(List<Parametre> params) {
         this.params = params;
         return this;
     }

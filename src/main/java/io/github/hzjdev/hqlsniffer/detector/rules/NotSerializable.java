@@ -1,17 +1,20 @@
-package io.github.hzjdev.hqlsniffer.smell;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Smell;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
 
-public class NotSerializable extends SmellDetector{
+public class NotSerializable extends SmellDetector {
 
 
     public final List<Smell> checkRule(Set<Declaration> classes) {
+        List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
             boolean pass = false;
             String serializable = "Serializable";
@@ -21,24 +24,23 @@ public class NotSerializable extends SmellDetector{
                 }
                 for(String i:superclass.getImplementedInterface()){
                     if(i.equals(serializable)){
-                        addResultTrue(entityNode);
                         pass = true;
                         break;
                     }
                 }
             }
             if(!pass) {
-                addReport("The class <" + entityNode.getName() + "> "
-                        + "doesn't implements interface Serializable.\n");
-                addResultFalse(entityNode);
+                Smell smell = initSmell(entityNode).setName("NotSerializable");
+                psr.getSmells().get(entityNode).add(smell);
+                smells.add(smell);
             }
         }
 
-        return isEmptyReport();
+        return smells;
     }
 
     public List<Smell> exec() {
-        return checkRule(declarations);
+        return checkRule(entityDeclarations);
     }
 
 }

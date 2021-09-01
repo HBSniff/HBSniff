@@ -6,7 +6,7 @@
 
     <groupId>io.github.hzjdev.hqlsniffer</groupId>
     <artifactId>hqlSniffer</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
     <build>
         <plugins>
             <plugin>
@@ -74,6 +74,11 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>5.4.31.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.5</version>
         </dependency>
     </dependencies>
 </project>

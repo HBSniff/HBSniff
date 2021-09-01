@@ -1,4 +1,4 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.utils;
 
 import java.util.Arrays;
 import java.util.List;

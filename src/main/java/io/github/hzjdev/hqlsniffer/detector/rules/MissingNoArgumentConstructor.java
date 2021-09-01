@@ -1,17 +1,18 @@
-package io.github.hzjdev.hqlsniffer.smell;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
-import io.github.hzjdev.hqlsniffer.Smell;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class MissingNoArgumentConstructor extends SmellDetector{
+public class MissingNoArgumentConstructor extends SmellDetector {
 
     public final List<Smell> noArgumentConstructorRule(Set<Declaration> classes) {
-
-
+        List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
 
             // Checks the class and the inherited methods from the super class
@@ -27,18 +28,16 @@ public class MissingNoArgumentConstructor extends SmellDetector{
             }
 
             if (!passed) {
-                addReport("The class <" + entityNode.getName()
-                        + "> doesn't contain a default constructor.\n");
-                addResultFalse(entityNode);
-            } else {
-                addResultTrue(entityNode);
+                Smell smell = initSmell(entityNode).setName("MissingNoArgumentConstructor");
+                psr.getSmells().get(entityNode).add(smell);
+                smells.add(smell);
             }
         }
-        return isEmptyReport();
+        return smells;
     }
 
     public List<Smell> exec() {
-        return noArgumentConstructorRule(declarations);
+        return noArgumentConstructorRule(entityDeclarations);
     }
 
 }

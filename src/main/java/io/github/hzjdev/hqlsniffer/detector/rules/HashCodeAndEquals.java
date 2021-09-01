@@ -1,17 +1,18 @@
-package io.github.hzjdev.hqlsniffer.smell;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
-import io.github.hzjdev.hqlsniffer.Smell;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getIdentifierProperty;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
 
-public class HashCodeAndEquals extends SmellDetector{
-
+public class HashCodeAndEquals extends SmellDetector {
 
     protected final Declaration getEqualsMethod(final Declaration classNode) {
         if(classNode==null) return null;
@@ -55,7 +56,10 @@ public class HashCodeAndEquals extends SmellDetector{
         return toJudge;
     }
     public final List<Smell> hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
+        List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
+            String comment = "";
+            boolean smelly = false;
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
 
@@ -72,59 +76,51 @@ public class HashCodeAndEquals extends SmellDetector{
                 accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
             }
 
-            boolean contem = false;
-            if (accessedFieldsEquals != null && field!=null && accessedFieldsEquals.contains(field.getName())) {
-                addReport("The class <" + entityNode.getName()
-                        + "> contains the identifier property <"
+            if (accessedFieldsEquals != null && field!=null && !accessedFieldsEquals.contains(field.getName())) {
+                comment +=("The class does not contain the identifier property <"
                         + field.getName() + "> in the equals method.\n");
-                contem = true;
+                smelly = true;
             }
 
-            if (accessedFieldsHash != null && field!=null && accessedFieldsHash.contains(field.getName())) {
-                addReport("The class <" + entityNode.getName()
-                        + "> contains the identifier property <"
+            if (accessedFieldsHash != null && field!=null && !accessedFieldsHash.contains(field.getName())) {
+                comment +=("The class does not contain the identifier property <"
                         + field.getName() + "> in the hashCode method.\n");
-                contem = true;
+                smelly = true;
             }
-            if (contem) {
-                addResultFalse(entityNode);
-            } else {
-                addResultTrue(entityNode);
+            if (smelly) {
+                Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule").setComment(comment);
+                psr.getSmells().get(entityNode).add(smell);
+                result.add(smell);
             }
         }
-        return isEmptyReport();
+        return result;
     }
 
     public final List<Smell> hashCodeAndEqualsRule(Set<Declaration> classes) {
+        List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
-
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
-
-            boolean contem = equalsMethod != null && hashCodeMethod != null;
-
-            if (!(contem)) {
-                if (equalsMethod == null) {
-                    addReport("The class <" + entityNode.getName()
-                            + "> doesn't contain the equals method.\n");
-                }
-                if (hashCodeMethod == null) {
-                    addReport("The class <" + entityNode.getName()
-                            + "> doesn't contain the hashCode method.\n");
-                }
-                addResultFalse(entityNode);
-            } else {
-                addResultTrue(entityNode);
+            String comment = "";
+            if (equalsMethod == null) {
+                comment += "Missing equals method.\n";
+                Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule").setComment(comment);
+                psr.getSmells().get(entityNode).add(smell);
+                result.add(smell);
+            }
+            if (hashCodeMethod == null) {
+                comment += "Missing hashCode method.\n";
+                Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule").setComment(comment);
+                psr.getSmells().get(entityNode).add(smell);
+                result.add(smell);
             }
         }
-        return isEmptyReport();
+        return result;
     }
 
     public List<Smell> exec() {
-        List<Smell> idRule = hashCodeAndEqualsNotUseIdentifierPropertyRule(declarations);
-        idRule.addAll(hashCodeAndEqualsRule(declarations));
+        List<Smell> idRule = hashCodeAndEqualsNotUseIdentifierPropertyRule(entityDeclarations);
+        idRule.addAll(hashCodeAndEqualsRule(entityDeclarations));
         return idRule;
     }
-
-
 }

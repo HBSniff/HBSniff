@@ -1,16 +1,14 @@
 package io.github.hzjdev.hqlsniffer.metric;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
-import io.github.hzjdev.hqlsniffer.Metric;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.output.Metric;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
-import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.*;
 
 /**
  * Implementing Mapping Metrics: {TATI,NCT,NCRF,ANV}
@@ -94,7 +92,7 @@ public class MappingMetrics {
             if(correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("TATI")
-                        .setComponent(String.join(",", correspondingTables))
+                        .setComment(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
                 result.add(s);
             }
@@ -114,7 +112,7 @@ public class MappingMetrics {
             if(correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("NCT")
-                        .setComponent(String.join(",", correspondingTables))
+                        .setComment(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
                 result.add(s);
             }
@@ -134,7 +132,7 @@ public class MappingMetrics {
             if(correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
-                        .setComponent(String.join(",", correspondingTables))
+                        .setComment(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
                 result.add(s);
             }
@@ -181,7 +179,7 @@ public class MappingMetrics {
 
             Metric s = initMetric(entity)
                     .setName("NCRF")
-                    .setComponent(components)
+                    .setComment(components)
                     .setIntensity(numOwnFields * numCorrespondingFields + 0.0);
             result.add(s);
         }
@@ -189,15 +187,7 @@ public class MappingMetrics {
     }
 
     public static List<Metric> exec(List<CompilationUnit> cus){
-        List<Declaration> entities = new ArrayList<>();
-        for(CompilationUnit cu: cus){
-            for(TypeDeclaration td: cu.getTypes()){
-                Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
-                if(d!=null) {
-                    entities.add(d);
-                }
-            }
-        }
+        List<Declaration> entities = genDeclarationsFromCompilationUnits(cus);
         entities = getEntitiesWithTableAnnotation(entities);
         initInheritance(entities);
         List<Metric> result = TATI(entities);

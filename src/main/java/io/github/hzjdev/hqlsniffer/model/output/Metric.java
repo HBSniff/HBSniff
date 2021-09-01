@@ -1,9 +1,14 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.model.output;
+
+import com.google.gson.annotations.Expose;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
 
 import java.util.List;
 
-public class Metric extends Smell{
+public class Metric extends Smell {
+    @Expose
     Double intensity;
+
     public Double getIntensity() {
         return intensity;
     }
@@ -44,8 +49,8 @@ public class Metric extends Smell{
     }
 
     @Override
-    public Metric setComponent(String component) {
-        this.component = component;
+    public Metric setComment(String comment) {
+        this.comment = comment;
         return this;
     }
 

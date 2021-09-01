@@ -1,7 +1,8 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.model;
 
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,11 +10,23 @@ import java.util.List;
 import java.util.Objects;
 
 public class Parametre implements Serializable {
+
+    @Expose
     String type;
+
+    @Expose
     String name;
+
+    @Expose
     List<String> modifiers;
+
+    @Expose
     String position;
+
+    @Expose
     List<String> annotations;
+
+    @Expose(serialize = false)
     Declaration typeDeclaration;
 
     public List<String> getModifiers() {

@@ -1,31 +1,51 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.model;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 import java.util.*;
 
 public class Declaration implements Serializable {
+    @Expose
     String name;
+
+    @Expose
     String position;
+
+    @Expose
     String fullPath;
+
+    @Expose
     String body;
+
+    @Expose
     String declarationType;
+
+    @Expose
     String returnTypeName;
 
+    @Expose
     List<Parametre> fields;
+
+    @Expose
     List<Parametre> parametres;
+
+    @Expose
     List<Declaration> members;
+
+    @Expose
     List<Declaration> constructors;
 
+    @Expose(serialize = false)
     CompilationUnit rawCU;
+
+    @Expose(serialize = false)
     BodyDeclaration rawBD;
 
     public List<String> getAnnotations(){

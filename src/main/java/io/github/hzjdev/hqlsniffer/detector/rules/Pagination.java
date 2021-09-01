@@ -1,21 +1,21 @@
-package io.github.hzjdev.hqlsniffer.smell;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import com.github.javaparser.ast.CompilationUnit;
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.ProjectSmellReport;
-import io.github.hzjdev.hqlsniffer.Result;
-import io.github.hzjdev.hqlsniffer.Smell;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
+import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Pagination extends SmellDetector{
+public class Pagination extends SmellDetector {
 
 
 
-    public List<Smell> getPaged(List<Result> hqls, List<CompilationUnit> cus) {
+    public List<Smell> getPaged(List<HqlAndContext> hqls, List<CompilationUnit> cus) {
         List<Smell> pagedSmell = new ArrayList<>();
-        for (Result hql: hqls) {
+        for (HqlAndContext hql: hqls) {
             for (Declaration calledIn: hql.getCalledIn()){
                 String body = calledIn.getBody();
                 if(body.toLowerCase().contains("limit") || body.toLowerCase().contains("page")){
@@ -23,7 +23,7 @@ public class Pagination extends SmellDetector{
                         Smell smell = new Smell();
                         String path = calledIn.getFullPath();
                         smell.setPosition(calledIn.getPosition());
-                        smell.setFile(path).setComponent(calledIn.getName());
+                        smell.setFile(path).setComment(calledIn.getName());
                         Declaration parentDeclaration = null;
                         for(CompilationUnit cu: cus){
                             String cuPath = null;

@@ -1,14 +1,16 @@
-package io.github.hzjdev.hqlsniffer.smell;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
-import io.github.hzjdev.hqlsniffer.Smell;
-import io.github.hzjdev.hqlsniffer.Utils;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.output.Smell;
+import io.github.hzjdev.hqlsniffer.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class GetterSetter extends SmellDetector{
+public class GetterSetter extends SmellDetector {
 
 
     /**
@@ -76,9 +78,10 @@ public class GetterSetter extends SmellDetector{
 
     public final List<Smell> provideGetsSetsFieldsRule(Set<Declaration> classes) {
 
+        List<Smell> smells = new ArrayList<>();
 
         for (Declaration entityNode : classes) {
-
+            StringBuilder comment = new StringBuilder();
             List<Parametre> declaredFields = entityNode.getFields();
 
             boolean passed = true;
@@ -90,30 +93,26 @@ public class GetterSetter extends SmellDetector{
                 }
 
                 if (!hasGetMethod(fieldNode, entityNode)) {
-                    addReport("The field <" + fieldNode.getName() + "> of the class <"
-                            + fieldNode.getName()
-                            + " doesn't implement the get method.\n");
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(fieldNode.getName()).append(" doesn't implement the get method.\n");
                     passed = false;
                 }
                 if (!hasSetMethod(fieldNode, entityNode)) {
-                    addReport("The field <" + fieldNode.getName() + "> of the class <"
-                            + fieldNode.getName()
-                            + " doesn't implement the set method.\n");
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(fieldNode.getName()).append(" doesn't implement the set method.\n");
                     passed = false;
                 }
             }
 
             if (!passed) {
-                addResultFalse(entityNode);
-            } else {
-                addResultTrue(entityNode);
+                Smell smell = initSmell(entityNode).setName("GetterSetter").setComment(comment.toString());
+                psr.getSmells().get(entityNode).add(smell);
+                smells.add(smell);
             }
         }
-        return isEmptyReport();
+        return smells;
     }
 
     public List<Smell> exec() {
-        return provideGetsSetsFieldsRule(declarations);
+        return provideGetsSetsFieldsRule(entityDeclarations);
     }
 
 }

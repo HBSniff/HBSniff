@@ -5,15 +5,15 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
-import io.github.hzjdev.hqlsniffer.Const;
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
+import io.github.hzjdev.hqlsniffer.utils.Const;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
 import java.io.File;
 import java.util.*;
 
-import static io.github.hzjdev.hqlsniffer.Const.LEVEL_TO_PARSE;
-import static io.github.hzjdev.hqlsniffer.Utils.extractParametrePosition;
-import static io.github.hzjdev.hqlsniffer.Utils.extractTypeFromExpression;
+import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 
 public class EntityParser {
 
@@ -67,6 +67,19 @@ public class EntityParser {
         return results;
     }
 
+    public static List<Declaration> genDeclarationsFromCompilationUnits(List<CompilationUnit> cus){
+        List<Declaration> entities = new ArrayList<>();
+        if(cus==null) return entities;
+        for(CompilationUnit cu: cus){
+            for(TypeDeclaration td: cu.getTypes()){
+                Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
+                if(d!=null) {
+                    entities.add(d);
+                }
+            }
+        }
+        return entities;
+    }
     public static Parametre getIdentifierProperty(final Declaration entity) {
         if(entity == null) return null;
         List<Parametre> declaredFields = entity.getFields();
@@ -94,6 +107,7 @@ public class EntityParser {
         List<String> superClasses = classNode.getSuperClass();
         for(String superClass : superClasses) {
             Declaration superClassD = findTypeDeclaration(superClass);
+            if(superClassD == null) continue;
             result.add(superClassD);
             getSuperClassDeclarations(superClassD);
         }

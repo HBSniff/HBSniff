@@ -1,14 +1,28 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.model.output;
+
+import com.google.gson.annotations.Expose;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class Smell implements Serializable {
+    @Expose
     String name;
+
+    @Expose
     String file;
+
+    @Expose
     String position;
+
+    @Expose
     String className;
-    String component;
+
+    @Expose
+    String comment;
+
+    @Expose
     List<Declaration> relatedComponent;
 
 
@@ -57,12 +71,12 @@ public class Smell implements Serializable {
         return this;
     }
 
-    public String getComponent() {
-        return component;
+    public String getComment() {
+        return comment;
     }
 
-    public Smell setComponent(String component) {
-        this.component = component;
+    public Smell setComment(String comment) {
+        this.comment = comment;
         return this;
     }
 }

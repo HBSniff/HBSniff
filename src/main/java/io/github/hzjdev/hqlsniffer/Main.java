@@ -3,46 +3,61 @@ package io.github.hzjdev.hqlsniffer;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.opencsv.CSVWriter;
 import io.github.hzjdev.hqlsniffer.metric.MappingMetrics;
-import io.github.hzjdev.hqlsniffer.smell.*;
+import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellCSVLine;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.detector.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.*;
 import static io.github.hzjdev.hqlsniffer.parser.HqlExtractor.getHqlNodes;
 
 public class Main {
 
-    public static void output(String path, Object results) throws FileNotFoundException {
+    public static void output(String jsonPath, String csvPath, ProjectSmellJSONReport results){
+        List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
+        try (FileOutputStream fos = new FileOutputStream(csvPath);
+             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+             writer.writeAll(csvContent);
+        }catch(IOException e){
+            System.out.println("Output path unavailable: "+csvPath);
+        }
+
         Gson gs = new GsonBuilder()
                 .setPrettyPrinting()
-//                .disableHtmlEscaping()
+                .excludeFieldsWithoutExposeAnnotation()
                 .create();
-        try (PrintWriter out = new PrintWriter(path)) {
+        try (PrintWriter out = new PrintWriter(jsonPath)) {
             out.println(gs.toJson(results));
+        }catch(IOException e){
+            System.out.println("Output path unavailable: "+jsonPath);
         }
     }
 
-    public static void exec(String project, String root_path, String output_path) throws FileNotFoundException {
-        //init
-        ProjectSmellReport psr = new ProjectSmellReport();
+    public static void exec(String project, String root_path, String output_path){
+        //init context
         List<CompilationUnit> cus = new ArrayList<>();
         parseFromDir(root_path+"\\"+project, cus);
         setCusCache(cus);
         List<CompilationUnit> entities = getEntities(cus);
-        List<Result> hqls = getHqlNodes(cus);
+        ProjectSmellJSONReport psr = ProjectSmellJSONReport.fromCompilationUnits(cus);
+        List<HqlAndContext> hqls = getHqlNodes(cus);
 
-        List<Smell> results = new ArrayList<>();
-        List<SmellDetector> detectors = SmellDetectorFactory.createAll(cus, hqls, entities, psr);
-        for (SmellDetector sd: detectors){
-            results.addAll(sd.exec());
-        }
-        results.addAll(MappingMetrics.exec(entities));
+        //detection
+        SmellDetectorFactory
+                .createAll(cus, hqls, entities, psr)
+                .forEach(SmellDetector::exec);
+        MappingMetrics.exec(entities);
 
-        output(output_path+"\\"+project+"_smells.json", psr);
+        //output
+        output(output_path+"\\"+project+"_smells.json", output_path+"\\"+project+"_smells.csv", psr);
     }
 
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
         String project;
         String root_path;
         String output_path;

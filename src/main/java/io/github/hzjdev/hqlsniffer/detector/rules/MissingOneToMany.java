@@ -1,4 +1,4 @@
-package io.github.hzjdev.hqlsniffer.smell;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
@@ -8,18 +8,19 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.type.Type;
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
-import io.github.hzjdev.hqlsniffer.Smell;
+import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.hzjdev.hqlsniffer.Utils.extractTypeFromExpression;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
 
-public class MissingOneToMany extends SmellDetector{
+public class MissingOneToMany extends SmellDetector {
 
 
 
@@ -54,7 +55,7 @@ public class MissingOneToMany extends SmellDetector{
                                                 if (!targetField.annotationIncludes("ManyToOne")) {
                                                     List<Declaration> relatedComponent = new ArrayList<>();
                                                     relatedComponent.add(d);
-                                                    smell.setComponent(parentField.toString())
+                                                    smell.setComment(parentField.toString())
                                                             .setName("MissingOneToMany")
                                                             .setRelatedComponent(relatedComponent);
                                                     smell.setPosition(targetField.getPosition());

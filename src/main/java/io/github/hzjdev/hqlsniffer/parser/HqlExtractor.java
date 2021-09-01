@@ -8,20 +8,20 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
-import io.github.hzjdev.hqlsniffer.Declaration;
-import io.github.hzjdev.hqlsniffer.Parametre;
-import io.github.hzjdev.hqlsniffer.Result;
+import io.github.hzjdev.hqlsniffer.model.Declaration;
+import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.hzjdev.hqlsniffer.Utils.extractParametrePosition;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
 
 public class HqlExtractor {
-    public static List<Result> getHqlNodes(List<CompilationUnit> cus) {
-        List<Result> results = new ArrayList<>();
+    public static List<HqlAndContext> getHqlNodes(List<CompilationUnit> cus) {
+        List<HqlAndContext> hqlAndContexts = new ArrayList<>();
         for (CompilationUnit cu: cus){
             List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
             for (MethodCallExpr mce: mces) {
@@ -31,10 +31,10 @@ public class HqlExtractor {
                     String methodName = null;
                     String hqlCandidate = "";
                     Boolean foundStrLitr = false;
-                    Result result = new Result();
+                    HqlAndContext hqlAndContext = new HqlAndContext();
 
-                    cu.getStorage().ifPresent(s -> result.setFullPath(s.getPath().toString()));
-                    mce.getRange().ifPresent(s -> result.setCreateQueryPosition(s.toString()));
+                    cu.getStorage().ifPresent(s -> hqlAndContext.setFullPath(s.getPath().toString()));
+                    mce.getRange().ifPresent(s -> hqlAndContext.setCreateQueryPosition(s.toString()));
 
                     List<Parametre> params = new ArrayList<>();
 
@@ -57,7 +57,7 @@ public class HqlExtractor {
                             }
                         } catch (Exception e) {
                             System.out.println("698");
-                            System.out.println(result.toString());
+                            System.out.println(hqlAndContext.toString());
                             e.printStackTrace();
                             continue;
                         }
@@ -74,11 +74,11 @@ public class HqlExtractor {
                     if (parent != null) {
 //                        returnType = parent.getTypeAsString();
                         methodName = parent.getNameAsString();
-                        parent.getRange().ifPresent(s -> result.setMethodPosition(s.toString()));
+                        parent.getRange().ifPresent(s -> hqlAndContext.setMethodPosition(s.toString()));
                         List<ReturnStmt> rstmt = parent.findAll(ReturnStmt.class);
                         if(rstmt.size()>0) {
                             rstmt.get(rstmt.size()-1).asReturnStmt().getExpression().ifPresent(s ->
-                                    result.setReturnExpression(s.toString())
+                                    hqlAndContext.setReturnExpression(s.toString())
                             );
                         }
                         for(Parameter p: parent.getParameters()) {
@@ -94,7 +94,7 @@ public class HqlExtractor {
                         }
 //                        result.setReturnType(returnType)
 //                                .setMethodName(methodName).setParams(params).setMethodBody(parent.toString());
-                        result.setMethodName(methodName).setParams(params).setMethodBody(parent.toString());
+                        hqlAndContext.setMethodName(methodName).setParams(params).setMethodBody(parent.toString());
 
                     }
 
@@ -102,7 +102,7 @@ public class HqlExtractor {
                     if(foundStrLitr){
                         // the easiest case
                         hql = hqlCandidate;
-                        result.setHql(hql);
+                        hqlAndContext.setHql(hql);
                     }else{
                         // looking at the method body
                         List<String> hqls = new ArrayList<>();
@@ -137,24 +137,24 @@ public class HqlExtractor {
 //                                hqls.add(statement.getExpression().toString());
                             }
                         }
-                        result.setHql(hqls);
+                        hqlAndContext.setHql(hqls);
                     }
                     // if hql is not found this entity is useless
-                    if(result.getHql()!=null && result.getHql().size()>0) {
-                        results.add(result);
+                    if(hqlAndContext.getHql()!=null && hqlAndContext.getHql().size()>0) {
+                        hqlAndContexts.add(hqlAndContext);
                     }else{
 
                         // TODO: LOGGING
                         System.out.println("\n##HQL Not Found");
                         System.out.println("Candidate:"+hqlCandidate);
-                        System.out.println("File:"+result.getFullPath());
-                        System.out.println("Method:"+result.getMethodName());
-                        System.out.println("Position:"+result.getCreateQueryPosition());
+                        System.out.println("File:"+ hqlAndContext.getFullPath());
+                        System.out.println("Method:"+ hqlAndContext.getMethodName());
+                        System.out.println("Position:"+ hqlAndContext.getCreateQueryPosition());
                     }
                 }
             }
         }
-        return results;
+        return hqlAndContexts;
     }
 
     public static String extractLiteralExpr(LiteralExpr le){

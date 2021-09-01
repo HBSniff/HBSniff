@@ -1,4 +1,4 @@
-package io.github.hzjdev.hqlsniffer;
+package io.github.hzjdev.hqlsniffer.utils;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.Node;
