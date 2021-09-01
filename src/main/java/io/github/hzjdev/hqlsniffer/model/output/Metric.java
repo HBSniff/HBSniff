@@ -3,7 +3,9 @@ package io.github.hzjdev.hqlsniffer.model.output;
 import com.google.gson.annotations.Expose;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Metric extends Smell {
     @Expose
@@ -52,6 +54,20 @@ public class Metric extends Smell {
     public Metric setComment(String comment) {
         this.comment = comment;
         return this;
+    }
+
+    public String[] getLine() {
+        return new String[]{
+            this.getName(), this.getFile(), this.getClassName(), this.getComment(), this.getPosition(), this.getIntensity().toString(),
+        };
+    }
+
+    public static List<String[]> toCSV(List<Metric> lines){
+        String[] heads = {"metric","file","className","comment","position","value"};
+        List<String[]> result = new ArrayList<>();
+        result.add(heads);
+        result.addAll(lines.stream().map(Metric::getLine).collect(Collectors.toList()));
+        return result;
     }
 
 }

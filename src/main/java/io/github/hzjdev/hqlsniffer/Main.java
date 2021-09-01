@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.opencsv.CSVWriter;
 import io.github.hzjdev.hqlsniffer.metric.MappingMetrics;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
+import io.github.hzjdev.hqlsniffer.model.output.Metric;
 import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellCSVLine;
 import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
 import io.github.hzjdev.hqlsniffer.detector.*;
@@ -17,7 +18,8 @@ import static io.github.hzjdev.hqlsniffer.parser.HqlExtractor.getHqlNodes;
 
 public class Main {
 
-    public static void output(String jsonPath, String csvPath, ProjectSmellJSONReport results){
+    public static void outputSmells(String jsonPath, String csvPath, ProjectSmellJSONReport results){
+        //wirte to csv
         List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
         try (FileOutputStream fos = new FileOutputStream(csvPath);
              OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
@@ -27,6 +29,7 @@ public class Main {
             System.out.println("Output path unavailable: "+csvPath);
         }
 
+        //write to json
         Gson gs = new GsonBuilder()
                 .setPrettyPrinting()
                 .excludeFieldsWithoutExposeAnnotation()
@@ -35,6 +38,18 @@ public class Main {
             out.println(gs.toJson(results));
         }catch(IOException e){
             System.out.println("Output path unavailable: "+jsonPath);
+        }
+    }
+
+    public static void outputMetrics(String csvPath, List<Metric> metrics){
+        //wirte to csv
+        List<String[]> csvContent = Metric.toCSV(metrics);
+        try (FileOutputStream fos = new FileOutputStream(csvPath);
+             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+            writer.writeAll(csvContent);
+        }catch(IOException e){
+            System.out.println("Output path unavailable: "+csvPath);
         }
     }
 
@@ -51,10 +66,11 @@ public class Main {
         SmellDetectorFactory
                 .createAll(cus, hqls, entities, psr)
                 .forEach(SmellDetector::exec);
-        MappingMetrics.exec(entities);
+        List<Metric> metrics = MappingMetrics.exec(entities);
 
         //output
-        output(output_path+"\\"+project+"_smells.json", output_path+"\\"+project+"_smells.csv", psr);
+        outputSmells(output_path+"\\"+project+"_smells.json", output_path+"\\"+project+"_smells.csv", psr);
+        outputMetrics(output_path+"\\"+project+"_metrics.csv",  metrics);
     }
 
     public static void main(String[] args){
