@@ -35,6 +35,11 @@ public abstract class SmellDetector {
         return new Smell().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
 
+
+    public void setEntityDeclarations(HashSet<Declaration> entityDeclarations) {
+        this.entityDeclarations = entityDeclarations;
+    }
+
     public SmellDetector populateContext(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellJSONReport psr) {
         this.psr = psr;
         this.cus = cus;

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
 import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
@@ -123,27 +124,12 @@ public class EntityParser {
     }
 
 
-    public static Declaration populateDeclaration(TypeDeclaration td, List<CompilationUnit> cus, Integer level, Declaration d) {
-        for (Object m : td.getMembers()) {
-            if (m instanceof FieldDeclaration) {
-                for (VariableDeclarator vd : ((FieldDeclaration) m).asFieldDeclaration().getVariables()) {
-                    if (vd != null) {
-                        Parametre p = new Parametre(vd.getTypeAsString(), vd.getNameAsString())
-                                .setPosition(extractParametrePosition(vd))
-                                .populateAnnotations(((FieldDeclaration) m).getAnnotations());
-                        if (level <= LEVEL_TO_PARSE) {
-                            Declaration dec = findTypeDeclaration(vd.getTypeAsString(), cus, level + 1);
-                            p.setTypeDeclaration(dec);
-                        }
-                        if (d.getFields() == null) {
-                            d.setFields(new ArrayList<>());
-                        }
-                        d.getFields().add(p);
-                    }
-                }
-            }
+    public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
+        if (level <= LEVEL_TO_PARSE) {
+            d.setFields(d.getFields().stream().map(
+                    i->i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
+                    .collect(Collectors.toList()));
         }
-        return d;
     }
 
     public static List<ClassOrInterfaceDeclaration> extractSubTypes(TypeDeclaration td) {
@@ -178,13 +164,13 @@ public class EntityParser {
                 for (TypeDeclaration td : cu.getTypes()) {
                     if (td.getNameAsString().equals(retType)) {
                         d = new Declaration(cu, td);
-                        populateDeclaration(td, cus, level, d);
+                        populateDeclaration(cus, level, d);
                     }
                     if (d == null) {
                         for (ClassOrInterfaceDeclaration cid : extractSubTypes(td)) {
                             if (cid.getNameAsString().equals(retType)) {
                                 d = new Declaration(cu, cid);
-                                populateDeclaration(cid, cus, level, d);
+                                populateDeclaration(cus, level, d);
                             }
                         }
                     }

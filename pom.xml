@@ -6,7 +6,7 @@
 
     <groupId>io.github.hzjdev.hqlsniffer</groupId>
     <artifactId>hqlSniffer</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <build>
         <plugins>
             <plugin>
@@ -79,5 +79,12 @@
             <artifactId>opencsv</artifactId>
             <version>5.5</version>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 </project>

@@ -1,5 +1,6 @@
 package io.github.hzjdev.hqlsniffer.model;
 
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
@@ -8,8 +9,13 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.google.gson.annotations.Expose;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+
+import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
 
 public class Declaration implements Serializable {
     @Expose
@@ -64,6 +70,16 @@ public class Declaration implements Serializable {
         for (Object bd : td.getMembers()) {
             if (bd instanceof MethodDeclaration) {
                 members.add(new Declaration(cu, (MethodDeclaration) bd));
+            }
+            if (bd instanceof FieldDeclaration) {
+                for (VariableDeclarator vd : ((FieldDeclaration) bd).asFieldDeclaration().getVariables()) {
+                    if (vd != null) {
+                        Parametre p = new Parametre(vd.getTypeAsString(), vd.getNameAsString())
+                                .setPosition(extractParametrePosition(vd))
+                                .populateAnnotations(((FieldDeclaration) bd).getAnnotations());
+                        getFields().add(p);
+                    }
+                }
             }
         }
         for (Object cd : td.getConstructors()) {
@@ -320,4 +336,15 @@ public class Declaration implements Serializable {
     public void setConstructors(List<Declaration> constructors) {
         this.constructors = constructors;
     }
+
+    public static Declaration fromPath(String path){
+        File f = new File(path);
+        try {
+            CompilationUnit cu = StaticJavaParser.parse(f);
+            return new Declaration(cu, cu.getType(0));
+        }catch(IOException e){
+            return null;
+        }
+    }
+
 }
