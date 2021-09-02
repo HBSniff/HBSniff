@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
 import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
 
 public class Declaration implements Serializable {
@@ -122,6 +121,16 @@ public class Declaration implements Serializable {
         rawBD = md;
     }
 
+    public static Declaration fromPath(String path) {
+        File f = new File(path);
+        try {
+            CompilationUnit cu = StaticJavaParser.parse(f);
+            return new Declaration(cu, cu.getType(0));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     public List<String> getAnnotations() {
         List<String> results = new ArrayList<>();
         BodyDeclaration toProcess = null;
@@ -222,7 +231,6 @@ public class Declaration implements Serializable {
         }
         return result;
     }
-
 
     public CompilationUnit getRawCU() {
         return rawCU;
@@ -335,16 +343,6 @@ public class Declaration implements Serializable {
 
     public void setConstructors(List<Declaration> constructors) {
         this.constructors = constructors;
-    }
-
-    public static Declaration fromPath(String path){
-        File f = new File(path);
-        try {
-            CompilationUnit cu = StaticJavaParser.parse(f);
-            return new Declaration(cu, cu.getType(0));
-        }catch(IOException e){
-            return null;
-        }
     }
 
 }

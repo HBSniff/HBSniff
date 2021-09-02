@@ -4,13 +4,12 @@ import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.Parametre;
 import io.github.hzjdev.hqlsniffer.utils.Const;
+import io.github.hzjdev.hqlsniffer.utils.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
-import static io.github.hzjdev.hqlsniffer.utils.Utils.extractParametrePosition;
 import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 
 public class EntityParser {
@@ -105,6 +103,31 @@ public class EntityParser {
                 return fieldNode;
             }
         }
+        for (Declaration method : entity.getMembers()) {
+            List<String> annotations = method.getAnnotations();
+            String ID = "@Id";
+            if (annotations.contains(ID)) {
+                String type = method.getReturnTypeName();
+                String fieldName;
+                if (type != null && (type.equals(Utils.BOOLEAN_PRIMITIVE) || type.equals(Utils.BOOLEAN_CLASS))) {
+                    fieldName = method.getName().replaceFirst("is", "");
+                } else {
+                    fieldName = method.getName().replaceFirst("get", "");
+                }
+                String realFieldName = Character.toLowerCase(fieldName.charAt(0)) + fieldName.substring(1);
+                Parametre field = entity.getFields().stream().filter(i -> i.getName().equals(realFieldName)).findFirst().orElse(null);
+                if (field != null) {
+                    return field;
+                } else {
+                    for (Declaration superClassEntity : getSuperClassDeclarations(entity)) {
+                        field = superClassEntity.getFields().stream().filter(i -> i.getName().equals(realFieldName)).findFirst().orElse(null);
+                        if (field != null) {
+                            return field;
+                        }
+                    }
+                }
+            }
+        }
         return null;
     }
 
@@ -127,7 +150,7 @@ public class EntityParser {
     public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
         if (level <= LEVEL_TO_PARSE) {
             d.setFields(d.getFields().stream().map(
-                    i->i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
+                    i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
                     .collect(Collectors.toList()));
         }
     }
@@ -197,7 +220,6 @@ public class EntityParser {
             } else {
                 newParams.add(SubP);
             }
-            ;
             filterCycloDeclaration(subType, legacy, legacyDec);
         }
         d.setFields(newParams);

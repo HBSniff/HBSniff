@@ -19,7 +19,7 @@ public class MissingNoArgumentConstructor extends SmellDetector {
             List<Declaration> constructors = entityNode.getConstructors();
             boolean passed = false;
 
-            if(constructors != null) {
+            if (constructors != null) {
                 for (Declaration methodNode : constructors) {
                     List<Parametre> parameters = methodNode.getParametres();
                     if (parameters.isEmpty()) {

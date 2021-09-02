@@ -1,4 +1,4 @@
-package tests.io.github.hzjdev.hqlsniffer.detector.rules;
+package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import io.github.hzjdev.hqlsniffer.detector.rules.CollectionField;
 import io.github.hzjdev.hqlsniffer.detector.rules.MissingNoArgumentConstructor;

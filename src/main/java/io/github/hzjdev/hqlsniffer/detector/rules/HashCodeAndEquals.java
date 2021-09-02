@@ -102,16 +102,13 @@ public class HashCodeAndEquals extends SmellDetector {
         for (Declaration entityNode : classes) {
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
-            String comment = "";
             if (equalsMethod == null) {
-                comment += "Missing equals method.\n";
-                Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule").setComment(comment);
+                Smell smell = initSmell(entityNode).setName("MissingEquals");
                 psr.getSmells().get(entityNode).add(smell);
                 result.add(smell);
             }
             if (hashCodeMethod == null) {
-                comment += "Missing hashCode method.\n";
-                Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule").setComment(comment);
+                Smell smell = initSmell(entityNode).setName("MissingHashCode");
                 psr.getSmells().get(entityNode).add(smell);
                 result.add(smell);
             }

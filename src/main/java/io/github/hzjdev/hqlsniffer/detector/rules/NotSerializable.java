@@ -18,7 +18,9 @@ public class NotSerializable extends SmellDetector {
         for (Declaration entityNode : classes) {
             boolean pass = false;
             String serializable = "Serializable";
-            for (Declaration superclass : getSuperClassDeclarations(entityNode)) {
+            List<Declaration> toDetect = getSuperClassDeclarations(entityNode);
+            toDetect.add(entityNode);
+            for (Declaration superclass : toDetect) {
                 if (pass) {
                     break;
                 }

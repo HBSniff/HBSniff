@@ -2,9 +2,8 @@ package tests.io.github.hzjdev.hqlsniffer.entities;
 
 import javax.persistence.Id;
 
-public class MissingNoArgConstructorEntity{
+public class MissingIdentifierEntity {
 
-    @Id
     private String id;
 
     public void setId(String id) {

@@ -18,8 +18,8 @@ public class Utils {
     public static final String LIST_NAME = "List";
     public static String BOOLEAN_CLASS = "Boolean";
     public static String BOOLEAN_PRIMITIVE = "boolean";
-    private static String[] lists = {"Collection", "BeanContext", "BeanContextServices", "BlockingQueue", "Deque", "Queue", "TransferQueue", "AbstractCollection", "AbstractCollection", "AbstractList", "AbstractQueue", "SequentialList", "ArrayBlockingQueue", "ArrayDeque", "ArrayList", "AttributeList", "BeanContextServicesSupport", "BeanContextSupport", "ConcurrentLinkedDeque", "CopyOnWriteArrayList", "DelayQueue", "LinkedBlockingDeque", "LinkedBlockingQueue", "LinkedList", "LinkedTransferQueue", "PriorityBlockingQueue", "PriorityQueue", "RoleList", "RoleUnresolvedList", "Stack", "SynchronousQueue", "Vector"};
-    private static String[] sets = {"NavigableSet", "Set", "SortedSet", "AbstractSet", "ConcurrentHashMap.KeySetView", "ConcurrentSkipListSet", "CopyOnWriteArraySet", "EnumSet", "HashSet", "JobStateReasons", "LinkedHashSet", "TreeSet"};
+    private static final String[] lists = {"Collection", "BeanContext", "BeanContextServices", "BlockingQueue", "Deque", "Queue", "TransferQueue", "AbstractCollection", "AbstractCollection", "AbstractList", "AbstractQueue", "SequentialList", "ArrayBlockingQueue", "ArrayDeque", "ArrayList", "AttributeList", "BeanContextServicesSupport", "BeanContextSupport", "ConcurrentLinkedDeque", "CopyOnWriteArrayList", "DelayQueue", "LinkedBlockingDeque", "LinkedBlockingQueue", "LinkedList", "LinkedTransferQueue", "PriorityBlockingQueue", "PriorityQueue", "RoleList", "RoleUnresolvedList", "Stack", "SynchronousQueue", "Vector"};
+    private static final String[] sets = {"NavigableSet", "Set", "SortedSet", "AbstractSet", "ConcurrentHashMap.KeySetView", "ConcurrentSkipListSet", "CopyOnWriteArraySet", "EnumSet", "HashSet", "JobStateReasons", "LinkedHashSet", "TreeSet"};
 
     /**
      * Checks if the class name represents a java collection.
@@ -31,10 +31,7 @@ public class Utils {
         List<String> c = new ArrayList<>();
         c.addAll(Arrays.asList(lists));
         c.addAll(Arrays.asList(sets));
-        if (name != null && c.contains(name)) {
-            return true;
-        }
-        return false;
+        return name != null && c.contains(name);
     }
 
     public static String cleanHql(String hql) {
@@ -71,10 +68,7 @@ public class Utils {
      * @return True if if the class name is a Set.
      */
     public static final boolean isSet(final String name) {
-        if (name != null && Arrays.asList(sets).contains(name)) {
-            return true;
-        }
-        return false;
+        return name != null && Arrays.asList(sets).contains(name);
     }
 
 
@@ -85,10 +79,7 @@ public class Utils {
      * @return True if if the class name is a List.
      */
     public static final boolean isList(final String name) {
-        if (name != null && Arrays.asList(lists).contains(name)) {
-            return true;
-        }
-        return false;
+        return name != null && Arrays.asList(lists).contains(name);
     }
 
 
