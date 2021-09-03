@@ -131,8 +131,7 @@ public class EntityParser {
         return null;
     }
 
-    public static List<Declaration> getSuperClassDeclarations(Declaration classNode) {
-        List<Declaration> result = new ArrayList<>();
+    public static List<Declaration> getSuperClassDeclarations(Declaration classNode, List<Declaration> result) {
         if (classNode == null) {
             return result;
         }
@@ -141,13 +140,17 @@ public class EntityParser {
             Declaration superClassD = findTypeDeclaration(superClass);
             if (superClassD == null) continue;
             result.add(superClassD);
-            getSuperClassDeclarations(superClassD);
+            getSuperClassDeclarations(superClassD, result);
         }
         return result;
     }
 
+    public static List<Declaration> getSuperClassDeclarations(Declaration classNode) {
+        List<Declaration> result = new ArrayList<>();
+        return getSuperClassDeclarations(classNode, result);
+    }
 
-    public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
+        public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
         if (level <= LEVEL_TO_PARSE) {
             d.setFields(d.getFields().stream().map(
                     i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
