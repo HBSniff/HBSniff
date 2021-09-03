@@ -21,6 +21,7 @@ public class Pagination extends SmellDetector {
                     if (!hql.getMethodBody().contains(".setFirstResult(") || !hql.getMethodBody().contains(".setMaxResults(")) {
                         Smell smell = new Smell();
                         String path = calledIn.getFullPath();
+                        smell.setName("Pagination");
                         smell.setPosition(calledIn.getPosition());
                         smell.setFile(path).setComment(calledIn.getName());
                         Declaration parentDeclaration = null;

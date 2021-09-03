@@ -46,7 +46,7 @@ public class Fetch extends SmellDetector {
                                         List<Declaration> relatedComponent = new ArrayList<>();
                                         relatedComponent.add(d);
                                         smell.setComment(parentField.toString())
-                                                .setName("Eager")
+                                                .setName("Eager Fetch")
                                                 .setRelatedComponent(relatedComponent);
                                         break;
                                     }

@@ -52,7 +52,7 @@ public class OneByOne extends SmellDetector {
                                         List<Declaration> relatedComponent = new ArrayList<>();
                                         relatedComponent.add(d);
                                         smell.setComment(parentField.toString())
-                                                .setName("One-By-One Candidate")
+                                                .setName("One-By-One")
                                                 .setRelatedComponent(relatedComponent);
                                         mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
 
