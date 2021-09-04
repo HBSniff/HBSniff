@@ -15,15 +15,24 @@ import io.github.hzjdev.hqlsniffer.model.output.Smell;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
-import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
+import java.util.Set;
 
 public class OneByOne extends SmellDetector {
 
-    public List<Smell> getOneByOne(List<CompilationUnit> cus) {
+
+    private boolean batchSizeExists(FieldDeclaration pf) {
+        for (AnnotationExpr fieldAnnotations : pf.getAnnotations()) {
+            if (fieldAnnotations.getNameAsString().equals("BatchSize")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Smell> getOneByOne(Set<Declaration> entities) {
         List<Smell> lazyFetches = new ArrayList<>();
-        for (CompilationUnit cu : cus) {
+        for (Declaration parentDeclaration : entities) {
+            CompilationUnit cu = parentDeclaration.getRawCU();
             List<NormalAnnotationExpr> annotations = cu.findAll(NormalAnnotationExpr.class);
             for (NormalAnnotationExpr annotation : annotations) {
                 for (MemberValuePair mvp : annotation.getPairs()) {
@@ -34,40 +43,16 @@ public class OneByOne extends SmellDetector {
                         }
                         if (parentField.isPresent()) {
                             FieldDeclaration pf = (FieldDeclaration) parentField.get();
-                            boolean batchSizeExists = false;
-                            for (AnnotationExpr fieldAnnotations : pf.getAnnotations()) {
-                                if (fieldAnnotations.getNameAsString().equals("BatchSize")) {
-                                    batchSizeExists = true;
-                                }
-                            }
-                            if (batchSizeExists) continue;
-                            Declaration d;
-                            final Smell smell = new Smell();
+                            if (batchSizeExists(pf)) continue;
+                            final Smell smell = initSmell(parentDeclaration);
                             for (VariableDeclarator vd : pf.getVariables()) {
                                 Type t = vd.getType();
                                 if (t != null) {
-                                    String type = extractTypeFromExpression(t.toString());
-                                    d = findTypeDeclaration(type, cus, 1);
-                                    if (d != null) {
-                                        List<Declaration> relatedComponent = new ArrayList<>();
-                                        relatedComponent.add(d);
-                                        smell.setComment(parentField.toString())
-                                                .setName("One-By-One")
-                                                .setRelatedComponent(relatedComponent);
-                                        mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
-
-                                        cu.getStorage().ifPresent(s -> smell.setFile(s.getPath().toString()));
-
-                                        Declaration parentDeclaration = new Declaration(cu);
-                                        smell.setClassName(parentDeclaration.getName());
-                                        lazyFetches.add(smell);
-                                        List<Smell> smells = psr.getSmells().get(parentDeclaration);
-                                        if (smells == null) {
-                                            smells = new ArrayList<>();
-                                        }
-                                        smells.add(smell);
-                                        psr.getSmells().put(parentDeclaration, smells);
-                                    }
+                                    smell.setComment(parentField.toString())
+                                            .setName("One-By-One");
+                                    mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                                    lazyFetches.add(smell);
+                                    psr.getSmells().get(parentDeclaration).add(smell);
                                 }
                             }
                         }
@@ -79,6 +64,6 @@ public class OneByOne extends SmellDetector {
     }
 
     public List<Smell> exec() {
-        return getOneByOne(cus);
+        return getOneByOne(entityDeclarations);
     }
 }

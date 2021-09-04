@@ -44,10 +44,10 @@ public class MappingMetrics {
                 inheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
                 correspondingInheritanceMap.computeIfAbsent(entityName, k -> new HashSet<>());
 
-                if(superClass.getAnnotations().stream().noneMatch(i->
+                if (superClass.getAnnotations().stream().noneMatch(i ->
                         i.contains("TABLE_PER_CLASS"))) {
                     correspondingInheritanceMap.get(entityName).add(superClassName);
-                }else{
+                } else {
                     NCRFInheritanceMap.get(superClassName).add(entityName);
                 }
 
@@ -69,11 +69,11 @@ public class MappingMetrics {
                 final String parametreTypeName = p.getType().split("<")[0];
                 Declaration t = entities.stream().filter(i -> i.getName().equals(parametreTypeName)).findFirst().orElse(null);
                 List<Declaration> superClasses = getSuperClassDeclarations(t);
-                if(superClasses.size()>0){
-                    t = superClasses.get(superClasses.size()-1);
+                if (superClasses.size() > 0) {
+                    t = superClasses.get(superClasses.size() - 1);
                 }
                 if (t != null) {
-                    if(t.getAnnotations().stream().noneMatch(i->
+                    if (t.getAnnotations().stream().noneMatch(i ->
                             i.contains("TABLE_PER_CLASS"))) {
                         corresponding.add(parametreTypeName);
                     }
@@ -107,13 +107,13 @@ public class MappingMetrics {
         List<Metric> result = new ArrayList<>();
         for (Declaration entity : entities) {
             Set<String> correspondingTables = relatedInheritanceMap.get(entity.getName());
-            if (correspondingTables != null && correspondingTables.size()>0) {
+            if (correspondingTables != null && correspondingTables.size() > 0) {
                 Metric s = initMetric(entity)
                         .setName("TATI")
                         .setComment(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 0.0);
                 result.add(s);
-            }else{
+            } else {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setIntensity(0.0); //self
@@ -139,7 +139,7 @@ public class MappingMetrics {
                         .setComment(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 1.0); //+self
                 result.add(s);
-            }else{
+            } else {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setIntensity(0.0); //self
@@ -159,13 +159,13 @@ public class MappingMetrics {
         List<Metric> result = new ArrayList<>();
         for (Declaration entity : entities) {
             Set<String> correspondingTables = NCRFInheritanceMap.get(entity.getName());
-            if (correspondingTables != null && correspondingTables.size()>0) {
+            if (correspondingTables != null && correspondingTables.size() > 0) {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setComment(String.join(",", correspondingTables))
                         .setIntensity(correspondingTables.size() + 1.0); //self
                 result.add(s);
-            }else{
+            } else {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setIntensity(0.0); //self
@@ -187,9 +187,9 @@ public class MappingMetrics {
         for (Declaration entity : entities) {
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
             if (superClasses.size() < 1) continue;
-            Declaration topClass = superClasses.get(superClasses.size()-1);
+            Declaration topClass = superClasses.get(superClasses.size() - 1);
 
-            if(topClass.getAnnotations().stream().noneMatch(i->
+            if (topClass.getAnnotations().stream().noneMatch(i ->
                     i.contains("SINGLE_TABLE"))) {
                 continue;
             }
@@ -200,7 +200,7 @@ public class MappingMetrics {
             int numOwnFields = 0;
 
             for (String table : correspondingTables) {
-                if(table.equals(entity.getName())) continue;
+                if (table.equals(entity.getName())) continue;
                 Declaration t = entities.stream().filter(e -> e.getName().equals(table)).findFirst().orElse(null);
 
                 List<Parametre> fields;

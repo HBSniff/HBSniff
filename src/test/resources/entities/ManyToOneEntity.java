@@ -2,16 +2,15 @@ package tests.io.github.hzjdev.hqlsniffer.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.util.List;
 
 @Entity
 @Table(name = "Dummy")
-public class ListCollectionEntity {
+public class ManyToOneEntity {
 
-    @OneToMany
-    public List<NoArgConstructorEntity> lst;
+    @ManyToOne
+    public OneToManyEntity parent;
     @Id
     private String id;
 

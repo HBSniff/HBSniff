@@ -1,11 +1,6 @@
 package io.github.hzjdev.hqlsniffer.example;
 
 import io.github.hzjdev.hqlsniffer.example.domain.fig1.ClerkFig1;
-import io.github.hzjdev.hqlsniffer.example.domain.fig1.EmployeeFig1;
-import io.github.hzjdev.hqlsniffer.example.domain.fig1.ManagerFig1;
-import io.github.hzjdev.hqlsniffer.example.domain.fig1.StudentFig1;
-import io.github.hzjdev.hqlsniffer.example.domain.fig3.EmployeeFig3;
-import io.github.hzjdev.hqlsniffer.example.domain.fig3.ManagerFig3;
 import io.github.hzjdev.hqlsniffer.example.domain.fig3.StudentFig3;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -36,10 +31,8 @@ public class Main {
             session.save(new ClerkFig1());
 
             tx.commit();
-        }
-
-        catch (Exception e) {
-            if (tx!=null) tx.rollback();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
             e.printStackTrace();
         } finally {
             session.close();

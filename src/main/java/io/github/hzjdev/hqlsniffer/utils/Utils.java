@@ -16,10 +16,10 @@ public class Utils {
      */
     public static final String SET_NAME = "Set";
     public static final String LIST_NAME = "List";
-    public static String BOOLEAN_CLASS = "Boolean";
-    public static String BOOLEAN_PRIMITIVE = "boolean";
     private static final String[] lists = {"Collection", "BeanContext", "BeanContextServices", "BlockingQueue", "Deque", "Queue", "TransferQueue", "AbstractCollection", "AbstractCollection", "AbstractList", "AbstractQueue", "SequentialList", "ArrayBlockingQueue", "ArrayDeque", "ArrayList", "AttributeList", "BeanContextServicesSupport", "BeanContextSupport", "ConcurrentLinkedDeque", "CopyOnWriteArrayList", "DelayQueue", "LinkedBlockingDeque", "LinkedBlockingQueue", "LinkedList", "LinkedTransferQueue", "PriorityBlockingQueue", "PriorityQueue", "RoleList", "RoleUnresolvedList", "Stack", "SynchronousQueue", "Vector"};
     private static final String[] sets = {"NavigableSet", "Set", "SortedSet", "AbstractSet", "ConcurrentHashMap.KeySetView", "ConcurrentSkipListSet", "CopyOnWriteArraySet", "EnumSet", "HashSet", "JobStateReasons", "LinkedHashSet", "TreeSet"};
+    public static String BOOLEAN_CLASS = "Boolean";
+    public static String BOOLEAN_PRIMITIVE = "boolean";
 
     /**
      * Checks if the class name represents a java collection.

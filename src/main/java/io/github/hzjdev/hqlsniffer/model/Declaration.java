@@ -57,6 +57,7 @@ public class Declaration implements Serializable {
         this(cu, cu.getTypes().get(0));
     }
 
+
     public Declaration(CompilationUnit cu, TypeDeclaration td) {
         setName(td.getNameAsString());
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));

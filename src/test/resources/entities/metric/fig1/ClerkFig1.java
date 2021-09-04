@@ -5,11 +5,11 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="clerk_fig1")
+@Table(name = "clerk_fig1")
 public class ClerkFig1 extends PersonJoinFig1 {
     public String occupation;
 
-    public ClerkFig1(){
+    public ClerkFig1() {
         occupation = "Heaven Alchemist";
         name = "J. Taibai";
     }

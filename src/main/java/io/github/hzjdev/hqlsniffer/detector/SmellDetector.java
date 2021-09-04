@@ -9,6 +9,7 @@ import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaration;
 
@@ -29,14 +30,19 @@ public abstract class SmellDetector {
 
     public HashSet<Declaration> declarations;
 
-    public HashSet<Declaration> entityDeclarations;
+    public Set<Declaration> entityDeclarations;
 
     protected static Smell initSmell(Declaration entity) {
         return new Smell().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
 
+    protected static Smell initSmell(TypeDeclaration entity, CompilationUnit cu) {
+        Smell result = new Smell().setClassName(entity.getNameAsString()).setPosition(entity.toString());
+        cu.getStorage().ifPresent(s -> result.setFile(s.getPath().toString()));
+        return result;
+    }
 
-    public void setEntityDeclarations(HashSet<Declaration> entityDeclarations) {
+    public void setEntityDeclarations(Set<Declaration> entityDeclarations) {
         this.entityDeclarations = entityDeclarations;
     }
 
@@ -53,7 +59,7 @@ public abstract class SmellDetector {
                     Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
                     if (d != null) {
                         declarations.add(d);
-                        if (entities.contains(d)) {
+                        if (entities != null && entities.contains(d)) {
                             entityDeclarations.add(d);
                         }
                     }

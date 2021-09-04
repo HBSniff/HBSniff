@@ -4,14 +4,14 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.util.List;
+import java.util.Collection;
 
 @Entity
 @Table(name = "Dummy")
-public class ListCollectionEntity {
+public class OneToManyEntity {
 
     @OneToMany
-    public List<NoArgConstructorEntity> lst;
+    public Collection<ManyToOneEntity> lst;
     @Id
     private String id;
 

@@ -1,6 +1,5 @@
 package io.github.hzjdev.hqlsniffer.detector.rules;
 
-import io.github.hzjdev.hqlsniffer.detector.rules.MissingNoArgumentConstructor;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
@@ -16,27 +15,27 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 
 /**
-* MissingNoArgumentConstructor Tester. 
-*
-*/ 
+ * MissingNoArgumentConstructor Tester.
+ */
 public class MissingNoArgumentConstructorTest {
     Set<Declaration> toInput;
     ProjectSmellJSONReport psr = new ProjectSmellJSONReport();
     MissingNoArgumentConstructor c;
+
     @Before
-    public void before(){
+    public void before() {
         String rootPath = "src/test/resources/entities/";
-        Declaration missingNoArgConstructorEntity = Declaration.fromPath(rootPath+ "MissingNoArgConstructorFinalEntity.java");
-        Declaration noArgConstructorEntity =  Declaration.fromPath(rootPath+"NoArgConstructorEntity.java");
+        Declaration missingNoArgConstructorEntity = Declaration.fromPath(rootPath + "MissingNoArgConstructorFinalEntity.java");
+        Declaration noArgConstructorEntity = Declaration.fromPath(rootPath + "NoArgConstructorEntity.java");
 
         toInput = new HashSet<>();
         toInput.add(missingNoArgConstructorEntity);
         toInput.add(noArgConstructorEntity);
 
-        psr.getSmells().put(missingNoArgConstructorEntity,new ArrayList<>());
-        psr.getSmells().put(noArgConstructorEntity,new ArrayList<>());
+        psr.getSmells().put(missingNoArgConstructorEntity, new ArrayList<>());
+        psr.getSmells().put(noArgConstructorEntity, new ArrayList<>());
 
-        c = (MissingNoArgumentConstructor)new MissingNoArgumentConstructor().populateContext(null,null,null, psr);
+        c = (MissingNoArgumentConstructor) new MissingNoArgumentConstructor().populateContext(null, null, null, psr);
     }
 
     @After
@@ -44,28 +43,24 @@ public class MissingNoArgumentConstructorTest {
     }
 
     /**
-    *
-    * Method: noArgumentConstructorRule(Set<Declaration> classes)
-    *
-    */
+     * Method: noArgumentConstructorRule(Set<Declaration> classes)
+     */
     @Test
     public void testNoArgumentConstructorRule() {
         List<Smell> s = c.noArgumentConstructorRule(toInput);
         assertEquals(s.size(), 1);
-        assertEquals(s.get(0).getClassName(),"MissingNoArgConstructorFinalEntity");
+        assertEquals(s.get(0).getClassName(), "MissingNoArgConstructorFinalEntity");
     }
 
     /**
-     *
      * Method: exec()
-     *
      */
     @Test
-    public void testExec(){
+    public void testExec() {
         c.setEntityDeclarations((HashSet<Declaration>) toInput);
-        assertEquals(c.exec().size(),c.noArgumentConstructorRule(toInput).size());
-        assertEquals(c.exec().size(),1);
-        assertEquals(c.exec().get(0).getClassName(),c.noArgumentConstructorRule(toInput).get(0).getClassName());
+        assertEquals(c.exec().size(), c.noArgumentConstructorRule(toInput).size());
+        assertEquals(c.exec().size(), 1);
+        assertEquals(c.exec().get(0).getClassName(), c.noArgumentConstructorRule(toInput).get(0).getClassName());
 
     }
 

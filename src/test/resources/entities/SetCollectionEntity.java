@@ -2,27 +2,25 @@ package tests.io.github.hzjdev.hqlsniffer.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import javax.persistence.OneToMany;
-
+import javax.persistence.Table;
 import java.util.Set;
 
 @Entity
-@Table(name="Dummy")
-public class SetCollectionEntity{
-
-    @Id
-    private String id;
+@Table(name = "Dummy")
+public class SetCollectionEntity {
 
     @OneToMany
     public Set<NoArgConstructorEntity> lst;
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    @Id
+    private String id;
 
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
 }

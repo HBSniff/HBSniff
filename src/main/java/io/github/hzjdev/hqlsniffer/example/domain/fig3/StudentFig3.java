@@ -14,7 +14,7 @@ public class StudentFig3 extends PersonSingleTableFig3 {
 
     public String majorSubject;
 
-    public StudentFig3(){
+    public StudentFig3() {
         university = "ECUST";
         isEnrolled = true;
         majorSubject = "Chinese Alchemy";

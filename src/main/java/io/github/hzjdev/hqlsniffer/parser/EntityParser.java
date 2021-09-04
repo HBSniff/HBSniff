@@ -3,19 +3,19 @@ package io.github.hzjdev.hqlsniffer.parser;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.Parametre;
 import io.github.hzjdev.hqlsniffer.utils.Const;
 import io.github.hzjdev.hqlsniffer.utils.Utils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
@@ -150,7 +150,7 @@ public class EntityParser {
         return getSuperClassDeclarations(classNode, result);
     }
 
-        public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
+    public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
         if (level <= LEVEL_TO_PARSE) {
             d.setFields(d.getFields().stream().map(
                     i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
@@ -171,6 +171,29 @@ public class EntityParser {
 
     public static Declaration findTypeDeclaration(String retType) {
         return findTypeDeclaration(retType, cusCache, 1);
+    }
+
+    // find called in
+    public static List<Declaration> findCalledIn(String methodName, List<CompilationUnit> cus) {
+        List<Declaration> calledIn = new ArrayList<>();
+        if (methodName != null) {
+            for (CompilationUnit cu : cus) {
+                List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
+                for (MethodCallExpr mce : mces) {
+                    if (mce.getNameAsString().equals(methodName)) {
+                        Optional<Node> parentMethod = mce.getParentNode();
+                        while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
+                            parentMethod = parentMethod.get().getParentNode();
+                        }
+                        MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
+                        if (parent != null) {
+                            calledIn.add(new Declaration(cu, parent));
+                        }
+                    }
+                }
+            }
+        }
+        return calledIn;
     }
 
     public static Declaration findTypeDeclaration(String retType, List<CompilationUnit> cus, Integer level) {

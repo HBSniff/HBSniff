@@ -11,6 +11,7 @@ import java.util.Set;
 
 public class MissingNoArgumentConstructor extends SmellDetector {
 
+
     public final List<Smell> noArgumentConstructorRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {

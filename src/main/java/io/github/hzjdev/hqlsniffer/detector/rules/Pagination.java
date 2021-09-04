@@ -11,38 +11,35 @@ import java.util.List;
 
 public class Pagination extends SmellDetector {
 
+    public Declaration findDeclarationFromPath(String path) {
+        for (CompilationUnit cu : cus) {
+            String cuPath;
+            if (cu.getStorage().isPresent()) {
+                cuPath = cu.getStorage().get().getPath().toString();
+                if (path.equals(cuPath)) {
+                    return new Declaration(cu);
+                }
+            }
+        }
+        return null;
+    }
 
     public List<Smell> getPaged(List<HqlAndContext> hqls, List<CompilationUnit> cus) {
         List<Smell> pagedSmell = new ArrayList<>();
+        if (hqls == null || cus == null) return pagedSmell;
         for (HqlAndContext hql : hqls) {
-            for (Declaration calledIn : hql.getCalledIn()) {
+            for (Declaration calledIn : hql.populateCalledIn(cus).getCalledIn()) {
                 String body = calledIn.getBody();
                 if (body.toLowerCase().contains("limit") || body.toLowerCase().contains("page")) {
                     if (!hql.getMethodBody().contains(".setFirstResult(") || !hql.getMethodBody().contains(".setMaxResults(")) {
-                        Smell smell = new Smell();
-                        String path = calledIn.getFullPath();
-                        smell.setName("Pagination");
-                        smell.setPosition(calledIn.getPosition());
-                        smell.setFile(path).setComment(calledIn.getName());
-                        Declaration parentDeclaration = null;
-                        for (CompilationUnit cu : cus) {
-                            String cuPath = null;
-                            if (cu.getStorage().isPresent()) {
-                                cuPath = cu.getStorage().get().getPath().toString();
-                                if (path.equals(cuPath)) {
-                                    parentDeclaration = new Declaration(cu);
-                                    break;
-                                }
-                            }
-                        }
+                        Declaration parentDeclaration = findDeclarationFromPath(calledIn.getFullPath());
                         if (parentDeclaration != null) {
-                            List<Smell> smells = psr.getSmells().get(parentDeclaration);
-                            if (smells == null) {
-                                smells = new ArrayList<>();
-                            }
-                            smells.add(smell.setClassName(parentDeclaration.getName()));
+                            Smell smell = initSmell(parentDeclaration)
+                                    .setName("Pagination")
+                                    .setPosition(calledIn.getPosition())
+                                    .setComment(calledIn.getName());
                             pagedSmell.add(smell);
-                            psr.getSmells().put(parentDeclaration, smells);
+                            psr.getSmells().get(parentDeclaration).add(smell);
                         }
 
                     }

@@ -6,11 +6,11 @@ import javax.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("manager_fig3")
-public class ManagerFig3 extends EmployeeFig3{
+public class ManagerFig3 extends EmployeeFig3 {
 
     public Double bonus;
 
-    public ManagerFig3(){
-        bonus=10086.0;
+    public ManagerFig3() {
+        bonus = 10086.0;
     }
 }

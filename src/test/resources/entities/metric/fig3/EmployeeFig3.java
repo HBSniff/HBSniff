@@ -10,7 +10,7 @@ public class EmployeeFig3 extends PersonSingleTableFig3 {
 
     public Double salary;
 
-    public EmployeeFig3(){
+    public EmployeeFig3() {
         super();
         salary = 3.0;
     }

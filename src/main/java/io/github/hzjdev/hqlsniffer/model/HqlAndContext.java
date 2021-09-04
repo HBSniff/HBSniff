@@ -1,10 +1,14 @@
 package io.github.hzjdev.hqlsniffer.model;
 
+import com.github.javaparser.ast.CompilationUnit;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findCalledIn;
 
 public class HqlAndContext implements Serializable {
     String id;
@@ -26,6 +30,11 @@ public class HqlAndContext implements Serializable {
 
     public HqlAndContext() {
         setId(UUID.randomUUID().toString().replaceAll("-", ""));
+    }
+
+    public HqlAndContext populateCalledIn(List<CompilationUnit> cus) {
+        this.calledIn = findCalledIn(getMethodName(), cus);
+        return this;
     }
 
     public Map<String, String> getAliasMap() {
