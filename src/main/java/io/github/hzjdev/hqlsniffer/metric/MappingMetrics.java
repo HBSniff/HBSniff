@@ -68,9 +68,13 @@ public class MappingMetrics {
             for (Parametre p : entity.getFields()) {
                 final String parametreTypeName = p.getType().split("<")[0];
                 Declaration t = entities.stream().filter(i -> i.getName().equals(parametreTypeName)).findFirst().orElse(null);
-                List<Declaration> superClasses = getSuperClassDeclarations(t);
+                List<String> availableNames= entities.stream().map(Declaration::getName).collect(Collectors.toList());
+                if(availableNames.size() <1) break;
+                List<Declaration> superClasses = getSuperClassDeclarations(t).stream().filter(availableNames::contains).collect(Collectors.toList());
                 if (superClasses.size() > 0) {
                     t = superClasses.get(superClasses.size() - 1);
+                }else{
+                    t = null;
                 }
                 if (t != null) {
                     if (t.getAnnotations().stream().noneMatch(i ->
