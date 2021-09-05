@@ -132,6 +132,19 @@ public class HqlExtractor {
                                 } else if (statement.getExpression() instanceof AssignExpr) {
                                     List<String> extractedHql = extractHqlExpr(hqlCandidate, statement.getExpression().asAssignExpr());
                                     hqls.addAll(extractedHql);
+                                } else if (statement.getExpression() instanceof MethodCallExpr) {
+                                    List<NameExpr> nodes = statement.getExpression().asMethodCallExpr().findAll(NameExpr.class);
+                                    if(nodes.size() < 1) continue;
+                                    String methodCallName = statement.getExpression().asMethodCallExpr().getNameAsString();
+                                    String variableName = nodes.get(0).getNameAsString();
+                                    if(methodCallName != null && (methodCallName.equals("append") || methodCallName.equals("concat")) && variableName.equals(hqlCandidate)){
+                                        List<LiteralExpr> lexprs = statement.getExpression().asMethodCallExpr().findAll(LiteralExpr.class);
+                                        if(lexprs == null) continue;
+                                        for (LiteralExpr lexpr: lexprs){
+                                            String expr = extractLiteralExpr(lexpr);
+                                            hqls.add(expr);
+                                        }
+                                    }
                                 }
 //                                hqls.add(statement.getExpression().toString());
                             }

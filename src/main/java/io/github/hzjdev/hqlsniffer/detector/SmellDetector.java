@@ -36,12 +36,6 @@ public abstract class SmellDetector {
         return new Smell().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
 
-    protected static Smell initSmell(TypeDeclaration entity, CompilationUnit cu) {
-        Smell result = new Smell().setClassName(entity.getNameAsString()).setPosition(entity.toString());
-        cu.getStorage().ifPresent(s -> result.setFile(s.getPath().toString()));
-        return result;
-    }
-
     public void setEntityDeclarations(Set<Declaration> entityDeclarations) {
         this.entityDeclarations = entityDeclarations;
     }

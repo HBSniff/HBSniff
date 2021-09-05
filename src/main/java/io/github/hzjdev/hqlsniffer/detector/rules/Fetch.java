@@ -22,6 +22,7 @@ import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 
 public class Fetch extends SmellDetector {
 
+
     public List<Smell> getEagerFetches(List<CompilationUnit> cus) {
         List<Smell> eagerFetches = new ArrayList<>();
         for (CompilationUnit cu : cus) {
@@ -34,42 +35,14 @@ public class Fetch extends SmellDetector {
                             parentField = parentField.get().getParentNode();
                         }
                         if (parentField.isPresent()) {
-                            FieldDeclaration pf = (FieldDeclaration) parentField.get();
-                            Declaration d;
-                            final Smell smell = new Smell();
-                            for (VariableDeclarator vd : pf.getVariables()) {
-                                Type t = vd.getType();
-                                if (t != null) {
-                                    String type = extractTypeFromExpression(t.toString());
-                                    d = findTypeDeclaration(type, cus, 1);
-                                    if (d != null) {
-                                        List<Declaration> relatedComponent = new ArrayList<>();
-                                        relatedComponent.add(d);
-                                        smell.setComment(parentField.toString())
-                                                .setName("Eager Fetch")
-                                                .setRelatedComponent(relatedComponent);
-                                        break;
-                                    }
-                                }
-                            }
-                            if (smell.getName() != null) {
-                                mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                            Declaration parentDeclaration = new Declaration(cu);
+                            final Smell smell = initSmell(parentDeclaration);
+                            smell.setComment(parentField.toString())
+                                    .setName("Eager Fetch");
 
-                                cu.getStorage().ifPresent(s -> smell.setFile(s.getPath().toString()));
-
-                                Declaration parentDeclaration = new Declaration(cu);
-                                if (parentDeclaration != null) {
-                                    smell.setClassName(parentDeclaration.getName());
-
-                                    List<Smell> smells = psr.getSmells().get(parentDeclaration);
-                                    if (smells == null) {
-                                        smells = new ArrayList<>();
-                                    }
-                                    smells.add(smell);
-                                    eagerFetches.add(smell);
-                                    psr.getSmells().put(new Declaration(cu), smells);
-                                }
-                            }
+                            mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                            psr.getSmells().get(parentDeclaration).add(smell);
+                            eagerFetches.add(smell);
                         }
                     }
                 }
@@ -78,7 +51,7 @@ public class Fetch extends SmellDetector {
         return eagerFetches;
     }
 
-    public List<Smell> getJoinFetch(List<HqlAndContext> hqls, List<CompilationUnit> cus, List<Smell> eagerFetches) {
+    public List<Smell> getJoinFetch(List<HqlAndContext> hqls, List<Smell> eagerFetches) {
         List<Smell> joinFetchSmell = new ArrayList<>();
         for (HqlAndContext hql_ : hqls) {
             StringBuilder hql = new StringBuilder();
@@ -95,34 +68,21 @@ public class Fetch extends SmellDetector {
                     } catch (Exception e) {
                         from_entity = hql_.getReturnType();
                     }
-                    Declaration parentDeclaration = null;
                     if (from_entity != null) {
                         for (Smell eagerFetch : eagerFetches) {
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
-                                for (CompilationUnit cu : cus) {
-                                    String cuPath = null;
-                                    if (cu.getStorage().isPresent()) {
-                                        cuPath = cu.getStorage().get().getPath().toString();
-                                        if (hql_.getFullPath().equals(cuPath)) {
-                                            parentDeclaration = new Declaration(cu);
-                                            break;
-                                        }
-                                    }
+                                Declaration parentDeclaration = Declaration.fromPath(hql_.getFullPath());
+                                if(parentDeclaration!=null) {
+                                    Smell smell = new Smell();
+                                    String path = hql_.getFullPath();
+                                    smell.setPosition(hql_.getCreateQueryPosition());
+                                    smell.setFile(path)
+                                            .setComment(eagerFetch.getClassName() + "::" +hql_.getMethodName() + ">" + hql.toString())
+                                            .setClassName(parentDeclaration.getName());
+                                    smell.setName("Lacking Join Fetch");
+                                    joinFetchSmell.add(smell);
+                                    psr.getSmells().get(parentDeclaration).add(smell);
                                 }
-                                List<Smell> smells = psr.getSmells().get(parentDeclaration);
-                                if (smells == null) {
-                                    smells = new ArrayList<>();
-                                }
-                                Smell smell = new Smell();
-                                String path = hql_.getFullPath();
-                                smell.setPosition(hql_.getCreateQueryPosition());
-                                smell.setFile(path)
-                                        .setComment(hql_.getMethodName() + "+" + eagerFetch.getClassName() + ":" + hql_s)
-                                        .setClassName(parentDeclaration.getName());
-                                smell.setName("Join Fetch");
-                                smells.add(smell);
-                                joinFetchSmell.add(smell);
-                                psr.getSmells().put(parentDeclaration, smells);
                             }
                         }
                     }
@@ -134,7 +94,7 @@ public class Fetch extends SmellDetector {
 
     public List<Smell> exec() {
         List<Smell> eagerFetches = getEagerFetches(cus);
-        List<Smell> joinFetches = getJoinFetch(hqls, cus, eagerFetches);
+        List<Smell> joinFetches = getJoinFetch(hqls, eagerFetches);
         joinFetches.addAll(eagerFetches);
         return joinFetches;
     }
