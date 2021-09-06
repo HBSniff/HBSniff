@@ -81,8 +81,19 @@ public class GetterSetter extends SmellDetector {
     public final List<Smell> provideGetsSetsFieldsRule(Set<Declaration> classes) {
 
         List<Smell> smells = new ArrayList<>();
+        boolean annotationGetter = false;
+        boolean annotationSetter = false;
 
         for (Declaration entityNode : classes) {
+            for(String node: entityNode.getAnnotations()){
+                if(node.contains("@Getter")){
+                    annotationGetter = true;
+                }
+                if(node.contains("@Setter")){
+                    annotationSetter = true;
+                }
+            }
+
             StringBuilder comment = new StringBuilder();
             List<Parametre> declaredFields = entityNode.getFields();
 
@@ -94,11 +105,11 @@ public class GetterSetter extends SmellDetector {
                     continue;
                 }
 
-                if (!hasGetMethod(fieldNode, entityNode)) {
+                if (!annotationGetter && !hasGetMethod(fieldNode, entityNode)) {
                     comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the get method.\n");
                     passed = false;
                 }
-                if (!hasSetMethod(fieldNode, entityNode)) {
+                if (!annotationSetter && !hasSetMethod(fieldNode, entityNode)) {
                     comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the set method.\n");
                     passed = false;
                 }

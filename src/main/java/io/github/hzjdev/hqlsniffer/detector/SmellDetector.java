@@ -53,7 +53,7 @@ public abstract class SmellDetector {
                     Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
                     if (d != null) {
                         declarations.add(d);
-                        if (entities != null && entities.contains(d)) {
+                        if (entities != null && entities.contains(cu)) {
                             entityDeclarations.add(d);
                         }
                     }

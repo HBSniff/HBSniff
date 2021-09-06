@@ -19,7 +19,7 @@ import java.util.Set;
 
 import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
 
-public class MissingOneToMany extends SmellDetector {
+public class MissingManyToOne extends SmellDetector {
 
 
     private Parametre locateMissingManyToOneField(String targetTypeName, String typeName) {
@@ -61,7 +61,7 @@ public class MissingOneToMany extends SmellDetector {
                                 Parametre targetField = locateMissingManyToOneField(t.toString(), typeName);
                                 if (targetField != null) {
                                     smell.setComment(targetField.getName() + "::" + parentField.toString())
-                                            .setName("MissingOneToMany");
+                                            .setName("MissingManyToOne");
                                     smell.setPosition(targetField.getPosition());
                                     psr.getSmells().get(parentDeclaration).add(smell);
                                     result.add(smell);

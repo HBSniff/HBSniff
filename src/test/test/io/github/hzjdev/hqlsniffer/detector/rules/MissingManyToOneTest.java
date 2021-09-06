@@ -14,11 +14,11 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class MissingOneToManyTest {
+public class MissingManyToOneTest {
 
     Set<Declaration> toInput;
     ProjectSmellJSONReport psr = new ProjectSmellJSONReport();
-    MissingOneToMany d = new MissingOneToMany();
+    MissingManyToOne d = new MissingManyToOne();
 
     @Before
     public void before() {

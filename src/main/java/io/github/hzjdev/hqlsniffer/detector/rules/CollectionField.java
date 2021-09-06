@@ -27,7 +27,7 @@ public class CollectionField extends SmellDetector {
                 }
                 if (Utils.isCollection(type) && !type.equals(Utils.SET_NAME)
                         && !type.equals(Utils.LIST_NAME)) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" implements interface Collection but it ").append("doesn't implements interface Set or interface List.\n");
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append("> implements interface Collection but it ").append("doesn't implements interface Set or interface List.\n");
                     passed = false;
                 }
             }
@@ -57,7 +57,7 @@ public class CollectionField extends SmellDetector {
                     type = type.split("<")[0];
                 }
                 if (Utils.isCollection(type) && !Utils.isSet(type)) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(fieldNode.getName()).append(" implements interface Collection but ").append("it doesn't implements interface Set.\n");
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" implements interface Collection but ").append("it doesn't implements interface Set.\n");
                     passed = false;
                 }
             }

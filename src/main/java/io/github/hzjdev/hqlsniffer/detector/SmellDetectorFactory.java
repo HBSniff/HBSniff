@@ -35,7 +35,7 @@ public class SmellDetectorFactory {
         OneByOne,
         Pagination,
         Fetch,
-        MissingOneToMany,
+        MissingManyToOne,
         //SBES 2019
         CollectionField,
         FinalEntity,
