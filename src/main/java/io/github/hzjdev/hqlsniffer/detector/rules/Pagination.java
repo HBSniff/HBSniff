@@ -9,8 +9,16 @@ import io.github.hzjdev.hqlsniffer.model.output.Smell;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * detecting the misuse of pagination
+ */
 public class Pagination extends SmellDetector {
 
+    /**
+     * locate Declaration from CompilationUnits
+     * @param path declaration path
+     * @return result Declaration
+     */
     public Declaration findDeclarationFromPath(String path) {
         for (CompilationUnit cu : cus) {
             String cuPath;
@@ -24,6 +32,12 @@ public class Pagination extends SmellDetector {
         return null;
     }
 
+    /**
+     * main method of detection
+     * @param hqls hqls
+     * @param cus CompilationUnits
+     * @return results
+     */
     public List<Smell> getPaged(List<HqlAndContext> hqls, List<CompilationUnit> cus) {
         List<Smell> pagedSmell = new ArrayList<>();
         if (hqls == null || cus == null) return pagedSmell;
@@ -49,6 +63,10 @@ public class Pagination extends SmellDetector {
         return pagedSmell;
     }
 
+    /**
+     * execute detection
+     * @return list of smells
+     */
     public List<Smell> exec() {
         return getPaged(hqls, cus);
     }

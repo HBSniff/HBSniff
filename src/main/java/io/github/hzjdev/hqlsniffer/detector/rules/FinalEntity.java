@@ -11,6 +11,12 @@ import java.util.List;
 import java.util.Set;
 
 public class FinalEntity extends SmellDetector {
+
+    /**
+     * detection methods
+     * @param classes Entity Declarations
+     * @return results
+     */
     public List<Smell> noFinalClassRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
@@ -25,6 +31,10 @@ public class FinalEntity extends SmellDetector {
         return smells;
     }
 
+    /**
+     * execute detection
+     * @return list of smells
+     */
     public List<Smell> exec() {
         return noFinalClassRule(entityDeclarations);
     }

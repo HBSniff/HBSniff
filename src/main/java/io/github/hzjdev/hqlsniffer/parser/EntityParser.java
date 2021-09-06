@@ -10,7 +10,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.ParametreOrField;
 import io.github.hzjdev.hqlsniffer.utils.Const;
 import io.github.hzjdev.hqlsniffer.utils.Utils;
 
@@ -18,19 +18,25 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_PARSE;
-import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromExpression;
+import static io.github.hzjdev.hqlsniffer.utils.Const.IDENT_ANNOT_EXPR;
+import static io.github.hzjdev.hqlsniffer.utils.Const.LEVEL_TO_POPULATE_DECLARATION;
+import static io.github.hzjdev.hqlsniffer.utils.Utils.extractTypeFromCollection;
 
 public class EntityParser {
 
 
-    public static Map<String, Declaration> declarationCache = new HashMap<>();
+    public static Map<String, Declaration> declarationCache = new HashMap<>(); // using a cache will optimize performance for big projects
     public static List<CompilationUnit> cusCache;
 
     public static void setCusCache(List<CompilationUnit> cus) {
         cusCache = cus;
     }
 
+    /**
+     * filter the classes without @Entity annotation
+     * @param cus CompilationUnits to filter
+     * @return list of results
+     */
     public static List<CompilationUnit> getEntities(List<CompilationUnit> cus) {
         List<CompilationUnit> results = new ArrayList<>();
         for (CompilationUnit cu : cus) {
@@ -44,17 +50,20 @@ public class EntityParser {
         return results;
     }
 
+    /**
+     * parse all classes in a subdirectories of a path
+     * @param dirPath path to parse
+     * @param results list of compilation units
+     * @return  list of compilation units
+     */
     public static List<CompilationUnit> parseFromDir(String dirPath, List<CompilationUnit> results) {
-        File dirfile = new File(dirPath);//根据DirPath实例化一个File对象
-        File[] files = dirfile.listFiles();//listFiles():以相对路径返回该目录下所有的文件名的一个File对象数组
+        File[] files = new File(dirPath).listFiles();
         if (files == null) {
-            return results;//[]
+            return results;
         }
-        //遍历目录-2
         for (File file : files) {
-            // isDirectory()是检查一个对象是否是文件夹,如果是则返回true，否则返回false
             if (file.isDirectory()) {
-                parseFromDir(file.getAbsolutePath(), results);// getAbsolutePath(): 返回的是定义时的路径对应的相对路径
+                parseFromDir(file.getAbsolutePath(), results);
             } else {
                 if (file.getName().toLowerCase().endsWith(".java")) {
                     String path = file.getPath();
@@ -73,6 +82,11 @@ public class EntityParser {
         return results;
     }
 
+    /**
+     * generate a list of Declaration from a list of CompilationUnits
+     * @param cus input of CompilationUnits
+     * @return a list of Declarations
+     */
     public static List<Declaration> genDeclarationsFromCompilationUnits(List<CompilationUnit> cus) {
         List<Declaration> entities = new ArrayList<>();
         if (cus == null) return entities;
@@ -87,26 +101,30 @@ public class EntityParser {
         return entities;
     }
 
-    public static Parametre getIdentifierProperty(final Declaration entity) {
+    /**
+     * get the identifier field of an @Entity
+     * @param entity entity class
+     * @return identifier field
+     */
+    public static ParametreOrField getIdentifierProperty(final Declaration entity) {
         if (entity == null) return null;
-        List<Parametre> declaredFields = entity.getFields();
-        for (Parametre fieldNode : declaredFields) {
+        List<ParametreOrField> declaredFields = entity.getFields();
+        for (ParametreOrField fieldNode : declaredFields) {
             List<String> annotations = fieldNode.getAnnotations();
-            String ID = "@Id";
-            if (annotations.contains(ID)) {
-                return fieldNode;
+            if (annotations.contains(IDENT_ANNOT_EXPR)) {
+                return fieldNode; // any field is annotated by @Id
             }
         }
         for (Declaration superClassEntity : getSuperClassDeclarations(entity)) {
-            Parametre fieldNode = getIdentifierProperty(superClassEntity);
+            ParametreOrField fieldNode = getIdentifierProperty(superClassEntity);
             if (fieldNode != null) {
-                return fieldNode;
+                return fieldNode; // any field of superclasses is annotated by @Id
             }
         }
         for (Declaration method : entity.getMembers()) {
+            // any getter is annotated by @Id
             List<String> annotations = method.getAnnotations();
-            String ID = "@Id";
-            if (annotations.contains(ID)) {
+            if (annotations.contains(IDENT_ANNOT_EXPR)) {
                 String type = method.getReturnTypeName();
                 String fieldName;
                 if (type != null && (type.equals(Utils.BOOLEAN_PRIMITIVE) || type.equals(Utils.BOOLEAN_CLASS))) {
@@ -115,7 +133,7 @@ public class EntityParser {
                     fieldName = method.getName().replaceFirst("get", "");
                 }
                 String realFieldName = Character.toLowerCase(fieldName.charAt(0)) + fieldName.substring(1);
-                Parametre field = entity.getFields().stream().filter(i -> i.getName().equals(realFieldName)).findFirst().orElse(null);
+                ParametreOrField field = entity.getFields().stream().filter(i -> i.getName().equals(realFieldName)).findFirst().orElse(null);
                 if (field != null) {
                     return field;
                 } else {
@@ -131,13 +149,19 @@ public class EntityParser {
         return null;
     }
 
-    public static List<Declaration> getSuperClassDeclarations(Declaration classNode, List<Declaration> result) {
-        if (classNode == null) {
+    /**
+     * get superclasses of a class
+     * @param dec  the considered class
+     * @param result result of Declaration list
+     * @return result of Declaration list
+     */
+    private static List<Declaration> getSuperClassDeclarations(Declaration dec, List<Declaration> result) {
+        if (dec == null) {
             return result;
         }
-        List<String> superClasses = classNode.getSuperClass();
+        List<String> superClasses = dec.getSuperClass();
         for (String superClass : superClasses) {
-            Declaration superClassD = findTypeDeclaration(superClass);
+            Declaration superClassD = findTypeDeclaration(superClass, cusCache, 1);
             if (superClassD == null) continue;
             result.add(superClassD);
             getSuperClassDeclarations(superClassD, result);
@@ -145,20 +169,36 @@ public class EntityParser {
         return result;
     }
 
-    public static List<Declaration> getSuperClassDeclarations(Declaration classNode) {
+    /**
+     * the public entrance of getSuperClassDeclarations
+     * @param dec result of Declaration list
+     * @return result of Declaration list
+     */
+    public static List<Declaration> getSuperClassDeclarations(Declaration dec) {
         List<Declaration> result = new ArrayList<>();
-        return getSuperClassDeclarations(classNode, result);
+        return getSuperClassDeclarations(dec, result);
     }
 
+    /**
+     * populate declarations with parsed information
+     * @param cus list of the scope of classes
+     * @param level level to parse
+     * @param d declaration to populate
+     */
     public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
-        if (level <= LEVEL_TO_PARSE) {
+        if (level <= LEVEL_TO_POPULATE_DECLARATION) {
             d.setFields(d.getFields().stream().map(
                     i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
                     .collect(Collectors.toList()));
         }
     }
 
-    public static List<ClassOrInterfaceDeclaration> extractSubTypes(TypeDeclaration td) {
+    /**
+     * extract Member types of a TypeDeclaration
+     * @param td TypeDeclaration to extract
+     * @return a list of ClassOrInterfaceDeclaration
+     */
+    public static List<ClassOrInterfaceDeclaration> extractMemberTypes(TypeDeclaration td) {
         List<ClassOrInterfaceDeclaration> res = new ArrayList<>();
         for (Object member : td.getMembers()) {
             if (member instanceof ClassOrInterfaceDeclaration) {
@@ -169,11 +209,12 @@ public class EntityParser {
     }
 
 
-    public static Declaration findTypeDeclaration(String retType) {
-        return findTypeDeclaration(retType, cusCache, 1);
-    }
-
-    // find called in
+    /**
+     * Check any method is called in a scope CompilationUnits
+     * @param methodName method name
+     * @param cus search scope of CompilationUnits
+     * @return List of the file which called the method
+     */
     public static List<Declaration> findCalledIn(String methodName, List<CompilationUnit> cus) {
         List<Declaration> calledIn = new ArrayList<>();
         if (methodName != null) {
@@ -196,28 +237,35 @@ public class EntityParser {
         return calledIn;
     }
 
-    public static Declaration findTypeDeclaration(String retType, List<CompilationUnit> cus, Integer level) {
+    /**
+     * locate a type in CompilationUnits and generate a Declaration for it
+     * @param toFind type name of the Declaration
+     * @param cus scope to find
+     * @param level level to populate the declaration
+     * @return the result Declaration
+     */
+    public static Declaration findTypeDeclaration(String toFind, List<CompilationUnit> cus, Integer level) {
         Declaration d = null;
         if (cusCache == null) {
             cusCache = cus;
         }
-        if (Const.builtinTypes.contains(retType)) {
+        if (Const.builtinTypes.contains(toFind)) {
             return null;
         }
-        if (retType != null) {
-            if (declarationCache.get(retType) != null) {
-                return declarationCache.get(retType);
+        if (toFind != null) {
+            if (declarationCache.get(toFind) != null) {
+                return declarationCache.get(toFind);
             }
-            retType = extractTypeFromExpression(retType);
+            toFind = extractTypeFromCollection(toFind);
             for (CompilationUnit cu : cus) {
                 for (TypeDeclaration td : cu.getTypes()) {
-                    if (td.getNameAsString().equals(retType)) {
+                    if (td.getNameAsString().equals(toFind)) {
                         d = new Declaration(cu, td);
                         populateDeclaration(cus, level, d);
                     }
                     if (d == null) {
-                        for (ClassOrInterfaceDeclaration cid : extractSubTypes(td)) {
-                            if (cid.getNameAsString().equals(retType)) {
+                        for (ClassOrInterfaceDeclaration cid : extractMemberTypes(td)) {
+                            if (cid.getNameAsString().equals(toFind)) {
                                 d = new Declaration(cu, cid);
                                 populateDeclaration(cus, level, d);
                             }
@@ -226,27 +274,32 @@ public class EntityParser {
                 }
             }
         }
-        filterCycloDeclaration(d, new ArrayList<>(), new ArrayList<>());
-        declarationCache.put(retType, d);
+        filterCyclicDeclaration(d, new ArrayList<>());
+        declarationCache.put(toFind, d);
         return d;
     }
 
-    public static void filterCycloDeclaration(Declaration d, List<Parametre> legacy, List<Declaration> legacyDec) {
+    /**
+     * exclude cyclic dependency in a Declaration
+     * @param d declaration to check
+     * @param visited visited Declaration
+     */
+    public static void filterCyclicDeclaration(Declaration d, List<Declaration> visited) {
         if (d == null || d.getFields() == null) return;
-        legacyDec.add(d);
-        List<Parametre> newParams = new ArrayList<>();
-        for (Parametre SubP : d.getFields()) {
+        visited.add(d);
+        List<ParametreOrField> newParams = new ArrayList<>();
+        for (ParametreOrField SubP : d.getFields()) {
             Declaration subType = SubP.getTypeDeclaration();
             if (subType == null) {
                 newParams.add(SubP);
                 continue;
             }
-            if (legacyDec.contains(subType)) {
+            if (visited.contains(subType)) {
                 continue;
             } else {
                 newParams.add(SubP);
             }
-            filterCycloDeclaration(subType, legacy, legacyDec);
+            filterCyclicDeclaration(subType, visited);
         }
         d.setFields(newParams);
     }

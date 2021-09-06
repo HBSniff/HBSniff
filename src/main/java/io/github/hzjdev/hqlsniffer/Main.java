@@ -25,6 +25,12 @@ import static io.github.hzjdev.hqlsniffer.parser.HqlExtractor.getHqlNodes;
 
 public class Main {
 
+    /**
+     * export smell detection results
+     * @param jsonPath path of the json file
+     * @param csvPath path of the csv file
+     * @param results results
+     */
     public static void outputSmells(String jsonPath, String csvPath, ProjectSmellJSONReport results) {
         //wirte to csv
         List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
@@ -48,6 +54,11 @@ public class Main {
         }
     }
 
+    /**
+     * export metric calculation results
+     * @param csvPath path of the csv file
+     * @param metrics results
+     */
     public static void outputMetrics(String csvPath, List<Metric> metrics) {
         //wirte to csv
         List<String[]> csvContent = Metric.toCSV(metrics);
@@ -60,6 +71,12 @@ public class Main {
         }
     }
 
+    /**
+     * start detection
+     * @param project project name
+     * @param root_path project path
+     * @param output_path output path
+     */
     public static void exec(String project, String root_path, String output_path) {
         //init context
         List<CompilationUnit> cus = new ArrayList<>();
@@ -80,6 +97,10 @@ public class Main {
         outputMetrics(output_path + "\\" + project + "_metrics.csv", metrics);
     }
 
+    /**
+     * Entrance of the application
+     * @param args arguments from commandline
+     */
     public static void main(String[] args) {
         String project;
         String root_path;

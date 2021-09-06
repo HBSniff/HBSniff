@@ -2,7 +2,7 @@ package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.ParametreOrField;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.ArrayList;
@@ -12,6 +12,11 @@ import java.util.Set;
 public class MissingNoArgumentConstructor extends SmellDetector {
 
 
+    /**
+     * detection methods
+     * @param classes Entity Declarations
+     * @return results
+     */
     public final List<Smell> noArgumentConstructorRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
@@ -22,7 +27,7 @@ public class MissingNoArgumentConstructor extends SmellDetector {
 
             if (constructors != null) {
                 for (Declaration methodNode : constructors) {
-                    List<Parametre> parameters = methodNode.getParametres();
+                    List<ParametreOrField> parameters = methodNode.getParametres();
                     if (parameters.isEmpty()) {
                         passed = true;
                         break;
@@ -39,6 +44,10 @@ public class MissingNoArgumentConstructor extends SmellDetector {
         return smells;
     }
 
+    /**
+     * execute detection
+     * @return list of smells
+     */
     public List<Smell> exec() {
         return noArgumentConstructorRule(entityDeclarations);
     }

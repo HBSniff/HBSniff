@@ -9,15 +9,20 @@ import java.util.List;
 import java.util.Set;
 
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
+import static io.github.hzjdev.hqlsniffer.utils.Const.SERIALIZABLE_ANNOT_EXPR;
 
 public class NotSerializable extends SmellDetector {
 
-
+    /**
+     * detection methods
+     * @param classes Entity Declarations
+     * @return results
+     */
     public final List<Smell> checkRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
             boolean pass = false;
-            String serializable = "Serializable";
+            String serializable = SERIALIZABLE_ANNOT_EXPR;
             List<Declaration> toDetect = getSuperClassDeclarations(entityNode);
             toDetect.add(entityNode);
             for (Declaration superclass : toDetect) {
@@ -41,6 +46,10 @@ public class NotSerializable extends SmellDetector {
         return smells;
     }
 
+    /**
+     * execute detection
+     * @return list of smells
+     */
     public List<Smell> exec() {
         return checkRule(entityDeclarations);
     }

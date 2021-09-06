@@ -2,10 +2,12 @@ package io.github.hzjdev.hqlsniffer.utils;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class Utils {
@@ -34,6 +36,11 @@ public class Utils {
         return name != null && c.contains(name);
     }
 
+    /**
+     * clean a hql expression
+     * @param hql hql to clean
+     * @return cleaned hql
+     */
     public static String cleanHql(String hql) {
         //        if(hql.startsWith("\"")){
         //            hql = hql.replaceFirst("\"","");
@@ -45,12 +52,22 @@ public class Utils {
         return hql;
     }
 
+    /**
+     * find position of a parametre node
+     * @param p parametre node
+     * @return its range
+     */
     public static String extractParametrePosition(Node p) {
         Range a = p.getRange().orElse(null);
         return a == null ? "" : a.toString();
     }
 
-    public static String extractTypeFromExpression(String expr) {
+    /**
+     * extractTypeFromCollections
+     * @param expr expression such as Collection<Person>
+     * @return type, e.g., Person
+     */
+    public static String extractTypeFromCollection(String expr) {
         if (expr != null) {
             if (expr.contains("<")) {
                 String[] tmp = expr.split("<");
@@ -83,27 +100,76 @@ public class Utils {
     }
 
 
-    static String trimSpace(String str) {
-        StringBuilder result = new StringBuilder();
+    /**
+     * extract text from LiteralExpr
+     * @param le LiteralExpr input
+     * @return result string
+     */
+    public static String extractLiteralExpr(LiteralExpr le) {
+        if (le instanceof StringLiteralExpr) {
+            return ((StringLiteralExpr) le).getValue();
+        } else if (le instanceof CharLiteralExpr) {
+            return ((CharLiteralExpr) le).getValue();
+        } else if (le instanceof TextBlockLiteralExpr) {
+            return ((TextBlockLiteralExpr) le).getValue();
+        } else {
+            return le.toString();
+        }
+    }
 
-        // 去掉首尾的空格
-        String trimStr = str.trim();
-
-        int length = trimStr.length();
-
-        for (int i = 0; i < length; i++) {
-            char currentStr = trimStr.charAt(i);
-            // 不是空格，加入
-            if (currentStr != ' ') {
-                result.append(currentStr);
-            }
-
-            // 是空格，判断下一个字符是否为空格，不为空格则加入，是空格则跳过
-            if (currentStr == ' ' && trimStr.charAt(i + 1) != ' ') {
-                result.append(' ');
+    /**
+     * concatenate hql from a BinaryExpr
+     * @param expr BinaryExpr input
+     * @return hql concatenated
+     */
+    public static String concatBinaryExpr(BinaryExpr expr) {
+        StringBuilder hql_concatenated = new StringBuilder();
+        String op = expr.asBinaryExpr().getOperator().toString();
+        if (op.equals("PLUS")) {
+            for (Node e : expr.getChildNodes()) {
+                if (e instanceof LiteralExpr) {
+                    hql_concatenated.append(extractLiteralExpr((LiteralExpr) e));
+                } else if (e instanceof BinaryExpr) {
+                    hql_concatenated.append(concatBinaryExpr(((BinaryExpr) e).asBinaryExpr()));
+                } else if (e instanceof NameExpr) {
+                    hql_concatenated.append(":").append(((NameExpr) e).asNameExpr().getNameAsString());
+                } else if (e instanceof MethodCallExpr) {
+                    hql_concatenated.append(extractMethodCallExpr((MethodCallExpr) e));
+                } else if (e instanceof EnclosedExpr) {
+                    Expression inner = ((EnclosedExpr) e).asEnclosedExpr().getInner();
+                    if (inner.isConditionalExpr()) {
+                        hql_concatenated.append(":").append(((EnclosedExpr) e).asEnclosedExpr().getInner().asConditionalExpr().getCondition().toString());
+                    } else {
+                        System.out.println("#concatBinaryExpr1" + e.toString());
+                    }
+                } else {
+                    System.out.println("#concatBinaryExpr2" + e.toString());
+                }
             }
         }
-        return result.toString();
-
+        return hql_concatenated.toString();
     }
+
+    /**
+     * replace method call in hqls with its name as a variable
+     * @param mce method call to replace
+     * @return processed hql
+     */
+    public static String extractMethodCallExpr(MethodCallExpr mce) {
+        Optional<Expression> e = mce.getScope();
+        if (e.isPresent() && e.get().isMethodCallExpr()) {
+            if (e.get().asMethodCallExpr().getScope().isPresent()) {
+                Expression expr = e.get().asMethodCallExpr().getScope().get();
+                if (expr.isNameExpr()) {
+                    return ":" + e.get().asMethodCallExpr().getScope().get().asNameExpr().getNameAsString();
+                } else if (expr.isMethodCallExpr()) {
+                    return extractMethodCallExpr(expr.asMethodCallExpr());
+                } else {
+                    return "";
+                }
+            }
+        }
+        return "";
+    }
+
 }

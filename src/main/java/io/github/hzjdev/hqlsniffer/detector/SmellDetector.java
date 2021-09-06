@@ -40,6 +40,14 @@ public abstract class SmellDetector {
         this.entityDeclarations = entityDeclarations;
     }
 
+    /**
+     * initialize
+     * @param cus compilation units
+     * @param hqls hqls
+     * @param entities entity compilation units
+     * @param psr project smell report
+     * @return intialized smell detector
+     */
     public SmellDetector populateContext(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellJSONReport psr) {
         this.psr = psr;
         this.cus = cus;
@@ -63,6 +71,10 @@ public abstract class SmellDetector {
         return this;
     }
 
+    /**
+     * execute detection
+     * @return list of results
+     */
     public abstract List<Smell> exec();
 
 }

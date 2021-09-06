@@ -2,7 +2,7 @@ package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.ParametreOrField;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.ArrayList;
@@ -11,18 +11,24 @@ import java.util.Set;
 
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getIdentifierProperty;
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.getSuperClassDeclarations;
+import static io.github.hzjdev.hqlsniffer.utils.Const.*;
 
 public class HashCodeAndEquals extends SmellDetector {
 
+    /**
+     * get equals method of a class
+     * @param classNode entity class
+     * @return hashCode method Declaration
+     */
     protected final Declaration getEqualsMethod(final Declaration classNode) {
         if (classNode == null) return null;
         boolean check = false;
-        Declaration toJudge = classNode.findDeclaration("equals");
+        Declaration toJudge = classNode.findDeclaration(EQUALS_METHOD_NAME);
         if (toJudge != null) {
-            List<Parametre> params = toJudge.getParametres();
+            List<ParametreOrField> params = toJudge.getParametres();
             if (params != null && params.size() == 1) {
-                Parametre p = params.get(0);
-                check = p.getType().equals("Object");
+                ParametreOrField p = params.get(0);
+                check = p.getType().equals(Object_TYPE_EXPR);
             }
         }
         if (!check) {
@@ -36,13 +42,17 @@ public class HashCodeAndEquals extends SmellDetector {
         return toJudge;
     }
 
-
+    /**
+     * get hashCode method of a class
+     * @param classNode entity class
+     * @return hashCode method Declaration
+     */
     protected final Declaration getHashCodeMethod(final Declaration classNode) {
         if (classNode == null) return null;
         boolean check = false;
-        Declaration toJudge = classNode.findDeclaration("hashCode");
+        Declaration toJudge = classNode.findDeclaration(HASHCODE_METHOD_NAME);
         if (toJudge != null) {
-            List<Parametre> params = toJudge.getParametres();
+            List<ParametreOrField> params = toJudge.getParametres();
             check = params == null || params.size() == 0;
         }
         if (!check) {
@@ -56,6 +66,11 @@ public class HashCodeAndEquals extends SmellDetector {
         return toJudge;
     }
 
+    /**
+     * lacking identifier field in hashcode or equals smell detection
+     * @param classes entities
+     * @return list of smells
+     */
     public final List<Smell> hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
@@ -64,7 +79,7 @@ public class HashCodeAndEquals extends SmellDetector {
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
 
-            Parametre field = getIdentifierProperty(entityNode);
+            ParametreOrField field = getIdentifierProperty(entityNode);
 
             Set<String> accessedFieldsEquals = null;
             Set<String> accessedFieldsHash = null;
@@ -97,6 +112,11 @@ public class HashCodeAndEquals extends SmellDetector {
         return result;
     }
 
+    /**
+     * lacking hashcode and equals smell detection
+     * @param classes entities
+     * @return list of smells
+     */
     public final List<Smell> hashCodeAndEqualsRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
@@ -116,6 +136,10 @@ public class HashCodeAndEquals extends SmellDetector {
         return result;
     }
 
+    /**
+     * execute detection
+     * @return list of smells
+     */
     public List<Smell> exec() {
         List<Smell> idRule = hashCodeAndEqualsNotUseIdentifierPropertyRule(entityDeclarations);
         idRule.addAll(hashCodeAndEqualsRule(entityDeclarations));

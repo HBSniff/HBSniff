@@ -21,6 +21,11 @@ public class ProjectSmellJSONReport implements Serializable {
         smells = new HashMap<>();
     }
 
+    /**
+     * generate ProjectSmellJSONReport from CompilationUnits
+     * @param entities compilation units
+     * @return ProjectSmellJSONReport
+     */
     public static ProjectSmellJSONReport fromCompilationUnits(List<CompilationUnit> entities) {
         ProjectSmellJSONReport toReturn = new ProjectSmellJSONReport();
         for (Declaration d : genDeclarationsFromCompilationUnits(entities)) {

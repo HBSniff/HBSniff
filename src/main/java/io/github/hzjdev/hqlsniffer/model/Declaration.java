@@ -36,10 +36,10 @@ public class Declaration implements Serializable {
     String returnTypeName;
 
     @Expose
-    List<Parametre> fields;
+    List<ParametreOrField> fields;
 
     @Expose
-    List<Parametre> parametres;
+    List<ParametreOrField> parametres;
 
     @Expose
     List<Declaration> members;
@@ -58,6 +58,11 @@ public class Declaration implements Serializable {
     }
 
 
+    /**
+     * Initialize a class declaration
+     * @param cu compilation unit (file)
+     * @param td type
+     */
     public Declaration(CompilationUnit cu, TypeDeclaration td) {
         setName(td.getNameAsString());
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));
@@ -74,7 +79,7 @@ public class Declaration implements Serializable {
             if (bd instanceof FieldDeclaration) {
                 for (VariableDeclarator vd : ((FieldDeclaration) bd).asFieldDeclaration().getVariables()) {
                     if (vd != null) {
-                        Parametre p = new Parametre(vd.getTypeAsString(), vd.getNameAsString())
+                        ParametreOrField p = new ParametreOrField(vd.getTypeAsString(), vd.getNameAsString())
                                 .setPosition(extractParametrePosition(vd))
                                 .populateAnnotations(((FieldDeclaration) bd).getAnnotations());
                         getFields().add(p);
@@ -91,6 +96,11 @@ public class Declaration implements Serializable {
     }
 
 
+    /**
+     * Initialize a constructor declaration
+     * @param cu compilation unit (file)
+     * @param cd constructor
+     */
     public Declaration(CompilationUnit cu, ConstructorDeclaration cd) {
         setName(cd.getNameAsString());
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));
@@ -99,13 +109,18 @@ public class Declaration implements Serializable {
         declarationType = "constructor";
         parametres = new ArrayList<>();
         for (Parameter p : cd.getParameters()) {
-            parametres.add(new Parametre(p.getTypeAsString(), p.getNameAsString()));
+            parametres.add(new ParametreOrField(p.getTypeAsString(), p.getNameAsString()));
         }
 
         rawCU = cu;
         rawBD = cd;
     }
 
+    /**
+     * Initialize a method declaration
+     * @param cu compilation unit (file)
+     * @param md method declaration
+     */
     public Declaration(CompilationUnit cu, MethodDeclaration md) {
         setName(md.getNameAsString());
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));
@@ -114,7 +129,7 @@ public class Declaration implements Serializable {
         returnTypeName = md.getTypeAsString();
         parametres = new ArrayList<>();
         for (Parameter p : md.getParameters()) {
-            parametres.add(new Parametre(p.getTypeAsString(), p.getNameAsString()));
+            parametres.add(new ParametreOrField(p.getTypeAsString(), p.getNameAsString()));
         }
         declarationType = "method";
 
@@ -122,6 +137,11 @@ public class Declaration implements Serializable {
         rawBD = md;
     }
 
+    /**
+     * Generate new Declaration from a path
+     * @param path file path
+     * @return new Declaration
+     */
     public static Declaration fromPath(String path) {
         File f = new File(path);
         try {
@@ -132,6 +152,10 @@ public class Declaration implements Serializable {
         }
     }
 
+    /**
+     * get annotations of a Declaration
+     * @return A list of annotations in String
+     */
     public List<String> getAnnotations() {
         List<String> results = new ArrayList<>();
         BodyDeclaration toProcess = null;
@@ -148,12 +172,21 @@ public class Declaration implements Serializable {
         return results;
     }
 
+    /**
+     * get ClassOrInterfaceDeclaration
+     * @return ClassOrInterfaceDeclaration of the raw CompilationUnit of the Declaration
+     */
     public ClassOrInterfaceDeclaration getClassDeclr() {
         return this.getRawCU().findFirst(ClassOrInterfaceDeclaration.class).orElse(null);
     }
 
-    public Set<String> getAccessedFieldNames(List<Declaration> parents) {
-        Set<String> result = new HashSet<>(getAccessedFieldNamesInner(parents));
+    /**
+     * Get the accessed fields
+     * @param superClasses superclass Declarations to consider
+     * @return names of accessed fields
+     */
+    public Set<String> getAccessedFieldNames(List<Declaration> superClasses) {
+        Set<String> result = new HashSet<>(getAccessedFieldNamesInner(superClasses));
         List<MethodCallExpr> mcs = rawBD.findAll(MethodCallExpr.class);
         for (MethodCallExpr mc : mcs) {
             boolean skip = false;
@@ -164,25 +197,30 @@ public class Declaration implements Serializable {
                 }
             }
             if (skip) continue;
-            for (Declaration parent : parents) {
+            for (Declaration parent : superClasses) {
                 Declaration md = parent.findDeclaration(mc.getNameAsString());
                 if (md != null) {
-                    result.addAll(md.getAccessedFieldNamesInner(parents));
+                    result.addAll(md.getAccessedFieldNamesInner(superClasses));
                 }
             }
         }
         return result;
     }
 
-    private List<String> getAccessedFieldNamesInner(List<Declaration> parents) {
+    /**
+     * Get the accessed fields (direct access)
+     * @param superClasses superclass Declarations to consider
+     * @return names of accessed fields
+     */
+    private List<String> getAccessedFieldNamesInner(List<Declaration> superClasses) {
         List<NameExpr> nes = rawBD.findAll(NameExpr.class);
         List<String> result = new ArrayList<>();
-        Set<Parametre> fields = new HashSet<>();
-        for (Declaration d : parents) {
+        Set<ParametreOrField> fields = new HashSet<>();
+        for (Declaration d : superClasses) {
             fields.addAll(d.getFields());
         }
         for (NameExpr ne : nes) {
-            for (Parametre field : fields) {
+            for (ParametreOrField field : fields) {
                 if (field.getName().equals(ne.getNameAsString())) {
                     result.add(ne.getNameAsString());
                 }
@@ -192,11 +230,42 @@ public class Declaration implements Serializable {
         return result;
     }
 
-    public List<Parametre> getFields() {
+
+    /**
+     * get the name of the parent superclass of the declaration
+     * @return name of superclasses
+     */
+    public List<String> getSuperClass() {
+        List<String> result = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> classes = getRawCU().findAll(ClassOrInterfaceDeclaration.class);
+        for (ClassOrInterfaceDeclaration clazz : classes) {
+            for (ClassOrInterfaceType ct : clazz.getExtendedTypes()) {
+                result.add(ct.getNameAsString());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * get the name of the implemented interfaces of the declaration
+     * @return name of interfaces
+     */
+    public List<String> getImplementedInterface() {
+        List<String> result = new ArrayList<>();
+        List<ClassOrInterfaceDeclaration> classes = getRawCU().findAll(ClassOrInterfaceDeclaration.class);
+        for (ClassOrInterfaceDeclaration clazz : classes) {
+            for (ClassOrInterfaceType ct : clazz.getImplementedTypes()) {
+                result.add(ct.getNameAsString());
+            }
+        }
+        return result;
+    }
+
+    public List<ParametreOrField> getFields() {
         return fields;
     }
 
-    public Declaration setFields(List<Parametre> fields) {
+    public Declaration setFields(List<ParametreOrField> fields) {
         this.fields = fields;
         return this;
     }
@@ -209,28 +278,6 @@ public class Declaration implements Serializable {
             }
         }
         return null;
-    }
-
-    public List<String> getSuperClass() {
-        List<String> result = new ArrayList<>();
-        List<ClassOrInterfaceDeclaration> classes = getRawCU().findAll(ClassOrInterfaceDeclaration.class);
-        for (ClassOrInterfaceDeclaration clazz : classes) {
-            for (ClassOrInterfaceType ct : clazz.getExtendedTypes()) {
-                result.add(ct.getNameAsString());
-            }
-        }
-        return result;
-    }
-
-    public List<String> getImplementedInterface() {
-        List<String> result = new ArrayList<>();
-        List<ClassOrInterfaceDeclaration> classes = getRawCU().findAll(ClassOrInterfaceDeclaration.class);
-        for (ClassOrInterfaceDeclaration clazz : classes) {
-            for (ClassOrInterfaceType ct : clazz.getImplementedTypes()) {
-                result.add(ct.getNameAsString());
-            }
-        }
-        return result;
     }
 
     public CompilationUnit getRawCU() {
@@ -249,11 +296,11 @@ public class Declaration implements Serializable {
         this.rawBD = rawBD;
     }
 
-    public List<Parametre> getParametres() {
+    public List<ParametreOrField> getParametres() {
         return parametres;
     }
 
-    public void setParametres(List<Parametre> parametres) {
+    public void setParametres(List<ParametreOrField> parametres) {
         this.parametres = parametres;
     }
 

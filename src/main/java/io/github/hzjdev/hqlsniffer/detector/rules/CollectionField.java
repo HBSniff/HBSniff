@@ -2,7 +2,7 @@ package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import io.github.hzjdev.hqlsniffer.detector.SmellDetector;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.Parametre;
+import io.github.hzjdev.hqlsniffer.model.ParametreOrField;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 import io.github.hzjdev.hqlsniffer.utils.Utils;
 
@@ -12,15 +12,20 @@ import java.util.Set;
 
 public class CollectionField extends SmellDetector {
 
+    /**
+     * check if entities use set or list as interfaces
+     * @param allModelClasses entities
+     * @return list of smells
+     */
     public List<Smell> useInterfaceSetOrListRule(Set<Declaration> allModelClasses) {
         List<Smell> smells = new ArrayList<>();
 
         for (Declaration entityNode : allModelClasses) {
 
-            List<Parametre> declaredFields = entityNode.getFields();
+            List<ParametreOrField> declaredFields = entityNode.getFields();
             boolean passed = true;
             StringBuilder comment = new StringBuilder();
-            for (Parametre fieldNode : declaredFields) {
+            for (ParametreOrField fieldNode : declaredFields) {
                 String type = fieldNode.getType();
                 if (type.contains("<")) {
                     type = type.split("<")[0];
@@ -41,17 +46,21 @@ public class CollectionField extends SmellDetector {
         return smells;
     }
 
-
+    /**
+     * check if entities use set as interfaces
+     * @param allModelClasses entities
+     * @return list of smells
+     */
     public List<Smell> useSetCollectionRule(Set<Declaration> allModelClasses) {
         List<Smell> smells = new ArrayList<>();
 
         for (Declaration entityNode : allModelClasses) {
 
-            List<Parametre> declaredFields = entityNode.getFields();
+            List<ParametreOrField> declaredFields = entityNode.getFields();
             boolean passed = true;
             StringBuilder comment = new StringBuilder();
 
-            for (Parametre fieldNode : declaredFields) {
+            for (ParametreOrField fieldNode : declaredFields) {
                 String type = fieldNode.getType();
                 if (type.contains("<")) {
                     type = type.split("<")[0];
@@ -71,6 +80,10 @@ public class CollectionField extends SmellDetector {
         return smells;
     }
 
+    /**
+     * execute detection
+     * @return list of smells
+     */
     public List<Smell> exec() {
         List<Smell> interfaces = useInterfaceSetOrListRule(entityDeclarations);
         interfaces.addAll(useSetCollectionRule(entityDeclarations));

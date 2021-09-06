@@ -23,7 +23,7 @@ public class HqlAndContext implements Serializable {
     String createQueryPosition;
     String methodPosition;
     String returnExpression;
-    List<Parametre> params;
+    List<ParametreOrField> params;
     Declaration returnTypeDeclaration;
     List<Declaration> calledIn;
 
@@ -168,11 +168,11 @@ public class HqlAndContext implements Serializable {
         return this;
     }
 
-    public List<Parametre> getParams() {
+    public List<ParametreOrField> getParams() {
         return params;
     }
 
-    public HqlAndContext setParams(List<Parametre> params) {
+    public HqlAndContext setParams(List<ParametreOrField> params) {
         this.params = params;
         return this;
     }

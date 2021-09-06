@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Parametre implements Serializable {
+public class ParametreOrField implements Serializable {
 
     @Expose
     String type;
@@ -29,7 +29,7 @@ public class Parametre implements Serializable {
     @Expose(serialize = false)
     Declaration typeDeclaration;
 
-    public Parametre(String type, String name) {
+    public ParametreOrField(String type, String name) {
         this.type = type;
         this.name = name;
         this.annotations = new ArrayList<>();
@@ -48,7 +48,7 @@ public class Parametre implements Serializable {
         return position;
     }
 
-    public Parametre setPosition(String position) {
+    public ParametreOrField setPosition(String position) {
         this.position = position;
         return this;
     }
@@ -57,12 +57,12 @@ public class Parametre implements Serializable {
         return typeDeclaration;
     }
 
-    public Parametre setTypeDeclaration(Declaration typeDeclaration) {
+    public ParametreOrField setTypeDeclaration(Declaration typeDeclaration) {
         this.typeDeclaration = typeDeclaration;
         return this;
     }
 
-    public Parametre populateModifiers(List<Modifier> ms) {
+    public ParametreOrField populateModifiers(List<Modifier> ms) {
         for (Modifier m : ms) {
             modifiers.add(m.getKeyword().asString());
         }
@@ -73,7 +73,7 @@ public class Parametre implements Serializable {
         return type;
     }
 
-    public Parametre setType(String type) {
+    public ParametreOrField setType(String type) {
         this.type = type;
         return this;
     }
@@ -82,7 +82,7 @@ public class Parametre implements Serializable {
         return name;
     }
 
-    public Parametre setName(String name) {
+    public ParametreOrField setName(String name) {
         this.name = name;
         return this;
     }
@@ -95,7 +95,7 @@ public class Parametre implements Serializable {
         this.annotations = annotations;
     }
 
-    public Parametre populateAnnotations(List<AnnotationExpr> annotationExprs) {
+    public ParametreOrField populateAnnotations(List<AnnotationExpr> annotationExprs) {
         for (AnnotationExpr expr : annotationExprs) {
             annotations.add(expr.toString());
         }
@@ -103,6 +103,11 @@ public class Parametre implements Serializable {
 
     }
 
+    /**
+     * check if annotations includes string
+     * @param s string to check
+     * @return true if annotations includes string
+     */
     public boolean annotationIncludes(String s) {
         for (String annotation : annotations) {
             if (annotation.contains(s)) {
@@ -112,6 +117,10 @@ public class Parametre implements Serializable {
         return false;
     }
 
+    /**
+     * check if the parametre/field is static
+     * @return true if static
+     */
     public boolean isStatic() {
         for (String modifier : modifiers) {
             if (Modifier.Keyword.STATIC.asString().equals(modifier)) {
@@ -125,7 +134,7 @@ public class Parametre implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Parametre parametre = (Parametre) o;
+        ParametreOrField parametre = (ParametreOrField) o;
         return Objects.equals(type, parametre.type) && Objects.equals(name, parametre.name) && Objects.equals(position, parametre.position) && Objects.equals(typeDeclaration, parametre.typeDeclaration);
     }
 
