@@ -15,6 +15,7 @@ public class HqlAndContext implements Serializable {
     List<String> hql;
     String returnType;
     String methodName;
+    String typeName;
     String methodBody;
     String cleanedHql;
     List<Declaration> hqlFromType;
@@ -33,7 +34,16 @@ public class HqlAndContext implements Serializable {
     }
 
     public HqlAndContext populateCalledIn(List<CompilationUnit> cus) {
-        this.calledIn = findCalledIn(getMethodName(), cus);
+        this.calledIn = findCalledIn(getMethodName(), getTypeName(), cus);
+        return this;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public HqlAndContext setTypeName(String typeName) {
+        this.typeName = typeName;
         return this;
     }
 

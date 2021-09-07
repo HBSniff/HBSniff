@@ -4,6 +4,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
@@ -28,7 +29,7 @@ public class HqlExtractor {
      * @param cus scope of classes
      * @param hqlAndContext result
      */
-    private static void populateHqlContextInfo(MethodDeclaration parent, List<CompilationUnit> cus, HqlAndContext hqlAndContext){
+    private static void populateHqlContextInfo(MethodDeclaration parent, TypeDeclaration td, List<CompilationUnit> cus, HqlAndContext hqlAndContext){
         if (parent != null) {
             List<ParametreOrField> params = new ArrayList<>();
             String methodName = parent.getNameAsString();
@@ -50,7 +51,7 @@ public class HqlExtractor {
                         .populateAnnotations(p.getAnnotations())
                 );
             }
-            hqlAndContext.setMethodName(methodName).setParams(params).setMethodBody(parent.toString());
+            hqlAndContext.setTypeName(td.getNameAsString()).setMethodName(methodName).setTypeName(methodName).setParams(params).setMethodBody(parent.toString());
         }
     }
     /**
@@ -117,6 +118,8 @@ public class HqlExtractor {
         List<HqlAndContext> hqlAndContexts = new ArrayList<>();
         for (CompilationUnit cu : cus) {
             List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
+            List<TypeDeclaration> tds = cu.findAll(TypeDeclaration.class);
+
             for (MethodCallExpr mce : mces) {
                 if (mce.getNameAsString().equals(CREATE_QUERY_METHOD_NAME)) {
                     String hql = null;
@@ -161,7 +164,13 @@ public class HqlExtractor {
                     }
                     MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
                     // gen method signature related info
-                    populateHqlContextInfo(parent, cus, hqlAndContext);
+                    TypeDeclaration td;
+                    if(tds!=null && tds.size()>0) {
+                        td = tds.get(0);
+                    }else{
+                        td = null;
+                    }
+                    populateHqlContextInfo(parent, td, cus, hqlAndContext);
 
                     // find hql
                     if (foundStrLitr) {

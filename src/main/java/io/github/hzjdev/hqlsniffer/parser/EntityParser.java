@@ -3,6 +3,7 @@ package io.github.hzjdev.hqlsniffer.parser;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -222,6 +223,40 @@ public class EntityParser {
                 List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
                 for (MethodCallExpr mce : mces) {
                     if (mce.getNameAsString().equals(methodName)) {
+                        Optional<Node> parentMethod = mce.getParentNode();
+                        while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
+                            parentMethod = parentMethod.get().getParentNode();
+                        }
+                        MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
+                        if (parent != null) {
+                            calledIn.add(new Declaration(cu, parent));
+                        }
+                    }
+                }
+            }
+        }
+        return calledIn;
+    }
+
+    /**
+     * Check any method is called in a scope CompilationUnits
+     * @param methodName method name
+     * @param cus search scope of CompilationUnits
+     * @return List of the file which called the method
+     */
+    public static List<Declaration> findCalledIn(String methodName, String typeName, List<CompilationUnit> cus) {
+        List<Declaration> calledIn = new ArrayList<>();
+        if (methodName != null) {
+            for (CompilationUnit cu : cus) {
+                boolean imported = false;
+                for(ImportDeclaration id: cu.getImports()){
+                    if (id.getNameAsString().contains(typeName)){
+                        imported = true;
+                    }
+                }
+                List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
+                for (MethodCallExpr mce : mces) {
+                    if (imported && mce.getNameAsString().equals(methodName)) {
                         Optional<Node> parentMethod = mce.getParentNode();
                         while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
                             parentMethod = parentMethod.get().getParentNode();
