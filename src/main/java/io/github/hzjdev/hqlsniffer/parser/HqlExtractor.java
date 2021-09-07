@@ -51,7 +51,7 @@ public class HqlExtractor {
                         .populateAnnotations(p.getAnnotations())
                 );
             }
-            hqlAndContext.setTypeName(td.getNameAsString()).setMethodName(methodName).setTypeName(methodName).setParams(params).setMethodBody(parent.toString());
+            hqlAndContext.setTypeName(td.getNameAsString()).setMethodName(methodName).setParams(params).setMethodBody(parent.toString());
         }
     }
     /**

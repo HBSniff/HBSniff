@@ -249,9 +249,15 @@ public class EntityParser {
         if (methodName != null) {
             for (CompilationUnit cu : cus) {
                 boolean imported = false;
-                for(ImportDeclaration id: cu.getImports()){
-                    if (id.getNameAsString().contains(typeName)){
-                        imported = true;
+                TypeDeclaration primaryType = cu.getPrimaryType().orElse(null);
+                if(primaryType!=null){
+                    imported = primaryType.getNameAsString().equals(typeName);
+                }
+                if(!imported) {
+                    for (ImportDeclaration id : cu.getImports()) {
+                        if (id.getNameAsString().contains(typeName)) {
+                            imported = true;
+                        }
                     }
                 }
                 List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
