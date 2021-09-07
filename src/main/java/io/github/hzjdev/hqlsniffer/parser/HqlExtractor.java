@@ -19,10 +19,7 @@ package io.github.hzjdev.hqlsniffer.parser;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
@@ -71,56 +68,83 @@ public class HqlExtractor {
             hqlAndContext.setTypeName(td.getNameAsString()).setMethodName(methodName).setParams(params).setMethodBody(parent.toString());
         }
     }
+
     /**
-     * locate and concat hql in a method body
-     * @param parent method body
+     * Extract Hql by hqlVariableNameCandidate from a VariableDeclarator
+     * @param vd VariableDeclarator to extract
+     * @param hqls result list
+     * @param hqlVariableNameCandidate hql variable name
+     */
+    private static void extractHqlFromVariableDeclarators(VariableDeclarator vd,  List<String> hqls, String hqlVariableNameCandidate){
+        if (vd != null && vd.getNameAsString().equals(hqlVariableNameCandidate)) {
+            vd.getInitializer().ifPresent(init -> {
+                String tmp = null;
+                if (init.isBinaryExpr()) {
+                    tmp = concatBinaryExpr(init.asBinaryExpr());
+                } else if (init.isLiteralExpr()) {
+                    tmp = extractLiteralExpr(init.asLiteralExpr());
+                } else {
+                    if (!init.toString().contains(CLASS_SUFFIX)) {
+                        tmp = init.toString();
+                    }
+                }
+                if (tmp != null) {
+                    hqls.add(tmp);
+                }
+            });
+        }
+    }
+
+    /**
+     * Extract Hql by hqlVariableNameCandidate from a statement
+     * @param statement statement to extract
+     * @param hqls result list
+     * @param hqlVariableNameCandidate hql variable name
+     */
+    private static void extractHqlFromStatement(Expression statement, List<String> hqls, String hqlVariableNameCandidate){
+        if (statement instanceof VariableDeclarationExpr) {
+            for (VariableDeclarator vd : statement.asVariableDeclarationExpr().getVariables()) {
+                extractHqlFromVariableDeclarators(vd, hqls, hqlVariableNameCandidate);
+            }
+        } else if (statement instanceof AssignExpr) {
+            // variable assignment
+            List<String> extractedHql = extractHqlExpr(hqlVariableNameCandidate, statement.asAssignExpr());
+            hqls.addAll(extractedHql);
+        } else if (statement instanceof MethodCallExpr) {
+            // hql.append("...")
+            List<NameExpr> nodes = statement.asMethodCallExpr().findAll(NameExpr.class);
+            if(nodes.size() < 1) return;
+            String methodCallName = statement.asMethodCallExpr().getNameAsString();
+            String variableName = nodes.get(0).getNameAsString();
+            if(methodCallName != null && (methodCallName.equals(APPEND_METHOD_CALL_NAME) || methodCallName.equals(CONCAT_METHOD_CALL_NAME)) && variableName.equals(hqlVariableNameCandidate)){
+                List<LiteralExpr> lexprs = statement.asMethodCallExpr().findAll(LiteralExpr.class);
+                if(lexprs == null) return;
+                for (LiteralExpr lexpr: lexprs){
+                    String expr = extractLiteralExpr(lexpr);
+                    hqls.add(expr);
+                }
+            }
+        }
+    }
+
+    /**
+     * locate and concat hql in a method body or type declaration
+     * @param parent method body  or type declaration
      * @param hqlVariableNameCandidate the name of the hql variable
      * @return list of hqls (unconcatenated)
      */
-    private static List<String> locateHqlInContext(MethodDeclaration parent, String hqlVariableNameCandidate){
+    private static List<String> locateHqlInContext(BodyDeclaration parent, String hqlVariableNameCandidate){
         List<String> hqls = new ArrayList<>();
         if (parent != null) {
+            List<FieldDeclaration> fieldDeclarations = parent.findAll(FieldDeclaration.class);
+            for (FieldDeclaration declaration : fieldDeclarations) {
+                for(VariableDeclarator vd: declaration.getVariables()){
+                    extractHqlFromVariableDeclarators(vd, hqls, hqlVariableNameCandidate);
+                }
+            }
             List<ExpressionStmt> statements = parent.findAll(ExpressionStmt.class);
             for (ExpressionStmt statement : statements) {
-                if (statement.getExpression() instanceof VariableDeclarationExpr) {
-                    for (VariableDeclarator vd : statement.getExpression().asVariableDeclarationExpr().getVariables()) {
-                        if (vd != null && vd.getNameAsString().equals(hqlVariableNameCandidate)) {
-                            vd.getInitializer().ifPresent(init -> {
-                                String tmp = null;
-                                if (init.isBinaryExpr()) {
-                                    tmp = concatBinaryExpr(init.asBinaryExpr());
-                                } else if (init.isLiteralExpr()) {
-                                    tmp = extractLiteralExpr(init.asLiteralExpr());
-                                } else {
-                                    if (!init.toString().contains(CLASS_SUFFIX)) {
-                                        tmp = init.toString();
-                                    }
-                                }
-                                if (tmp != null) {
-                                    hqls.add(tmp);
-                                }
-                            });
-                        }
-                    }
-                } else if (statement.getExpression() instanceof AssignExpr) {
-                    // variable assignment
-                    List<String> extractedHql = extractHqlExpr(hqlVariableNameCandidate, statement.getExpression().asAssignExpr());
-                    hqls.addAll(extractedHql);
-                } else if (statement.getExpression() instanceof MethodCallExpr) {
-                    // hql.append("...")
-                    List<NameExpr> nodes = statement.getExpression().asMethodCallExpr().findAll(NameExpr.class);
-                    if(nodes.size() < 1) continue;
-                    String methodCallName = statement.getExpression().asMethodCallExpr().getNameAsString();
-                    String variableName = nodes.get(0).getNameAsString();
-                    if(methodCallName != null && (methodCallName.equals(APPEND_METHOD_CALL_NAME) || methodCallName.equals(CONCAT_METHOD_CALL_NAME)) && variableName.equals(hqlVariableNameCandidate)){
-                        List<LiteralExpr> lexprs = statement.getExpression().asMethodCallExpr().findAll(LiteralExpr.class);
-                        if(lexprs == null) continue;
-                        for (LiteralExpr lexpr: lexprs){
-                            String expr = extractLiteralExpr(lexpr);
-                            hqls.add(expr);
-                        }
-                    }
-                }
+                extractHqlFromStatement(statement.getExpression(), hqls, hqlVariableNameCandidate);
             }
         }
         return hqls;
@@ -135,7 +159,6 @@ public class HqlExtractor {
         List<HqlAndContext> hqlAndContexts = new ArrayList<>();
         for (CompilationUnit cu : cus) {
             List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
-            List<TypeDeclaration> tds = cu.findAll(TypeDeclaration.class);
 
             for (MethodCallExpr mce : mces) {
                 if (mce.getNameAsString().equals(CREATE_QUERY_METHOD_NAME)) {
@@ -160,11 +183,24 @@ public class HqlExtractor {
                                 hqlCandidate = concatBinaryExpr(mce.getArgument(0).asBinaryExpr());
                                 foundStrLitr = true;
                             } else {
-                                hqlCandidate = mce.getArgument(0).toString();
-                            }
-                            if (hqlCandidate.endsWith(CLASS_SUFFIX)) {
-                                // the case of .createQuery(Domain.class)
-                                continue;
+                                if(mce.getArgument(0) instanceof MethodCallExpr){
+                                    List<NameExpr> names = mce.getArgument(0).asMethodCallExpr().findAll(NameExpr.class);
+                                    if(names.size()>0){
+                                        hqlCandidate = names.get(0).getNameAsString();
+                                    }
+                                }else if(mce.getArgument(0) instanceof NameExpr){
+                                    hqlCandidate = mce.getArgument(0).toString();
+                                }else if(mce.getArgument(0) instanceof ClassExpr){
+                                    continue; //.class
+                                }else{
+                                    hqlCandidate = mce.getArgument(0).toString();
+                                    System.out.println("\n##Unexpected type");
+                                    System.out.println("Candidate:" + hqlCandidate);
+                                    System.out.println("File:" + hqlAndContext.getFullPath());
+                                    System.out.println("Method:" + hqlAndContext.getMethodName());
+                                    System.out.println("Position:" + hqlAndContext.getCreateQueryPosition());
+                                    System.out.println("found .createQuery argument 1 of type "+mce.getClass().toString()+" "+hqlCandidate);
+                                }
                             }
                         } catch (Exception e) {
                             System.out.println("#getHqlNodes1");
@@ -181,12 +217,7 @@ public class HqlExtractor {
                     }
                     MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
                     // gen method signature related info
-                    TypeDeclaration td;
-                    if(tds!=null && tds.size()>0) {
-                        td = tds.get(0);
-                    }else{
-                        td = null;
-                    }
+                    TypeDeclaration td = cu.getPrimaryType().orElse(null);
                     populateHqlContextInfo(parent, td, cus, hqlAndContext);
 
                     // find hql
@@ -196,7 +227,11 @@ public class HqlExtractor {
                         hqlAndContext.setHql(hql);
                     } else {
                         // looking at the method body
-                        hqlAndContext.setHql(locateHqlInContext(parent, hqlCandidate));
+                        List<String> hqlFromContext = locateHqlInContext(parent, hqlCandidate);
+                        if(hqlFromContext.size() < 1){
+                            hqlFromContext = locateHqlInContext(td, hqlCandidate);
+                        }
+                        hqlAndContext.setHql(hqlFromContext);
                     }
                     // if hql is not found this entity should be dropped
                     if (hqlAndContext.getHql() != null && hqlAndContext.getHql().size() > 0) {

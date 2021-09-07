@@ -125,7 +125,7 @@ public class Main {
         try {
             project = args[0];
         } catch (Exception e) {
-            project = "SpringBlog";
+            project = "Hibernate-JPA";
         }
         try {
             root_path = args[1];
