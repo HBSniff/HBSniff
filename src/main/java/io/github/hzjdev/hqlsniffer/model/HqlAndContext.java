@@ -51,7 +51,11 @@ public class HqlAndContext implements Serializable {
     }
 
     public HqlAndContext populateCalledIn(List<CompilationUnit> cus) {
-        this.calledIn = findCalledIn(getMethodName(), getTypeName(), cus);
+        if(getTypeName()!=null) {
+            this.calledIn = findCalledIn(getMethodName(), getTypeName(), cus);
+        }else{
+            this.calledIn = findCalledIn(getMethodName(), cus);
+        }
         return this;
     }
 

@@ -22,7 +22,7 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import java.util.List;
 
-public class LackJoinFetch {
+public class UsedJoinFetch {
 
     public List<ManyToOneEagerEntity> findStudentsJoinFetch(Integer id) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("tests.io.github.hzjdev.hqlsniffer.entities.ManyToOneEagerEntity");

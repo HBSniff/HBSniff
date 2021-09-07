@@ -22,7 +22,7 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import java.util.List;
 
-public class Paged {
+public class PagedCorrect {
 
     public List<StudentFig1> findStudentsPaged(String name, int fromIndex, int limit) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("io.github.hzjdev.hqlsniffer.example.domain.fig1.StudentFig1");
