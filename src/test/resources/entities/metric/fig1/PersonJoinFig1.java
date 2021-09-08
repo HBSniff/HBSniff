@@ -18,7 +18,7 @@
 package io.github.hzjdev.hbsniff.example.domain.fig1;
 
 
-import io.github.hzjdev.hbsniff.example.domain.Person;
+import io.github.hzjdev.hbsniff.example.mapping.domain.Person;
 
 import javax.persistence.*;
 

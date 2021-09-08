@@ -1,7 +1,7 @@
-package io.github.hzjdev.hbsniff.example;
+package io.github.hzjdev.hbsniff.example.mapping;
 
-import io.github.hzjdev.hbsniff.example.domain.fig1.ClerkFig1;
-import io.github.hzjdev.hbsniff.example.domain.fig3.StudentFig3;
+import io.github.hzjdev.hbsniff.example.mapping.domain.fig1.ClerkFig1;
+import io.github.hzjdev.hbsniff.example.mapping.domain.fig3.StudentFig3;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;

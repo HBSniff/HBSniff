@@ -93,6 +93,9 @@ public class HashCodeAndEquals extends SmellDetector {
         for (Declaration entityNode : classes) {
             String comment = "";
             boolean smelly = false;
+            boolean annotationData = entityNode.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || entityNode.annotationIncludes(DATA_ANNOT_EXPR);;
+            if(annotationData) continue;
+
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
 
@@ -137,6 +140,9 @@ public class HashCodeAndEquals extends SmellDetector {
     public final List<Smell> hashCodeAndEqualsRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
+            boolean annotationData = entityNode.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || entityNode.annotationIncludes(DATA_ANNOT_EXPR);
+            if(annotationData) continue;
+
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
             if (equalsMethod == null) {

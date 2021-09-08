@@ -1,7 +1,7 @@
-package io.github.hzjdev.hbsniff.example.domain.fig1;
+package io.github.hzjdev.hbsniff.example.mapping.domain.fig3;
 
 
-import io.github.hzjdev.hbsniff.example.domain.Person;
+import io.github.hzjdev.hbsniff.example.mapping.domain.Person;
 
 import javax.persistence.*;
 
@@ -9,8 +9,8 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorValue("person")
-@Table(name = "person_fig1")
-public class PersonSingleTableFig1 implements Person {
+@Table(name = "person_fig3")
+public class PersonSingleTableFig3 implements Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
@@ -18,8 +18,4 @@ public class PersonSingleTableFig1 implements Person {
 
     @Column(name = "name")
     public String name;
-
-    public PersonSingleTableFig1() {
-        super();
-    }
 }

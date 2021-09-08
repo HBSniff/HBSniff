@@ -1,4 +1,4 @@
-package io.github.hzjdev.hbsniff.example.domain.fig3;
+package io.github.hzjdev.hbsniff.example.mapping.domain.fig3;
 
 
 import javax.persistence.DiscriminatorValue;

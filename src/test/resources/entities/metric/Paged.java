@@ -17,6 +17,8 @@
 
 package io.github.hzjdev.hbsniff.example.domain.fig1;
 
+import io.github.hzjdev.hbsniff.example.mapping.domain.fig1.StudentFig1;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;

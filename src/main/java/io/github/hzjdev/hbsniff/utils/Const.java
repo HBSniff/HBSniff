@@ -26,6 +26,8 @@ public class Const {
     public final static String GETTER_ANNOT_EXPR = "Getter"; //lombok annotation
     public final static String SETTER_ANNOT_EXPR = "Setter";
     public final static String ENTITY_ANNOT_EXPR = "Entity";
+    public final static String DATA_ANNOT_EXPR = "Data";
+    public final static String EQUALS_AND_HASH_CODE_ANNOT_EXPR = "EqualsAndHashCode";
 
     public final static String SINGLE_TABLE_ANNOT_EXPR = "SINGLE_TABLE";
     public final static String TABLE_PER_CLASS_ANNOT_EXPR = "TABLE_PER_CLASS";

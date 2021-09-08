@@ -1,4 +1,4 @@
-package io.github.hzjdev.hbsniff.example.domain.fig1;
+package io.github.hzjdev.hbsniff.example.mapping.domain.fig1;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;

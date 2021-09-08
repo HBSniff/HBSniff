@@ -18,6 +18,8 @@
 package io.github.hzjdev.hbsniff.example.domain.fig1;
 
 
+import io.github.hzjdev.hbsniff.example.mapping.domain.fig1.PersonPerClassFig1;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 

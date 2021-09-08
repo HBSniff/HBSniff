@@ -83,7 +83,7 @@ public class CollectionField extends SmellDetector {
                     type = type.split("<")[0];
                 }
                 if (Utils.isCollection(type) && !Utils.isSet(type)) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" should use Set instead of List.");
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" should use Set collection.");
                     passed = false;
                 }
             }
@@ -102,8 +102,8 @@ public class CollectionField extends SmellDetector {
      * @return list of smells
      */
     public List<Smell> exec() {
-        List<Smell> interfaces = useInterfaceSetOrListRule(entityDeclarations);
-        interfaces.addAll(useSetCollectionRule(entityDeclarations));
+        List<Smell> interfaces = useSetCollectionRule(entityDeclarations);
+//        interfaces.addAll(useSetCollectionRule(entityDeclarations));
         return interfaces;
     }
 

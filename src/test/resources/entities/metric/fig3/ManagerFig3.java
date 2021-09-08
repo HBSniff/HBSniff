@@ -18,6 +18,8 @@
 package io.github.hzjdev.hbsniff.example.domain.fig3;
 
 
+import io.github.hzjdev.hbsniff.example.mapping.domain.fig3.EmployeeFig3;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
