@@ -81,7 +81,7 @@ public class CollectionFieldTest {
     @Test
     public void testUseSetCollectionRule() throws Exception {
         List<Smell> s = c.useSetCollectionRule(toInput);
-        assertEquals(s.size(), 1);
+        assertEquals(s.size(), 2);
         assertEquals(s.get(0).getClassName(), "NonListOrSetCollectionEntity");
     }
 
@@ -95,7 +95,7 @@ public class CollectionFieldTest {
         collectionSmell.addAll(c.useSetCollectionRule(toInput));
         List<Smell> execSmell = c.exec();
         assertEquals(c.exec().size(), collectionSmell.size());
-        assertEquals(c.exec().size(), 2);
+        assertEquals(c.exec().size(), 3);
 
         Set<String> execNames = execSmell.stream().map(Smell::getClassName).collect(Collectors.toSet());
         Set<String> smellNames = collectionSmell.stream().map(Smell::getClassName).collect(Collectors.toSet());
