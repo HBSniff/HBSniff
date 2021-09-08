@@ -15,10 +15,10 @@
  *     along with hqlSniffer.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.hzjdev.hqlsniffer.example.domain.fig3;
+package io.github.hzjdev.hbsniff.example.domain.fig3;
 
 
-import io.github.hzjdev.hqlsniffer.example.domain.Person;
+import io.github.hzjdev.hbsniff.example.domain.Person;
 
 import javax.persistence.*;
 

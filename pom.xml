@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.hzjdev.hqlsniffer</groupId>
-    <artifactId>hqlSniffer</artifactId>
-    <version>1.6.2</version>
+    <groupId>io.github.hzjdev.gbsniff</groupId>
+    <artifactId>HBSniff</artifactId>
+    <version>1.6.3</version>
     <build>
         <plugins>
             <plugin>
@@ -20,7 +20,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>io.github.hzjdev.hqlsniffer.Main</mainClass>
+                            <mainClass>io.github.hzjdev.hbsniff.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

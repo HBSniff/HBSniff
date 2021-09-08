@@ -15,7 +15,7 @@
  *     along with hqlSniffer.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.hzjdev.hqlsniffer.example.domain.fig3;
+package io.github.hzjdev.hbsniff.example.domain.fig3;
 
 
 import javax.persistence.DiscriminatorValue;

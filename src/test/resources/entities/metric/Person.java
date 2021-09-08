@@ -15,7 +15,7 @@
  *     along with hqlSniffer.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.hzjdev.hqlsniffer.example.domain;
+package io.github.hzjdev.hbsniff.example.domain;
 
 public interface Person {
 }
