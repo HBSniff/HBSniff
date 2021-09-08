@@ -22,6 +22,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.type.Type;
@@ -85,6 +86,25 @@ public class OneByOne extends SmellDetector {
                                 }
                             }
                         }
+                    }
+                }
+            }
+            List<MarkerAnnotationExpr> annotationsMarker = cu.findAll(MarkerAnnotationExpr.class);
+            for (MarkerAnnotationExpr marker : annotationsMarker) {
+                if (marker.getNameAsString().contains(TO_MANY_ANNOT_EXPR)) {
+                    //@ManyToMany or @OneToMany with default fetch type LAZY
+                    Optional<Node> parentField = marker.getParentNode();
+                    while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
+                        parentField = parentField.get().getParentNode();
+                    }
+                    if (parentField.isPresent()) {
+                        final Smell smell = initSmell(parentDeclaration);
+                        smell.setComment(parentField.toString())
+                                .setName("Eager Fetch");
+
+                        marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                        psr.getSmells().get(parentDeclaration).add(smell);
+                        lazyFetches.add(smell);
                     }
                 }
             }

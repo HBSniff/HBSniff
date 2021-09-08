@@ -20,6 +20,7 @@ package io.github.hzjdev.hbsniff.detector.rules;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import io.github.hzjdev.hbsniff.detector.SmellDetector;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.github.hzjdev.hbsniff.utils.Const.EAGER_ANNOT_EXPR;
+import static io.github.hzjdev.hbsniff.utils.Const.TO_ONE_ANNOT_EXPR;
 import static io.github.hzjdev.hbsniff.utils.Utils.cleanHql;
 
 public class Fetch extends SmellDetector {
@@ -62,6 +64,26 @@ public class Fetch extends SmellDetector {
                             psr.getSmells().get(parentDeclaration).add(smell);
                             eagerFetches.add(smell);
                         }
+                    }
+                }
+            }
+            List<MarkerAnnotationExpr> annotationsMarker = cu.findAll(MarkerAnnotationExpr.class);
+            for (MarkerAnnotationExpr marker : annotationsMarker) {
+                if (marker.getNameAsString().contains(TO_ONE_ANNOT_EXPR)) {
+                    //@ManyToOne or @OneToOne with default fetch type EAGER
+                    Optional<Node> parentField = marker.getParentNode();
+                    while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
+                        parentField = parentField.get().getParentNode();
+                    }
+                    if (parentField.isPresent()) {
+                        Declaration parentDeclaration = new Declaration(cu);
+                        final Smell smell = initSmell(parentDeclaration);
+                        smell.setComment(parentField.toString())
+                                .setName("Eager Fetch");
+
+                        marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                        psr.getSmells().get(parentDeclaration).add(smell);
+                        eagerFetches.add(smell);
                     }
                 }
             }

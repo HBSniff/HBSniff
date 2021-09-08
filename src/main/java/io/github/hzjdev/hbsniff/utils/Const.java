@@ -35,6 +35,8 @@ public class Const {
     public final static String MANY_TO_ONE_ANNOT_EXPR = "ManyToOne";
     public final static String ONE_TO_MANY_ANNOT_EXPR = "OneToMany";
     public final static String TO_MANY_ANNOT_EXPR = "ToMany";
+    public final static String TO_ONE_ANNOT_EXPR = "ToOne";
+
     public final static String BATCH_SIZE_ANNOT_EXPR = "BatchSize";
 
     public final static String SERIALIZABLE_ANNOT_EXPR = "Serializable";

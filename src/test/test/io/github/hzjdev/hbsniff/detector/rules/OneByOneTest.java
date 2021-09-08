@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -62,10 +63,12 @@ public class OneByOneTest {
     @Test
     public void getOneByOne() {
         List<Smell> result = d.getOneByOne(toInput);
-        assertEquals(result.size(), 1);
-        assertEquals(result.get(0).getClassName(), "OneToManyLazyEntity");
+        assertEquals(result.size(), 2);
+        List<String> resultNames = result.stream().map(Smell::getClassName).collect(Collectors.toList());
+        assertTrue(resultNames.contains("OneToManyLazyEntity"));
+        assertTrue(resultNames.contains("OneToManyEntity"));
         assertTrue(result.get(0).getComment().contains("lst"));
-
+        assertTrue(result.get(1).getComment().contains("lst"));
     }
 
     @Test

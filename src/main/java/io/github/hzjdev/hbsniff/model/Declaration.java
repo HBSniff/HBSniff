@@ -408,13 +408,12 @@ public class Declaration implements Serializable {
         Declaration that = (Declaration) o;
         return Objects.equals(name, that.name) &&
                 Objects.equals(position, that.position) &&
-                Objects.equals(fullPath, that.fullPath) &&
-                Objects.equals(body, that.body);
+                Objects.equals(fullPath, that.fullPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, position, fullPath, body);
+        return Objects.hash(name, position, fullPath);
     }
 
     public List<Declaration> getConstructors() {
