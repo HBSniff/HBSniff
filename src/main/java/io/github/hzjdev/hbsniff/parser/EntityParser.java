@@ -36,8 +36,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.hzjdev.hbsniff.utils.Const.IDENT_ANNOT_EXPR;
-import static io.github.hzjdev.hbsniff.utils.Const.LEVEL_TO_POPULATE_DECLARATION;
+import static io.github.hzjdev.hbsniff.utils.Const.*;
 import static io.github.hzjdev.hbsniff.utils.Utils.extractTypeFromCollection;
 
 public class EntityParser {
@@ -60,7 +59,7 @@ public class EntityParser {
         for (CompilationUnit cu : cus) {
             List<AnnotationExpr> annotations = cu.findAll(AnnotationExpr.class);
             for (AnnotationExpr annotation : annotations) {
-                if (annotation.getNameAsString().equals("Entity")) {
+                if (annotation.getNameAsString().contains(ENTITY_ANNOT_EXPR)) {
                     results.add(cu);
                 }
             }
@@ -83,7 +82,7 @@ public class EntityParser {
             if (file.isDirectory()) {
                 parseFromDir(file.getAbsolutePath(), results);
             } else {
-                if (file.getName().toLowerCase().endsWith(".java")) {
+                if (file.getName().toLowerCase().endsWith(JAVA_SUFFIX)) {
                     String path = file.getPath();
                     try {
                         CompilationUnit cu = StaticJavaParser.parse(new File(path));
@@ -141,8 +140,7 @@ public class EntityParser {
         if (entity == null) return null;
         List<ParametreOrField> declaredFields = entity.getFields();
         for (ParametreOrField fieldNode : declaredFields) {
-            List<String> annotations = fieldNode.getAnnotations();
-            if (annotations.contains(IDENT_ANNOT_EXPR)) {
+            if (fieldNode.annotationIncludes(IDENT_ANNOT_EXPR)) {
                 return fieldNode; // any field is annotated by @Id
             }
         }
@@ -154,14 +152,13 @@ public class EntityParser {
         }
         for (Declaration method : entity.getMembers()) {
             // any getter is annotated by @Id
-            List<String> annotations = method.getAnnotations();
-            if (annotations.contains(IDENT_ANNOT_EXPR)) {
+            if (method.annotationIncludes(IDENT_ANNOT_EXPR)) {
                 String type = method.getReturnTypeName();
                 String fieldName;
                 if (type != null && (type.equals(Utils.BOOLEAN_PRIMITIVE) || type.equals(Utils.BOOLEAN_CLASS))) {
-                    fieldName = method.getName().replaceFirst("is", "");
+                    fieldName = method.getName().replaceFirst(GETTER_METHOD_PREFIX_BOOL, "");
                 } else {
-                    fieldName = method.getName().replaceFirst("get", "");
+                    fieldName = method.getName().replaceFirst(GETTER_METHOD_PREFIX_NORMAL, "");
                 }
                 String realFieldName = Character.toLowerCase(fieldName.charAt(0)) + fieldName.substring(1);
                 ParametreOrField field = entity.getFields().stream().filter(i -> i.getName().equals(realFieldName)).findFirst().orElse(null);

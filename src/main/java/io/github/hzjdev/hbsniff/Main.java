@@ -122,7 +122,7 @@ public class Main {
         try {
             project = args[0];
         } catch (Exception e) {
-            project = "Hibernate-JPA";
+            project = "WeixinMultiPlatform";
         }
         try {
             root_path = args[1];

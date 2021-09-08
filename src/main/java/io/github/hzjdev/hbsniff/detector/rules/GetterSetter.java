@@ -109,14 +109,8 @@ public class GetterSetter extends SmellDetector {
         boolean annotationSetter = false;
 
         for (Declaration entityNode : classes) {
-            for(String node: entityNode.getAnnotations()){
-                if(node.contains(GETTER_ANNOT_EXPR)){
-                    annotationGetter = true;
-                }
-                if(node.contains(SETTER_ANNOT_EXPR)){
-                    annotationSetter = true;
-                }
-            }
+            annotationGetter = entityNode.annotationIncludes(GETTER_ANNOT_EXPR);
+            annotationSetter = entityNode.annotationIncludes(SETTER_ANNOT_EXPR);
 
             StringBuilder comment = new StringBuilder();
             List<ParametreOrField> declaredFields = entityNode.getFields();

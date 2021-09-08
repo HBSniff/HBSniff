@@ -39,7 +39,6 @@ public class NotSerializable extends SmellDetector {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
             boolean pass = false;
-            String serializable = SERIALIZABLE_ANNOT_EXPR;
             List<Declaration> toDetect = getSuperClassDeclarations(entityNode);
             toDetect.add(entityNode);
             for (Declaration superclass : toDetect) {
@@ -47,7 +46,7 @@ public class NotSerializable extends SmellDetector {
                     break;
                 }
                 for (String i : superclass.getImplementedInterface()) {
-                    if (i.equals(serializable)) {
+                    if (i.contains(SERIALIZABLE_ANNOT_EXPR)) {
                         pass = true;
                         break;
                     }

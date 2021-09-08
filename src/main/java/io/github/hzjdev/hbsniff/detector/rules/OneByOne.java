@@ -46,7 +46,7 @@ public class OneByOne extends SmellDetector {
      */
     private boolean batchSizeExists(FieldDeclaration pf) {
         for (AnnotationExpr fieldAnnotations : pf.getAnnotations()) {
-            if (fieldAnnotations.getNameAsString().equals(BATCH_SIZE_ANNOT_EXPR)) {
+            if (fieldAnnotations.getNameAsString().contains(BATCH_SIZE_ANNOT_EXPR)) {
                 return true;
             }
         }

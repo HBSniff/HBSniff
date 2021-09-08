@@ -357,6 +357,21 @@ public class Declaration implements Serializable {
         return this;
     }
 
+
+    /**
+     * check if annotations includes string
+     * @param s string to check
+     * @return true if annotations includes string
+     */
+    public boolean annotationIncludes(String s) {
+        for (String annotation : getAnnotations()) {
+            if (annotation.contains(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public String getDeclarationType() {
         return declarationType;
     }

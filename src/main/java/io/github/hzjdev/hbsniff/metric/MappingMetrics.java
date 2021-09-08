@@ -113,16 +113,7 @@ public class MappingMetrics {
      */
     public static List<Declaration> getEntitiesWithTableAnnotation(List<Declaration> entities) {
         if (entities == null) return null;
-        return entities.stream().filter(sc -> {
-            boolean keep = false;
-            for (String annotation : sc.getAnnotations()) {
-                if (annotation.contains(TABLE_ANNOT_EXPR)) {
-                    keep = true;
-                    break;
-                }
-            }
-            return keep;
-        }).collect(Collectors.toList());
+        return entities.stream().filter(sc -> sc.annotationIncludes(TABLE_ANNOT_EXPR)).collect(Collectors.toList());
     }
 
     /**
@@ -234,14 +225,14 @@ public class MappingMetrics {
                 List<ParametreOrField> fields;
                 if (t != null) {
                     fields = t.getFields();
-                    List<String> fieldNames = fields.stream().filter(f -> !f.getAnnotations().contains(IDENT_ANNOT_EXPR)).map(ff -> table + "::" + ff.getName()).collect(Collectors.toList());
+                    List<String> fieldNames = fields.stream().filter(f -> !f.annotationIncludes(IDENT_ANNOT_EXPR)).map(ff -> table + "::" + ff.getName()).collect(Collectors.toList());
                     components += String.join(",", fieldNames);
                     numCorrespondingFields += fieldNames.size();
                 }
 
             }
             List<ParametreOrField> ownFields = entity.getFields();
-            List<String> fieldNames = ownFields.stream().filter(f -> !f.getAnnotations().contains(IDENT_ANNOT_EXPR)).map(ff -> entity.getName() + "::" + ff.getName()).collect(Collectors.toList());
+            List<String> fieldNames = ownFields.stream().filter(f -> !f.annotationIncludes(IDENT_ANNOT_EXPR)).map(ff -> entity.getName() + "::" + ff.getName()).collect(Collectors.toList());
             components += " | ";
             components += String.join(",", fieldNames);
             numOwnFields = fieldNames.size();
