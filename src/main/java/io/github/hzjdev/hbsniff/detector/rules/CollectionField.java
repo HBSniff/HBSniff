@@ -83,7 +83,7 @@ public class CollectionField extends SmellDetector {
                     type = type.split("<")[0];
                 }
                 if (Utils.isCollection(type) && !Utils.isSet(type)) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" implements interface Collection but ").append("it doesn't implements interface Set.\n");
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" should use Set instead of List.");
                     passed = false;
                 }
             }
