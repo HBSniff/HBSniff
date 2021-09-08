@@ -21,7 +21,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class PaginationTest {
 
 
     Set<Declaration> toInput;
-    ProjectSmellJSONReport psr = new ProjectSmellJSONReport();
+    ProjectSmellReport psr = new ProjectSmellReport();
     Pagination d = new Pagination();
     List<CompilationUnit> cus = new ArrayList<>();
     List<HqlAndContext> hqls = new ArrayList<>();

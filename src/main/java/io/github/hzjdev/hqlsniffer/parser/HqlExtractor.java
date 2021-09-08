@@ -74,6 +74,30 @@ public class HqlExtractor {
     }
 
     /**
+     * Extract Hql by hqlVariableNameCandidate from a Initializer of a VariableDeclarator
+     * @param init Initializer expression to extract
+     * @param hqls result list
+     */
+    private static void extractFromInitializerExpression(Expression init, List<String> hqls){
+        String tmp = null;
+        if (init.isBinaryExpr()) {
+            tmp = concatBinaryExpr(init.asBinaryExpr());
+        } else if (init.isLiteralExpr()) {
+            tmp = extractLiteralExpr(init.asLiteralExpr());
+        } else if (init.isObjectCreationExpr()) {
+            for(Expression argument: init.asObjectCreationExpr().getArguments()){
+                extractFromInitializerExpression(argument, hqls);
+            }
+        } else {
+            if (!init.toString().contains(CLASS_SUFFIX)) {
+                tmp = init.toString();
+            }
+        }
+        if (tmp != null) {
+            hqls.add(tmp);
+        }
+    }
+    /**
      * Extract Hql by hqlVariableNameCandidate from a VariableDeclarator
      * @param vd VariableDeclarator to extract
      * @param hqls result list
@@ -82,19 +106,7 @@ public class HqlExtractor {
     private static void extractHqlFromVariableDeclarators(VariableDeclarator vd,  List<String> hqls, String hqlVariableNameCandidate){
         if (vd != null && vd.getNameAsString().equals(hqlVariableNameCandidate)) {
             vd.getInitializer().ifPresent(init -> {
-                String tmp = null;
-                if (init.isBinaryExpr()) {
-                    tmp = concatBinaryExpr(init.asBinaryExpr());
-                } else if (init.isLiteralExpr()) {
-                    tmp = extractLiteralExpr(init.asLiteralExpr());
-                } else {
-                    if (!init.toString().contains(CLASS_SUFFIX)) {
-                        tmp = init.toString();
-                    }
-                }
-                if (tmp != null) {
-                    hqls.add(tmp);
-                }
+                extractFromInitializerExpression(init, hqls);
             });
         }
     }
@@ -261,7 +273,7 @@ public class HqlExtractor {
      * @param statement assignment statement
      * @return a list of (unconcatenated) hqls
      */
-    public static List<String> extractHqlExpr(String variableName, AssignExpr statement) {
+    private static List<String> extractHqlExpr(String variableName, AssignExpr statement) {
         List<String> hqls = new ArrayList<>();
         Expression expr = statement.getValue();
         if (expr.isCastExpr()) {

@@ -18,7 +18,7 @@
 package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +38,7 @@ import static org.junit.Assert.assertEquals;
 public class CollectionFieldTest {
 
     Set<Declaration> toInput;
-    ProjectSmellJSONReport psr = new ProjectSmellJSONReport();
+    ProjectSmellReport psr = new ProjectSmellReport();
     CollectionField c;
 
     @Before

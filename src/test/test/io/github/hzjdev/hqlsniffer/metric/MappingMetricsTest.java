@@ -21,7 +21,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.output.Metric;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ public class MappingMetricsTest {
     List<Declaration> fig3;
     List<CompilationUnit> fig1Cus = new ArrayList<>();
     List<CompilationUnit> fig3Cus = new ArrayList<>();
-    ProjectSmellJSONReport psr = new ProjectSmellJSONReport();
+    ProjectSmellReport psr = new ProjectSmellReport();
 
     @Before
     public void before() throws FileNotFoundException {

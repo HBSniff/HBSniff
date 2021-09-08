@@ -27,7 +27,7 @@ import io.github.hzjdev.hqlsniffer.metric.MappingMetrics;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
 import io.github.hzjdev.hqlsniffer.model.output.Metric;
 import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellCSVLine;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class Main {
      * @param csvPath path of the csv file
      * @param results results
      */
-    public static void outputSmells(String jsonPath, String csvPath, ProjectSmellJSONReport results) {
+    public static void outputSmells(String jsonPath, String csvPath, ProjectSmellReport results) {
         //wirte to csv
         List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
         try (FileOutputStream fos = new FileOutputStream(csvPath);
@@ -96,11 +96,9 @@ public class Main {
      */
     public static void exec(String project, String root_path, String output_path) {
         //init context
-        List<CompilationUnit> cus = new ArrayList<>();
-        parseFromDir(root_path + "\\" + project, cus);
-        setCusCache(cus);
+        List<CompilationUnit> cus = parseFromDir(root_path + "\\" + project);
         List<CompilationUnit> entities = getEntities(cus);
-        ProjectSmellJSONReport psr = ProjectSmellJSONReport.fromCompilationUnits(cus);
+        ProjectSmellReport psr = ProjectSmellReport.fromCompilationUnits(cus);
         List<HqlAndContext> hqls = getHqlNodes(cus);
 
         //detection

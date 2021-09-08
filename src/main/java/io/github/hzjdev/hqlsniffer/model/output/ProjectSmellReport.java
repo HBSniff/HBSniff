@@ -29,12 +29,12 @@ import java.util.Map;
 
 import static io.github.hzjdev.hqlsniffer.parser.EntityParser.genDeclarationsFromCompilationUnits;
 
-public class ProjectSmellJSONReport implements Serializable {
+public class ProjectSmellReport implements Serializable {
 
     @Expose
     Map<Declaration, List<Smell>> smells;
 
-    public ProjectSmellJSONReport() {
+    public ProjectSmellReport() {
         smells = new HashMap<>();
     }
 
@@ -43,8 +43,8 @@ public class ProjectSmellJSONReport implements Serializable {
      * @param entities compilation units
      * @return ProjectSmellJSONReport
      */
-    public static ProjectSmellJSONReport fromCompilationUnits(List<CompilationUnit> entities) {
-        ProjectSmellJSONReport toReturn = new ProjectSmellJSONReport();
+    public static ProjectSmellReport fromCompilationUnits(List<CompilationUnit> entities) {
+        ProjectSmellReport toReturn = new ProjectSmellReport();
         for (Declaration d : genDeclarationsFromCompilationUnits(entities)) {
             toReturn.getSmells().put(d, new ArrayList<>());
         }
@@ -55,7 +55,7 @@ public class ProjectSmellJSONReport implements Serializable {
         return smells;
     }
 
-    public ProjectSmellJSONReport setSmells(Map<Declaration, List<Smell>> smells) {
+    public ProjectSmellReport setSmells(Map<Declaration, List<Smell>> smells) {
         this.smells = smells;
         return this;
     }

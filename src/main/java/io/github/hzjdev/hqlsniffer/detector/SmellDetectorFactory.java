@@ -19,7 +19,7 @@ package io.github.hzjdev.hqlsniffer.detector;
 
 import com.github.javaparser.ast.CompilationUnit;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public class SmellDetectorFactory {
      * @param psr project smell report
      * @return list of initialized detectors
      */
-    public static List<SmellDetector> createAll(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellJSONReport psr) {
+    public static List<SmellDetector> createAll(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellReport psr) {
         List<SmellDetector> detectors = new ArrayList<>();
         for (SmellType s : SmellType.values()) {
             detectors.add(Objects.requireNonNull(create(s))

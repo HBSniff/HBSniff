@@ -18,7 +18,7 @@
 package io.github.hzjdev.hqlsniffer.detector.rules;
 
 import io.github.hzjdev.hqlsniffer.model.Declaration;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +34,7 @@ import static org.junit.Assert.assertTrue;
 public class OneByOneTest {
 
     Set<Declaration> toInput;
-    ProjectSmellJSONReport psr = new ProjectSmellJSONReport();
+    ProjectSmellReport psr = new ProjectSmellReport();
     OneByOne d = new OneByOne();
 
     @Before

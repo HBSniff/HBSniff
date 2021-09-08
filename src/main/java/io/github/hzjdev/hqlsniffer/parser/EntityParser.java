@@ -74,7 +74,7 @@ public class EntityParser {
      * @param results list of compilation units
      * @return  list of compilation units
      */
-    public static List<CompilationUnit> parseFromDir(String dirPath, List<CompilationUnit> results) {
+    private static List<CompilationUnit> parseFromDir(String dirPath, List<CompilationUnit> results) {
         File[] files = new File(dirPath).listFiles();
         if (files == null) {
             return results;
@@ -89,8 +89,8 @@ public class EntityParser {
                         CompilationUnit cu = StaticJavaParser.parse(new File(path));
                         results.add(cu);
                     } catch (ParseProblemException e) {
-                        // We can do nothing for parse error.
-                        // System.out.println(e);
+//                      upstream parse error.
+                        e.printStackTrace();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -99,6 +99,19 @@ public class EntityParser {
         }
         return results;
     }
+
+    /**
+     * parse all classes in a subdirectories of a path
+     * @param dirPath path to parse
+     * @return  list of compilation units
+     */
+    public static List<CompilationUnit> parseFromDir(String dirPath) {
+        List<CompilationUnit> results = new ArrayList<>();
+        parseFromDir(dirPath, results);
+        setCusCache(results);
+        return results;
+    }
+
 
     /**
      * generate a list of Declaration from a list of CompilationUnits
@@ -203,7 +216,7 @@ public class EntityParser {
      * @param level level to parse
      * @param d declaration to populate
      */
-    public static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
+    private static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
         if (level <= LEVEL_TO_POPULATE_DECLARATION) {
             d.setFields(d.getFields().stream().map(
                     i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
@@ -216,7 +229,7 @@ public class EntityParser {
      * @param td TypeDeclaration to extract
      * @return a list of ClassOrInterfaceDeclaration
      */
-    public static List<ClassOrInterfaceDeclaration> extractMemberTypes(TypeDeclaration td) {
+    private static List<ClassOrInterfaceDeclaration> extractMemberTypes(TypeDeclaration td) {
         List<ClassOrInterfaceDeclaration> res = new ArrayList<>();
         for (Object member : td.getMembers()) {
             if (member instanceof ClassOrInterfaceDeclaration) {
@@ -228,11 +241,12 @@ public class EntityParser {
 
 
     /**
-     * Check any method is called in a scope CompilationUnits
+     * Check any method is called in a scope CompilationUnits (not recommended because it only searches the method call having the same name regardless of their class)
      * @param methodName method name
      * @param cus search scope of CompilationUnits
      * @return List of the file which called the method
      */
+    @Deprecated
     public static List<Declaration> findCalledIn(String methodName, List<CompilationUnit> cus) {
         List<Declaration> calledIn = new ArrayList<>();
         if (methodName != null) {
@@ -342,7 +356,7 @@ public class EntityParser {
      * @param d declaration to check
      * @param visited visited Declaration
      */
-    public static void filterCyclicDeclaration(Declaration d, List<Declaration> visited) {
+    private static void filterCyclicDeclaration(Declaration d, List<Declaration> visited) {
         if (d == null || d.getFields() == null) return;
         visited.add(d);
         List<ParametreOrField> newParams = new ArrayList<>();

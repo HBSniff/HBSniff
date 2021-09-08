@@ -21,7 +21,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import io.github.hzjdev.hqlsniffer.model.Declaration;
 import io.github.hzjdev.hqlsniffer.model.HqlAndContext;
-import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellJSONReport;
+import io.github.hzjdev.hqlsniffer.model.output.ProjectSmellReport;
 import io.github.hzjdev.hqlsniffer.model.output.Smell;
 
 import java.util.HashSet;
@@ -37,7 +37,7 @@ import static io.github.hzjdev.hqlsniffer.parser.EntityParser.findTypeDeclaratio
  */
 public abstract class SmellDetector {
 
-    public ProjectSmellJSONReport psr;
+    public ProjectSmellReport psr;
 
     public List<CompilationUnit> cus;
 
@@ -65,7 +65,7 @@ public abstract class SmellDetector {
      * @param psr project smell report
      * @return intialized smell detector
      */
-    public SmellDetector populateContext(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellJSONReport psr) {
+    public SmellDetector populateContext(List<CompilationUnit> cus, List<HqlAndContext> hqls, List<CompilationUnit> entities, ProjectSmellReport psr) {
         this.psr = psr;
         this.cus = cus;
         this.hqls = hqls;
@@ -86,6 +86,24 @@ public abstract class SmellDetector {
             }
         }
         return this;
+    }
+
+    /**
+     * locate Declaration from CompilationUnits
+     * @param path declaration path
+     * @return result Declaration
+     */
+    public Declaration findDeclarationFromPath(String path) {
+        for (CompilationUnit cu : cus) {
+            String cuPath;
+            if (cu.getStorage().isPresent()) {
+                cuPath = cu.getStorage().get().getPath().toString();
+                if (path.equals(cuPath)) {
+                    return new Declaration(cu);
+                }
+            }
+        }
+        return null;
     }
 
     /**

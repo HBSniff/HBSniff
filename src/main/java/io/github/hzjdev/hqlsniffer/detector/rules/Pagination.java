@@ -31,23 +31,6 @@ import java.util.List;
  */
 public class Pagination extends SmellDetector {
 
-    /**
-     * locate Declaration from CompilationUnits
-     * @param path declaration path
-     * @return result Declaration
-     */
-    public Declaration findDeclarationFromPath(String path) {
-        for (CompilationUnit cu : cus) {
-            String cuPath;
-            if (cu.getStorage().isPresent()) {
-                cuPath = cu.getStorage().get().getPath().toString();
-                if (path.equals(cuPath)) {
-                    return new Declaration(cu);
-                }
-            }
-        }
-        return null;
-    }
 
     /**
      * main method of detection

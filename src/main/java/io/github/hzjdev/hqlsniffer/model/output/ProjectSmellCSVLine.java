@@ -34,7 +34,7 @@ public class ProjectSmellCSVLine implements Serializable {
         };
     }
 
-    public static List<ProjectSmellCSVLine> fromProjectSmellJSONReport(ProjectSmellJSONReport psr) {
+    public static List<ProjectSmellCSVLine> fromProjectSmellJSONReport(ProjectSmellReport psr) {
         List<ProjectSmellCSVLine> results = new ArrayList<>();
         if (psr == null) {
             return results;
