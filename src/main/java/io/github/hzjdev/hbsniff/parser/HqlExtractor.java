@@ -57,7 +57,7 @@ public class HqlExtractor {
             for (Parameter p : parent.getParameters()) {
                 String type = p.getTypeAsString();
                 String name = p.getNameAsString();
-                Declaration declaration = findTypeDeclaration(type, cus, 1);
+                Declaration declaration = findTypeDeclaration(type);
                 params.add(new ParametreOrField(type, name)
                         .setTypeDeclaration(declaration)
                         .setPosition(extractParametrePosition(p))

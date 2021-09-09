@@ -80,17 +80,18 @@ public class EntityParserTest {
         String rootPath2 = "src/test/resources/entities/parser/getIdentifierProperty/";
 
         List<CompilationUnit> cus1 = EntityParser.parseFromDir(rootPath1);
-
-        Declaration idDeclaredInField = EntityParser.findTypeDeclaration("Entity1",cus1,1);
-        Declaration idDeclaredInGetter = EntityParser.findTypeDeclaration("Entity2",cus1,1);
-        Declaration withoutId = EntityParser.findTypeDeclaration("Normal",cus1,1);
+        EntityParser.setCusCache(cus1);
+        Declaration idDeclaredInField = EntityParser.findTypeDeclaration("Entity1");
+        Declaration idDeclaredInGetter = EntityParser.findTypeDeclaration("Entity2");
+        Declaration withoutId = EntityParser.findTypeDeclaration("Normal");
         assertTrue(EntityParser.getIdentifierProperty(idDeclaredInField).getName().equals("id"));
         assertTrue(EntityParser.getIdentifierProperty(idDeclaredInGetter).getName().equals("id"));
         assertTrue(EntityParser.getIdentifierProperty(withoutId) == null);
 
         List<CompilationUnit> cus2 = EntityParser.parseFromDir(rootPath2);
-        Declaration entityChild = EntityParser.findTypeDeclaration("EntityChild",cus2,1);
-        Declaration entityChild2 = EntityParser.findTypeDeclaration("EntityChildChild",cus2,1);
+        EntityParser.setCusCache(cus2);
+        Declaration entityChild = EntityParser.findTypeDeclaration("EntityChild");
+        Declaration entityChild2 = EntityParser.findTypeDeclaration("EntityChildChild");
 
         assertTrue(EntityParser.getIdentifierProperty(entityChild).getName().equals("id"));
         assertTrue(EntityParser.getIdentifierProperty(entityChild2).getName().equals("id"));
@@ -107,8 +108,9 @@ public class EntityParserTest {
     public void testGetSuperClassDeclarations() throws Exception {
         String rootPath = "src/test/resources/entities/parser/getIdentifierProperty/";
         List<CompilationUnit> cus = EntityParser.parseFromDir(rootPath);
-        Declaration entityChild = EntityParser.findTypeDeclaration("EntityChild",cus,1);
-        Declaration entityChild2 = EntityParser.findTypeDeclaration("EntityChildChild",cus,1);
+        EntityParser.setCusCache(cus);
+        Declaration entityChild = EntityParser.findTypeDeclaration("EntityChild");
+        Declaration entityChild2 = EntityParser.findTypeDeclaration("EntityChildChild");
 
         assertTrue(EntityParser.getSuperClassDeclarations(entityChild).size() == 1);
         assertTrue(EntityParser.getSuperClassDeclarations(entityChild).get(0).getName().equals("EntityParent"));
@@ -128,7 +130,8 @@ public class EntityParserTest {
 
         List<CompilationUnit> cus1 = EntityParser.parseFromDir(rootPath1);
 
-        Declaration paged = EntityParser.findTypeDeclaration("PagedCorrect",cus1,1);
+        EntityParser.setCusCache(cus1);
+        Declaration paged = EntityParser.findTypeDeclaration("PagedCorrect");
         List<Declaration> result = EntityParser.findCalledIn("findStudents", paged.getName(), cus1);
         assertEquals(result.size(),1);
         assertEquals(result.get(0).getName(),"students");
@@ -151,9 +154,10 @@ public class EntityParserTest {
         String rootPath1 = "src/test/resources/entities/parser/parseFromDir/";
 
         List<CompilationUnit> cus1 = EntityParser.parseFromDir(rootPath1);
+        EntityParser.setCusCache(cus1);
 
-        Declaration idDeclaredInField = EntityParser.findTypeDeclaration("Entity1",cus1,1);
-        Declaration idDeclaredInGetter = EntityParser.findTypeDeclaration("Entity2",cus1,1);
+        Declaration idDeclaredInField = EntityParser.findTypeDeclaration("Entity1");
+        Declaration idDeclaredInGetter = EntityParser.findTypeDeclaration("Entity2");
 
         assertEquals(idDeclaredInField.getName(),"Entity1");
         assertEquals(idDeclaredInGetter.getName(),"Entity2");

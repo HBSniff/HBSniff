@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static io.github.hzjdev.hbsniff.parser.EntityParser.setCusCache;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
 import static org.junit.Assert.assertEquals;
 
@@ -64,10 +65,10 @@ public class FetchTest {
         cus.add(StaticJavaParser.parse(new File(rootPath + "ManyToOneEagerEntity.java")));
         cus.add(StaticJavaParser.parse(new File(rootPath + "UsedJoinFetch.java")));
         cus.add(StaticJavaParser.parse(new File(rootPath + "LackJoinFetch.java")));
-
+        setCusCache(cus);
         hqls = getHqlNodes(cus);
 
-        d.populateContext(cus, hqls, null, psr);
+        d.populateContext(cus, hqls, cus, psr);
         d.setEntityDeclarations(toInput);
     }
 

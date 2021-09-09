@@ -75,7 +75,11 @@ public abstract class SmellDetector {
             entityDeclarations = new HashSet<>();
             for (CompilationUnit cu : cus) {
                 for (TypeDeclaration td : cu.getTypes()) {
-                    Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
+                    String fullPath = null;
+                    if(cu.getStorage().isPresent()){
+                        fullPath = cu.getStorage().get().getPath().toString();
+                    }
+                    Declaration d = findTypeDeclaration(td.getNameAsString(), fullPath, cus, 1);
                     if (d != null) {
                         declarations.add(d);
                         if (entities != null && entities.contains(cu)) {

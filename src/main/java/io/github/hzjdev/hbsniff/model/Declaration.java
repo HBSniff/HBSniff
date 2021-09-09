@@ -74,7 +74,7 @@ public class Declaration implements Serializable {
     BodyDeclaration rawBD;
 
     public Declaration(CompilationUnit cu) {
-        this(cu, cu.getTypes().get(0));
+        this(cu, cu.getPrimaryType().get());
     }
 
 
@@ -396,14 +396,16 @@ public class Declaration implements Serializable {
      * @param cus scope of compilation unit
      * @return true if extended or implemented type includes string
      */
-    public static void getExtendedOrImplementedTypes(List<CompilationUnit> cus, Declaration toDetect, Set<Declaration> result) {
-        List<Declaration> superClasses = getSuperClassDeclarations(toDetect);
+    public static void getExtendedOrImplementedTypes(Declaration toDetect, Set<Declaration> result, Set<Declaration> visited) {
+        if(toDetect == null || visited.contains(toDetect)) return;
+        Set<Declaration> superClasses = new HashSet<>(getSuperClassDeclarations(toDetect));
+        visited.add(toDetect);
         superClasses.add(toDetect);
         for (Declaration superclass : superClasses) {
             for (String i : superclass.getImplementedInterface()) {
-                Declaration d = findTypeDeclaration(i, cus, 1);
+                Declaration d = findTypeDeclaration(i);
                 if (d!=null) {
-                    getExtendedOrImplementedTypes(cus, d, result);
+                    getExtendedOrImplementedTypes(d, result,visited);
                     result.add(d);
                 }
             }
@@ -411,9 +413,9 @@ public class Declaration implements Serializable {
         result.addAll(superClasses);
     }
 
-    public Set<Declaration> getExtendedOrImplementedTypes(List<CompilationUnit> cus) {
+    public Set<Declaration> getExtendedOrImplementedTypes() {
         Set<Declaration> result = new HashSet<>();
-        getExtendedOrImplementedTypes(cus, this, result);
+        getExtendedOrImplementedTypes(this, result, new HashSet<>());
         return result;
     }
 
@@ -451,14 +453,14 @@ public class Declaration implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Declaration that = (Declaration) o;
-        return Objects.equals(name, that.name) &&
-                Objects.equals(position, that.position) &&
-                Objects.equals(fullPath, that.fullPath);
+        return Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getPosition(), that.getPosition()) &&
+                Objects.equals(getFullPath(), that.getFullPath());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, position, fullPath);
+        return Objects.hash(getName(), getPosition(), getFullPath());
     }
 
     public List<Declaration> getConstructors() {

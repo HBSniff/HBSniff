@@ -41,7 +41,7 @@ public class NotSerializable extends SmellDetector {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
             boolean pass = false;
-            Set<Declaration> toDetect = entityNode.getExtendedOrImplementedTypes(cus);
+            Set<Declaration> toDetect = entityNode.getExtendedOrImplementedTypes();
             for (Declaration superclass : toDetect) {
                 for (String i : superclass.getImplementedInterface()) {
                     if (i.contains(SERIALIZABLE_EXPR)) {

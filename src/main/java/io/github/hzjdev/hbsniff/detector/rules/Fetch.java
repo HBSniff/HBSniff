@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hbsniff.utils.Const.EAGER_ANNOT_EXPR;
 import static io.github.hzjdev.hbsniff.utils.Const.TO_ONE_ANNOT_EXPR;
 import static io.github.hzjdev.hbsniff.utils.Utils.cleanHql;
@@ -55,14 +56,19 @@ public class Fetch extends SmellDetector {
                             parentField = parentField.get().getParentNode();
                         }
                         if (parentField.isPresent()) {
-                            Declaration parentDeclaration = new Declaration(cu);
-                            final Smell smell = initSmell(parentDeclaration);
-                            smell.setComment(parentField.toString())
-                                    .setName("Eager Fetch");
+                            final Smell smell;
+                            try {
+                                Declaration parentDeclaration = findTypeDeclaration(cu.getStorage().get().getPath().toString());
+                                smell = initSmell(parentDeclaration).setComment(parentField.toString())
+                                        .setName("Eager Fetch");
 
-                            mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
-                            psr.getSmells().get(parentDeclaration).add(smell);
-                            eagerFetches.add(smell);
+                                mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                                psr.getSmells().get(parentDeclaration).add(smell);
+                                eagerFetches.add(smell);
+                            }catch(Exception e){
+                                e.printStackTrace();
+                                continue;
+                            }
                         }
                     }
                 }
@@ -145,7 +151,7 @@ public class Fetch extends SmellDetector {
      * @return list of smells
      */
     public List<Smell> exec() {
-        List<Smell> eagerFetches = getEagerFetches(cus);
+        List<Smell> eagerFetches = getEagerFetches(entities);
         List<Smell> joinFetches = getJoinFetch(hqls, eagerFetches);
         joinFetches.addAll(eagerFetches);
         return joinFetches;

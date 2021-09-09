@@ -122,7 +122,11 @@ public class EntityParser {
         if (cus == null) return entities;
         for (CompilationUnit cu : cus) {
             for (TypeDeclaration td : cu.getTypes()) {
-                Declaration d = findTypeDeclaration(td.getNameAsString(), cus, 1);
+                String path = "";
+                if(cu.getStorage().isPresent()){
+                    path = cu.getStorage().get().getPath().toString();
+                }
+                Declaration d = findTypeDeclaration(td.getNameAsString(), path, cus, 1);
                 if (d != null) {
                     entities.add(d);
                 }
@@ -189,7 +193,7 @@ public class EntityParser {
         }
         List<String> superClasses = dec.getSuperClass();
         for (String superClass : superClasses) {
-            Declaration superClassD = findTypeDeclaration(superClass, cusCache, 1);
+            Declaration superClassD = findTypeDeclaration(superClass);
             if (superClassD == null) continue;
             result.add(superClassD);
             getSuperClassDeclarations(superClassD, result);
@@ -213,10 +217,10 @@ public class EntityParser {
      * @param level level to parse
      * @param d declaration to populate
      */
-    private static void populateDeclaration(List<CompilationUnit> cus, Integer level, Declaration d) {
+    private static void populateDeclaration(List<CompilationUnit> cus, String fullPath, Integer level, Declaration d) {
         if (level <= LEVEL_TO_POPULATE_DECLARATION) {
             d.setFields(d.getFields().stream().map(
-                    i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), cus, level + 1)))
+                    i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), fullPath, cus, level + 1)))
                     .collect(Collectors.toList()));
         }
     }
@@ -306,14 +310,68 @@ public class EntityParser {
         return calledIn;
     }
 
+
+    /**
+     * locate a type in CompilationUnits and generate a Declaration for it
+     * @param toFind type name of the Declaration from cache
+     * @return the result Declaration
+     */
+    public static Declaration findTypeDeclaration(String toFind) {
+        Declaration d = null;
+        initDeclarationCache();
+        for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
+            if(e.getKey().equals(toFind)){
+                return e.getValue();
+            }
+        }
+        for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
+            if(e.getValue()!=null) {
+                if (e.getValue().getName().equals(toFind)) {
+                    return e.getValue();
+                }
+            }
+        }
+        for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
+            if(e.getValue()!=null) {
+                if (e.getValue().getName().contains(toFind)) {
+                    return e.getValue();
+                }
+            }
+        }
+        return d;
+    }
+
+    /**
+     * initialize declarationCache
+     */
+    private static void initDeclarationCache(){
+        if(cusCache == null) return;
+        if(declarationCache.size()<1){
+            for (CompilationUnit cu : cusCache) {
+                if(cu == null){
+                    continue;
+                }
+                String path = "";
+                if (cu.getStorage().isPresent()) {
+                    path = cu.getStorage().get().getPath().toString();
+                }
+                for (TypeDeclaration td : cu.getTypes()) {
+                    Declaration d = new Declaration(cu, td);
+                    populateDeclaration(cusCache, path, 1, d);
+                    declarationCache.put(path,d);
+                }
+            }
+        }
+    }
     /**
      * locate a type in CompilationUnits and generate a Declaration for it
      * @param toFind type name of the Declaration
+     * @param fullPath path of the type declaration
      * @param cus scope to find
      * @param level level to populate the declaration
      * @return the result Declaration
      */
-    public static Declaration findTypeDeclaration(String toFind, List<CompilationUnit> cus, Integer level) {
+    public static Declaration findTypeDeclaration(String toFind, String fullPath, List<CompilationUnit> cus, Integer level) {
         Declaration d = null;
         if (cusCache == null) {
             cusCache = cus;
@@ -321,22 +379,25 @@ public class EntityParser {
         if (Const.builtinTypes.contains(toFind)) {
             return null;
         }
-        if (toFind != null) {
-            if (declarationCache.get(toFind) != null) {
-                return declarationCache.get(toFind);
+        if (fullPath != null) {
+            if (declarationCache.get(fullPath) != null) {
+                return declarationCache.get(fullPath);
             }
             toFind = extractTypeFromCollection(toFind);
             for (CompilationUnit cu : cus) {
+                if(!cu.getStorage().isPresent() || !(fullPath.equals(cu.getStorage().get().getPath().toString()))){
+                   continue;
+                }
                 for (TypeDeclaration td : cu.getTypes()) {
                     if (td.getNameAsString().equals(toFind)) {
                         d = new Declaration(cu, td);
-                        populateDeclaration(cus, level, d);
+                        populateDeclaration(cus, fullPath, level, d);
                     }
                     if (d == null) {
                         for (ClassOrInterfaceDeclaration cid : extractMemberTypes(td)) {
                             if (cid.getNameAsString().equals(toFind)) {
                                 d = new Declaration(cu, cid);
-                                populateDeclaration(cus, level, d);
+                                populateDeclaration(cus, fullPath, level, d);
                             }
                         }
                     }
@@ -344,7 +405,7 @@ public class EntityParser {
             }
         }
         filterCyclicDeclaration(d, new ArrayList<>());
-        declarationCache.put(toFind, d);
+        declarationCache.put(fullPath, d);
         return d;
     }
 
