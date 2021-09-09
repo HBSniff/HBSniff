@@ -22,11 +22,13 @@ import io.github.hzjdev.hbsniff.model.Declaration;
 import io.github.hzjdev.hbsniff.model.output.Smell;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.getSuperClassDeclarations;
-import static io.github.hzjdev.hbsniff.utils.Const.SERIALIZABLE_ANNOT_EXPR;
+import static io.github.hzjdev.hbsniff.utils.Const.SERIALIZABLE_EXPR;
 
 public class NotSerializable extends SmellDetector {
 
@@ -39,14 +41,16 @@ public class NotSerializable extends SmellDetector {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
             boolean pass = false;
-            List<Declaration> toDetect = getSuperClassDeclarations(entityNode);
-            toDetect.add(entityNode);
+            Set<Declaration> toDetect = entityNode.getExtendedOrImplementedTypes(cus);
             for (Declaration superclass : toDetect) {
-                if (pass) {
-                    break;
-                }
                 for (String i : superclass.getImplementedInterface()) {
-                    if (i.contains(SERIALIZABLE_ANNOT_EXPR)) {
+                    if (i.contains(SERIALIZABLE_EXPR)) {
+                        pass = true;
+                        break;
+                    }
+                }
+                for (String i : superclass.getSuperClass()) {
+                    if (!pass && i.contains(SERIALIZABLE_EXPR)) {
                         pass = true;
                         break;
                     }

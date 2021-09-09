@@ -122,7 +122,7 @@ public class Main {
         try {
             project = args[0];
         } catch (Exception e) {
-            project = "WeixinMultiPlatform";
+            project = "BroadleafCommerce";
         }
         try {
             root_path = args[1];

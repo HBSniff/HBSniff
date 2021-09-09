@@ -115,6 +115,8 @@ public class Fetch extends SmellDetector {
                         from_entity = hql_.getReturnType();
                     }
                     if (from_entity != null) {
+                        String[] from_entity_arr = from_entity.split("\\.");
+                        from_entity = from_entity_arr[from_entity_arr.length - 1];
                         for (Smell eagerFetch : eagerFetches) {
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
                                 Declaration parentDeclaration = Declaration.fromPath(hql_.getFullPath());

@@ -28,6 +28,8 @@ public class Const {
     public final static String ENTITY_ANNOT_EXPR = "Entity";
     public final static String DATA_ANNOT_EXPR = "Data";
     public final static String EQUALS_AND_HASH_CODE_ANNOT_EXPR = "EqualsAndHashCode";
+    public final static String REFLECTION_HASHCODE_CALL = "reflectionHashCode";
+    public final static String REFLECTION_EQUALS_CALL = "reflectionEquals";
 
     public final static String SINGLE_TABLE_ANNOT_EXPR = "SINGLE_TABLE";
     public final static String TABLE_PER_CLASS_ANNOT_EXPR = "TABLE_PER_CLASS";
@@ -41,7 +43,7 @@ public class Const {
 
     public final static String BATCH_SIZE_ANNOT_EXPR = "BatchSize";
 
-    public final static String SERIALIZABLE_ANNOT_EXPR = "Serializable";
+    public final static String SERIALIZABLE_EXPR = "Serializable";
 
     public final static String VOID_TYPE_EXPR = "void";
     public final static String Object_TYPE_EXPR = "Object";
@@ -60,6 +62,7 @@ public class Const {
 
     public final static String HQL_PLUS_OP = "PLUS";
     public final static String HQL_ASSIGN_OP = "ASSIGN";
+    public final static String SERIAL_VERSION_UID = "serialVersionUID";
 
     public final static Integer LEVEL_TO_POPULATE_DECLARATION = 4;
     public final static List<String> builtinTypes = Arrays.asList("Boolean,Byte,Short,Character,Integer,Long,Float,Double,boolean,byte,short,char,int,long,float,double,BigInteger,BigDecimal,String,List,ArrayList,Set,Collection,Iterator,LinkedList,LinkedHashSet,LinkedHashMap,Hashtable,HashSet,HashMap,Vector".split(","));

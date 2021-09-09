@@ -23,6 +23,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.google.gson.annotations.Expose;
 
@@ -31,6 +32,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
+import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
+import static io.github.hzjdev.hbsniff.parser.EntityParser.getSuperClassDeclarations;
 import static io.github.hzjdev.hbsniff.utils.Utils.extractParametrePosition;
 
 public class Declaration implements Serializable {
@@ -224,22 +227,38 @@ public class Declaration implements Serializable {
         return result;
     }
 
+
+    /**
+     * check if method is called
+     * @param methodName method name
+     * @return true if method is called
+     */
+    public boolean checkMethodCalled(String methodName) {
+        List<MethodCallExpr> mcs = rawBD.findAll(MethodCallExpr.class);
+        for (MethodCallExpr mc : mcs) {
+            if(mc.toString().contains(methodName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Get the accessed fields (direct access)
      * @param superClasses superclass Declarations to consider
      * @return names of accessed fields
      */
     private List<String> getAccessedFieldNamesInner(List<Declaration> superClasses) {
-        List<NameExpr> nes = rawBD.findAll(NameExpr.class);
+        List<SimpleName> nes = rawBD.findAll(SimpleName.class);
         List<String> result = new ArrayList<>();
         Set<ParametreOrField> fields = new HashSet<>();
         for (Declaration d : superClasses) {
             fields.addAll(d.getFields());
         }
-        for (NameExpr ne : nes) {
+        for (SimpleName ne : nes) {
             for (ParametreOrField field : fields) {
-                if (field.getName().equals(ne.getNameAsString())) {
-                    result.add(ne.getNameAsString());
+                if (field.getName().equals(ne.getIdentifier())) {
+                    result.add(field.getName());
                 }
             }
         }
@@ -370,6 +389,32 @@ public class Declaration implements Serializable {
             }
         }
         return false;
+    }
+
+    /**
+     * check if extended or implemented type includes string
+     * @param cus scope of compilation unit
+     * @return true if extended or implemented type includes string
+     */
+    public static void getExtendedOrImplementedTypes(List<CompilationUnit> cus, Declaration toDetect, Set<Declaration> result) {
+        List<Declaration> superClasses = getSuperClassDeclarations(toDetect);
+        superClasses.add(toDetect);
+        for (Declaration superclass : superClasses) {
+            for (String i : superclass.getImplementedInterface()) {
+                Declaration d = findTypeDeclaration(i, cus, 1);
+                if (d!=null) {
+                    getExtendedOrImplementedTypes(cus, d, result);
+                    result.add(d);
+                }
+            }
+        }
+        result.addAll(superClasses);
+    }
+
+    public Set<Declaration> getExtendedOrImplementedTypes(List<CompilationUnit> cus) {
+        Set<Declaration> result = new HashSet<>();
+        getExtendedOrImplementedTypes(cus, this, result);
+        return result;
     }
 
     public String getDeclarationType() {

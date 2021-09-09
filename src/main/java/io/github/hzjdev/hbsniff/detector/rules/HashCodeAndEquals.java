@@ -74,7 +74,7 @@ public class HashCodeAndEquals extends SmellDetector {
         }
         if (!check) {
             for (Declaration superClassEntity : getSuperClassDeclarations(classNode)) {
-                toJudge = getEqualsMethod(superClassEntity);
+                toJudge = getHashCodeMethod(superClassEntity);
                 if (toJudge != null) {
                     return toJudge;
                 }
@@ -92,7 +92,6 @@ public class HashCodeAndEquals extends SmellDetector {
         List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
             String comment = "";
-            boolean smelly = false;
             boolean annotationData = entityNode.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || entityNode.annotationIncludes(DATA_ANNOT_EXPR);;
             if(annotationData) continue;
 
@@ -105,26 +104,33 @@ public class HashCodeAndEquals extends SmellDetector {
             Set<String> accessedFieldsHash = null;
             List<Declaration> parents = getSuperClassDeclarations(entityNode);
             parents.add(entityNode);
-            if (equalsMethod != null) {
-                accessedFieldsEquals = equalsMethod.getAccessedFieldNames(parents);
+            boolean equalsOk = false;
+            boolean hashCodeOk = false;
+            if(equalsMethod!=null) {
+                equalsOk = equalsMethod.checkMethodCalled(REFLECTION_EQUALS_CALL);
+                if (!equalsOk) {
+                    accessedFieldsEquals = equalsMethod.getAccessedFieldNames(parents);
+                    equalsOk = accessedFieldsEquals != null && field != null && accessedFieldsEquals.contains(field.getName());
+                }
+                if (!equalsOk) {
+                    comment += ("The class does not contain the identifier property <"
+                            + field.getName() + "> in the equals method.\n");
+                }
             }
-            if (hashCodeMethod != null) {
-                accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
+            if(hashCodeMethod!=null) {
+                hashCodeOk = hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
+                if (!hashCodeOk) {
+                    accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
+                    hashCodeOk = accessedFieldsHash != null && field != null && accessedFieldsHash.contains(field.getName());
+                }
+                if (!hashCodeOk) {
+                    comment += ("The class does not contain the identifier property <"
+                            + field.getName() + "> in the hashCode method.\n");
+                }
             }
 
-            if (accessedFieldsEquals != null && field != null && !accessedFieldsEquals.contains(field.getName())) {
-                comment += ("The class does not contain the identifier property <"
-                        + field.getName() + "> in the equals method.\n");
-                smelly = true;
-            }
-
-            if (accessedFieldsHash != null && field != null && !accessedFieldsHash.contains(field.getName())) {
-                comment += ("The class does not contain the identifier property <"
-                        + field.getName() + "> in the hashCode method.\n");
-                smelly = true;
-            }
-            if (smelly) {
-                Smell smell = initSmell(entityNode).setName("HashCodeAndEqualsRule").setComment(comment);
+            if ((!equalsOk || !hashCodeOk )&& !comment.equals("")) {
+                Smell smell = initSmell(entityNode).setName("MissingIdInHashCodeOrEquals").setComment(comment);
                 psr.getSmells().get(entityNode).add(smell);
                 result.add(smell);
             }

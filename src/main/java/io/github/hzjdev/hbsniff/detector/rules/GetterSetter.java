@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static io.github.hzjdev.hbsniff.parser.EntityParser.getSuperClassDeclarations;
 import static io.github.hzjdev.hbsniff.utils.Const.*;
 
 public class GetterSetter extends SmellDetector {
@@ -118,25 +119,39 @@ public class GetterSetter extends SmellDetector {
             StringBuilder comment = new StringBuilder();
             List<ParametreOrField> declaredFields = entityNode.getFields();
 
-            boolean passed = true;
+            boolean passedGetter = false;
+            boolean passedSetter = false;
 
             for (ParametreOrField fieldNode : declaredFields) {
 
-                if (fieldNode.isStatic()) {
+                if (fieldNode.isStatic() || fieldNode.getName().equals(SERIAL_VERSION_UID)) {
                     continue;
                 }
 
-                if (!annotationGetter && !hasGetMethod(fieldNode, entityNode)) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the get method.\n");
-                    passed = false;
+                passedGetter = annotationGetter || hasGetMethod(fieldNode, entityNode);
+                passedSetter = annotationSetter || hasSetMethod(fieldNode, entityNode);
+
+                if(!passedGetter || !passedSetter){
+                    List<Declaration> superClasses = getSuperClassDeclarations(entityNode);
+                    for(Declaration superClass: superClasses){
+                        if (!passedGetter && hasGetMethod(fieldNode, superClass)) {
+                            passedGetter = true;
+                        }
+                        if (!passedSetter && hasSetMethod(fieldNode, superClass)) {
+                            passedSetter = true;
+                        }
+                    }
                 }
-                if (!annotationSetter && !hasSetMethod(fieldNode, entityNode)) {
+
+                if (!passedGetter) {
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the get method.\n");
+                }
+                if (!passedSetter) {
                     comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the set method.\n");
-                    passed = false;
                 }
             }
 
-            if (!passed) {
+            if (!passedGetter || !passedSetter) {
                 Smell smell = initSmell(entityNode).setName("GetterSetter").setComment(comment.toString());
                 psr.getSmells().get(entityNode).add(smell);
                 smells.add(smell);
