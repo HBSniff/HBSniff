@@ -32,7 +32,7 @@ import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 
 
 /**
- * transferred code from https://github.com/tacianosilva/designtests
+ * This module contain some transferred code from https://github.com/tacianosilva/designtests
  * M. Silva, D. Serey, J. Figueiredo, J. Brunet. Automated design tests to check Hibernate design recommendations. SBES 2019
  */
 public abstract class SmellDetector {
