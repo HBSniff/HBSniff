@@ -99,7 +99,7 @@ public class OneByOne extends SmellDetector {
                     }
                     if (parentField.isPresent()) {
                         final Smell smell = initSmell(parentDeclaration);
-                        smell.setComment(parentField.toString())
+                        smell.setComment(parentField.get().toString())
                                 .setName("Eager Fetch");
 
                         marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));

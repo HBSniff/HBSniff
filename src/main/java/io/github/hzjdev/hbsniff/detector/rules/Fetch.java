@@ -84,7 +84,7 @@ public class Fetch extends SmellDetector {
                     if (parentField.isPresent()) {
                         Declaration parentDeclaration = new Declaration(cu);
                         final Smell smell = initSmell(parentDeclaration);
-                        smell.setComment(parentField.toString())
+                        smell.setComment(parentField.get().toString())
                                 .setName("Eager Fetch");
 
                         marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));
