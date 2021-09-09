@@ -47,6 +47,7 @@ public class EntityParser {
 
     public static void setCusCache(List<CompilationUnit> cus) {
         cusCache = cus;
+        declarationCache.clear();
     }
 
     /**
@@ -317,11 +318,12 @@ public class EntityParser {
      * @return the result Declaration
      */
     public static Declaration findTypeDeclaration(String toFind) {
-        Declaration d = null;
         initDeclarationCache();
         for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
-            if(e.getKey().equals(toFind)){
-                return e.getValue();
+            if(e.getKey()!=null) {
+                if (e.getKey().equals(toFind)) {
+                    return e.getValue();
+                }
             }
         }
         for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
@@ -332,13 +334,16 @@ public class EntityParser {
             }
         }
         for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
-            if(e.getValue()!=null) {
-                if (e.getValue().getName().contains(toFind)) {
-                    return e.getValue();
+            if(e.getKey()!=null) {
+                try {
+                    if (e.getKey().split("\\\\")[0].split("/")[0].equals(toFind)){
+                        return e.getValue();
+                    }
+                }catch(Exception ex){
                 }
             }
         }
-        return d;
+        return null;
     }
 
     /**

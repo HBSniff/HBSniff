@@ -26,8 +26,7 @@ import org.junit.After;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class EntityParserTest { 
 
@@ -84,17 +83,17 @@ public class EntityParserTest {
         Declaration idDeclaredInField = EntityParser.findTypeDeclaration("Entity1");
         Declaration idDeclaredInGetter = EntityParser.findTypeDeclaration("Entity2");
         Declaration withoutId = EntityParser.findTypeDeclaration("Normal");
-        assertTrue(EntityParser.getIdentifierProperty(idDeclaredInField).getName().equals("id"));
-        assertTrue(EntityParser.getIdentifierProperty(idDeclaredInGetter).getName().equals("id"));
-        assertTrue(EntityParser.getIdentifierProperty(withoutId) == null);
+        assertEquals("id", EntityParser.getIdentifierProperty(idDeclaredInField).getName());
+        assertEquals("id", EntityParser.getIdentifierProperty(idDeclaredInGetter).getName());
+        assertNull(EntityParser.getIdentifierProperty(withoutId));
 
         List<CompilationUnit> cus2 = EntityParser.parseFromDir(rootPath2);
         EntityParser.setCusCache(cus2);
         Declaration entityChild = EntityParser.findTypeDeclaration("EntityChild");
         Declaration entityChild2 = EntityParser.findTypeDeclaration("EntityChildChild");
 
-        assertTrue(EntityParser.getIdentifierProperty(entityChild).getName().equals("id"));
-        assertTrue(EntityParser.getIdentifierProperty(entityChild2).getName().equals("id"));
+        assertEquals("id", EntityParser.getIdentifierProperty(entityChild).getName());
+        assertEquals("id", EntityParser.getIdentifierProperty(entityChild2).getName());
 
 
     }
@@ -112,9 +111,9 @@ public class EntityParserTest {
         Declaration entityChild = EntityParser.findTypeDeclaration("EntityChild");
         Declaration entityChild2 = EntityParser.findTypeDeclaration("EntityChildChild");
 
-        assertTrue(EntityParser.getSuperClassDeclarations(entityChild).size() == 1);
-        assertTrue(EntityParser.getSuperClassDeclarations(entityChild).get(0).getName().equals("EntityParent"));
-        assertTrue(EntityParser.getSuperClassDeclarations(entityChild2).size() == 2);
+        assertEquals(1, EntityParser.getSuperClassDeclarations(entityChild).size());
+        assertEquals("EntityParent", EntityParser.getSuperClassDeclarations(entityChild).get(0).getName());
+        assertEquals(2, EntityParser.getSuperClassDeclarations(entityChild2).size());
 
     }
 

@@ -50,7 +50,7 @@ public class Declaration implements Serializable {
     String body;
 
     @Expose
-    String declarationType;
+    DeclarationType declarationType;
 
     @Expose
     String returnTypeName;
@@ -88,7 +88,7 @@ public class Declaration implements Serializable {
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));
         td.getRange().ifPresent(s -> this.setPosition(s.toString()));
         this.setBody(td.toString());
-        declarationType = "class";
+        declarationType = DeclarationType.TYPE;
         constructors = new ArrayList<>();
         members = new ArrayList<>();
         fields = new ArrayList<>();
@@ -126,7 +126,7 @@ public class Declaration implements Serializable {
         cu.getStorage().ifPresent(s -> this.setFullPath(s.getPath().toString()));
         cd.getRange().ifPresent(s -> this.setPosition(s.toString()));
         this.setBody(cd.toString());
-        declarationType = "constructor";
+        declarationType = DeclarationType.CONSTRUCTOR;
         parametres = new ArrayList<>();
         for (Parameter p : cd.getParameters()) {
             parametres.add(new ParametreOrField(p.getTypeAsString(), p.getNameAsString()));
@@ -151,7 +151,7 @@ public class Declaration implements Serializable {
         for (Parameter p : md.getParameters()) {
             parametres.add(new ParametreOrField(p.getTypeAsString(), p.getNameAsString()));
         }
-        declarationType = "method";
+        declarationType = DeclarationType.METHOD;
 
         rawCU = cu;
         rawBD = md;
@@ -419,11 +419,11 @@ public class Declaration implements Serializable {
         return result;
     }
 
-    public String getDeclarationType() {
+    public DeclarationType getDeclarationType() {
         return declarationType;
     }
 
-    public void setDeclarationType(String declarationType) {
+    public void setDeclarationType(DeclarationType declarationType) {
         this.declarationType = declarationType;
     }
 
