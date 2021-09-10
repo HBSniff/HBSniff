@@ -20,6 +20,7 @@ package io.github.hzjdev.hbsniff.detector.rules;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
@@ -31,7 +32,9 @@ import io.github.hzjdev.hbsniff.model.output.Smell;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import static io.github.hzjdev.hbsniff.model.HqlAndContext.extractSelectedFields;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hbsniff.utils.Const.*;
 import static io.github.hzjdev.hbsniff.utils.Utils.cleanHql;
@@ -52,8 +55,14 @@ public class Fetch extends SmellDetector {
         if (parentField.isPresent()) {
             final Smell smell;
             try {
+                String field;
+                try {
+                    field = parentField.get().findAll(VariableDeclarator.class).get(0).getNameAsString();
+                }catch(Exception e){
+                    field = parentField.get().toString();
+                }
                 Declaration parentDeclaration = findTypeDeclaration(cu.getStorage().get().getPath().toString());
-                smell = initSmell(parentDeclaration).setComment(parentField.get().toString())
+                smell = initSmell(parentDeclaration).setComment(field)
                         .setName("Eager Fetch");
 
                 n.getRange().ifPresent(s -> smell.setPosition(s.toString()));
@@ -126,6 +135,7 @@ public class Fetch extends SmellDetector {
                     } catch (Exception e) {
                         from_entity = hql_.getReturnType();
                     }
+                    Set<String> selected_fields = extractSelectedFields(hql_s);
                     if (from_entity != null) {
                         String[] from_entity_arr = from_entity.split("\\.");
                         from_entity = from_entity_arr[from_entity_arr.length - 1];
@@ -133,6 +143,9 @@ public class Fetch extends SmellDetector {
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
                                 Declaration dec = findTypeDeclaration(eagerFetch.getClassName());
                                 if(dec!=null) {
+                                    if(selected_fields.size()>0 && !selected_fields.contains(eagerFetch.getComment().toLowerCase())){
+                                        continue;
+                                    }
                                     Smell smell = new Smell();
                                     String path = hql_.getFullPath();
                                     smell.setPosition(hql_.getCreateQueryPosition());

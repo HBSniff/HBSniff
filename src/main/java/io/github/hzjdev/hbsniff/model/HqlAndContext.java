@@ -20,10 +20,7 @@ package io.github.hzjdev.hbsniff.model;
 import com.github.javaparser.ast.CompilationUnit;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.findCalledIn;
 
@@ -220,5 +217,17 @@ public class HqlAndContext implements Serializable {
                 ", returnTypeDeclaration=" + returnTypeDeclaration +
                 ", calledIn=" + calledIn +
                 '}';
+    }
+
+    public static Set<String> extractSelectedFields(String hql){
+        Set<String> result = new HashSet<>();
+        if(hql == null || !hql.toLowerCase().contains("select")) return result;
+        hql = hql.toLowerCase().split("from")[0].replace("select ","");
+        String[] hql_arr = hql.split(",");
+        for(String selected_field: hql_arr){
+            selected_field = selected_field.split(" as")[0];
+            result.add(selected_field);
+        }
+        return result;
     }
 }
