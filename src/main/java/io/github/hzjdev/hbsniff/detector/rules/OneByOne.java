@@ -100,7 +100,7 @@ public class OneByOne extends SmellDetector {
                     if (parentField.isPresent()) {
                         final Smell smell = initSmell(parentDeclaration);
                         smell.setComment(parentField.get().toString())
-                                .setName("Eager Fetch");
+                                .setName("One By One");
 
                         marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));
                         psr.getSmells().get(parentDeclaration).add(smell);
