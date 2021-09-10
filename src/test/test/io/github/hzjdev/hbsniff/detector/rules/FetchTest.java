@@ -83,7 +83,7 @@ public class FetchTest {
     public void getJoinFetch() {
         List<Smell> result = d.getJoinFetch(hqls, d.getEagerFetches(cus));
         assertEquals(result.size(),1);
-        assertEquals(result.get(0).getClassName(),"LackJoinFetch");
+        assertEquals(result.get(0).getClassName(),"ManyToOneEagerEntity");
 
     }
 

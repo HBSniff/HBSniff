@@ -53,7 +53,7 @@ public class Fetch extends SmellDetector {
             final Smell smell;
             try {
                 Declaration parentDeclaration = findTypeDeclaration(cu.getStorage().get().getPath().toString());
-                smell = initSmell(parentDeclaration).setComment(parentField.toString())
+                smell = initSmell(parentDeclaration).setComment(parentField.get().toString())
                         .setName("Eager Fetch");
 
                 n.getRange().ifPresent(s -> smell.setPosition(s.toString()));
@@ -131,17 +131,17 @@ public class Fetch extends SmellDetector {
                         from_entity = from_entity_arr[from_entity_arr.length - 1];
                         for (Smell eagerFetch : eagerFetches) {
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
-                                Declaration parentDeclaration = Declaration.fromPath(hql_.getFullPath());
-                                if(parentDeclaration!=null) {
+                                Declaration dec = findTypeDeclaration(eagerFetch.getClassName());
+                                if(dec!=null) {
                                     Smell smell = new Smell();
                                     String path = hql_.getFullPath();
                                     smell.setPosition(hql_.getCreateQueryPosition());
                                     smell.setFile(path)
-                                            .setComment(eagerFetch.getClassName() + "::" +hql_.getMethodName() + ">" + hql.toString())
-                                            .setClassName(parentDeclaration.getName());
+                                            .setComment(eagerFetch.getComment() + "::"+eagerFetch.getClassName() + "::" +hql_.getMethodName() + ">" + hql.toString())
+                                            .setClassName(eagerFetch.getClassName());
                                     smell.setName("Lacking Join Fetch");
                                     joinFetchSmell.add(smell);
-                                    psr.getSmells().get(parentDeclaration).add(smell);
+                                    psr.getSmells().get(dec).add(smell);
                                 }
                             }
                         }
