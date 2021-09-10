@@ -58,11 +58,12 @@ public class OneByOne extends SmellDetector {
             for (VariableDeclarator vd : pf.getVariables()) {
                 Type t = vd.getType();
                 if (t != null) {
-                    smell.setComment(parentField.toString())
+                    smell.setComment(vd.getNameAsString())
                             .setName("One By One");
                     n.getRange().ifPresent(s -> smell.setPosition(s.toString()));
                     oneByOne.add(smell);
                     psr.getSmells().get(parentDeclaration).add(smell);
+                    break;
                 }
             }
         }
@@ -101,9 +102,9 @@ public class OneByOne extends SmellDetector {
                     if (fetchTypeExists && annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR) && mvp.getValue().toString().contains(LAZY_ANNOT_EXPR)) {
                         genSmell(annotation, lazyFetches, parentDeclaration);
                     }
-                    if(!fetchTypeExists && annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR)){
-                        genSmell(annotation, lazyFetches, parentDeclaration);
-                    }
+                }
+                if(!fetchTypeExists && annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR)){
+                    genSmell(annotation, lazyFetches, parentDeclaration);
                 }
             }
             List<MarkerAnnotationExpr> annotationsMarker = cu.findAll(MarkerAnnotationExpr.class);
