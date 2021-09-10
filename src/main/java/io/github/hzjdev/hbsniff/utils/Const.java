@@ -33,6 +33,8 @@ public class Const {
 
     public final static String SINGLE_TABLE_ANNOT_EXPR = "SINGLE_TABLE";
     public final static String TABLE_PER_CLASS_ANNOT_EXPR = "TABLE_PER_CLASS";
+    public final static String FETCH_ANNOT_EXPR = "fetch";
+
     public final static String EAGER_ANNOT_EXPR = "EAGER";
     public final static String LAZY_ANNOT_EXPR = "LAZY";
 

@@ -33,12 +33,38 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
-import static io.github.hzjdev.hbsniff.utils.Const.EAGER_ANNOT_EXPR;
-import static io.github.hzjdev.hbsniff.utils.Const.TO_ONE_ANNOT_EXPR;
+import static io.github.hzjdev.hbsniff.utils.Const.*;
 import static io.github.hzjdev.hbsniff.utils.Utils.cleanHql;
 
 public class Fetch extends SmellDetector {
 
+    /**
+     * insert smell to psr
+     * @param n corresponding node
+     * @param eagerFetches result list
+     * @param cu compilationunit of file
+     */
+    public void genSmell(Node n, List eagerFetches, CompilationUnit cu){
+        Optional<Node> parentField = n.getParentNode();
+        while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
+            parentField = parentField.get().getParentNode();
+        }
+        if (parentField.isPresent()) {
+            final Smell smell;
+            try {
+                Declaration parentDeclaration = findTypeDeclaration(cu.getStorage().get().getPath().toString());
+                smell = initSmell(parentDeclaration).setComment(parentField.toString())
+                        .setName("Eager Fetch");
+
+                n.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                psr.getSmells().get(parentDeclaration).add(smell);
+                eagerFetches.add(smell);
+            }catch(Exception e){
+                e.printStackTrace();
+                return;
+            }
+        }
+    }
     /**
      * find fields annotated with eager fetches in entites
      * @param cus scope of detected files
@@ -49,48 +75,28 @@ public class Fetch extends SmellDetector {
         for (CompilationUnit cu : cus) {
             List<NormalAnnotationExpr> annotations = cu.findAll(NormalAnnotationExpr.class);
             for (NormalAnnotationExpr annotation : annotations) {
-                for (MemberValuePair mvp : annotation.getPairs()) {
-                    if (mvp.getValue().toString().contains(EAGER_ANNOT_EXPR)) {
-                        Optional<Node> parentField = mvp.getParentNode();
-                        while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
-                            parentField = parentField.get().getParentNode();
+                if (annotation.getNameAsString().contains(TO_ONE_ANNOT_EXPR) || annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR)) {
+                    boolean fetchTypeExists = false;
+                    for (MemberValuePair mvp : annotation.getPairs()) {
+                        // case of @ManyToOne(fetch = {FetchType.EAGER})
+                        if(mvp.getNameAsString().equals(FETCH_ANNOT_EXPR)){
+                            fetchTypeExists = true;
                         }
-                        if (parentField.isPresent()) {
-                            final Smell smell;
-                            try {
-                                Declaration parentDeclaration = findTypeDeclaration(cu.getStorage().get().getPath().toString());
-                                smell = initSmell(parentDeclaration).setComment(parentField.toString())
-                                        .setName("Eager Fetch");
-
-                                mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
-                                psr.getSmells().get(parentDeclaration).add(smell);
-                                eagerFetches.add(smell);
-                            }catch(Exception e){
-                                e.printStackTrace();
-                                continue;
-                            }
+                        if (fetchTypeExists && mvp.getValue().toString().contains(EAGER_ANNOT_EXPR)) {
+                            genSmell(mvp, eagerFetches, cu);
                         }
+                    }
+                    if(!fetchTypeExists && annotation.getNameAsString().contains(TO_ONE_ANNOT_EXPR)){
+                        // case of @ManyToOne(cascade = { CascadeType.ALL })
+                        genSmell(annotation, eagerFetches, cu);
                     }
                 }
             }
             List<MarkerAnnotationExpr> annotationsMarker = cu.findAll(MarkerAnnotationExpr.class);
             for (MarkerAnnotationExpr marker : annotationsMarker) {
                 if (marker.getNameAsString().contains(TO_ONE_ANNOT_EXPR)) {
-                    //@ManyToOne or @OneToOne with default fetch type EAGER
-                    Optional<Node> parentField = marker.getParentNode();
-                    while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
-                        parentField = parentField.get().getParentNode();
-                    }
-                    if (parentField.isPresent()) {
-                        Declaration parentDeclaration = new Declaration(cu);
-                        final Smell smell = initSmell(parentDeclaration);
-                        smell.setComment(parentField.get().toString())
-                                .setName("Eager Fetch");
-
-                        marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));
-                        psr.getSmells().get(parentDeclaration).add(smell);
-                        eagerFetches.add(smell);
-                    }
+                    //Direct marker like @ManyToOne or @OneToOne with default fetch type EAGER
+                    genSmell(marker, eagerFetches, cu);
                 }
             }
         }

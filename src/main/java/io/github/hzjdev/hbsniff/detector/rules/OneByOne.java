@@ -35,10 +35,38 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hbsniff.utils.Const.*;
 
 public class OneByOne extends SmellDetector {
 
+    /**
+     * insert smell to psr
+     * @param n corresponding node
+     * @param oneByOne result list
+     * @param parentDeclaration parent declaration
+     */
+    public void genSmell(Node n, List oneByOne, Declaration parentDeclaration){
+        Optional<Node> parentField = n.getParentNode();
+        while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
+            parentField = parentField.get().getParentNode();
+        }
+        if (parentField.isPresent()) {
+            FieldDeclaration pf = (FieldDeclaration) parentField.get();
+            if (batchSizeExists(pf)) return;
+            final Smell smell = initSmell(parentDeclaration);
+            for (VariableDeclarator vd : pf.getVariables()) {
+                Type t = vd.getType();
+                if (t != null) {
+                    smell.setComment(parentField.toString())
+                            .setName("One By One");
+                    n.getRange().ifPresent(s -> smell.setPosition(s.toString()));
+                    oneByOne.add(smell);
+                    psr.getSmells().get(parentDeclaration).add(smell);
+                }
+            }
+        }
+    }
 
     /**
      * check if batchSize annotation exists
@@ -65,27 +93,16 @@ public class OneByOne extends SmellDetector {
             CompilationUnit cu = parentDeclaration.getRawCU();
             List<NormalAnnotationExpr> annotations = cu.findAll(NormalAnnotationExpr.class);
             for (NormalAnnotationExpr annotation : annotations) {
+                boolean fetchTypeExists = false;
                 for (MemberValuePair mvp : annotation.getPairs()) {
-                    if (annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR) && mvp.getValue().toString().contains(LAZY_ANNOT_EXPR)) {
-                        Optional<Node> parentField = mvp.getParentNode();
-                        while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
-                            parentField = parentField.get().getParentNode();
-                        }
-                        if (parentField.isPresent()) {
-                            FieldDeclaration pf = (FieldDeclaration) parentField.get();
-                            if (batchSizeExists(pf)) continue;
-                            final Smell smell = initSmell(parentDeclaration);
-                            for (VariableDeclarator vd : pf.getVariables()) {
-                                Type t = vd.getType();
-                                if (t != null) {
-                                    smell.setComment(parentField.toString())
-                                            .setName("One By One");
-                                    mvp.getRange().ifPresent(s -> smell.setPosition(s.toString()));
-                                    lazyFetches.add(smell);
-                                    psr.getSmells().get(parentDeclaration).add(smell);
-                                }
-                            }
-                        }
+                    if(mvp.getNameAsString().equals(FETCH_ANNOT_EXPR)){
+                        fetchTypeExists = true;
+                    }
+                    if (fetchTypeExists && annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR) && mvp.getValue().toString().contains(LAZY_ANNOT_EXPR)) {
+                        genSmell(annotation, lazyFetches, parentDeclaration);
+                    }
+                    if(!fetchTypeExists && annotation.getNameAsString().contains(TO_MANY_ANNOT_EXPR)){
+                        genSmell(annotation, lazyFetches, parentDeclaration);
                     }
                 }
             }
@@ -93,19 +110,7 @@ public class OneByOne extends SmellDetector {
             for (MarkerAnnotationExpr marker : annotationsMarker) {
                 if (marker.getNameAsString().contains(TO_MANY_ANNOT_EXPR)) {
                     //@ManyToMany or @OneToMany with default fetch type LAZY
-                    Optional<Node> parentField = marker.getParentNode();
-                    while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
-                        parentField = parentField.get().getParentNode();
-                    }
-                    if (parentField.isPresent()) {
-                        final Smell smell = initSmell(parentDeclaration);
-                        smell.setComment(parentField.get().toString())
-                                .setName("One By One");
-
-                        marker.getRange().ifPresent(s -> smell.setPosition(s.toString()));
-                        psr.getSmells().get(parentDeclaration).add(smell);
-                        lazyFetches.add(smell);
-                    }
+                    genSmell(marker, lazyFetches, parentDeclaration);
                 }
             }
         }
