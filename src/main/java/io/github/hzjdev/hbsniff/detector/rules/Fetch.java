@@ -135,13 +135,13 @@ public class Fetch extends SmellDetector {
                     } catch (Exception e) {
                         from_entity = hql_.getReturnType();
                     }
-                    Set<String> selected_fields = extractSelectedFields(hql_s);
                     if (from_entity != null) {
                         String[] from_entity_arr = from_entity.split("\\.");
                         from_entity = from_entity_arr[from_entity_arr.length - 1];
                         for (Smell eagerFetch : eagerFetches) {
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
                                 Declaration dec = findTypeDeclaration(eagerFetch.getClassName());
+                                Set<String> selected_fields = extractSelectedFields(hql_s, dec);
                                 if(dec!=null) {
                                     if(selected_fields.size()>0 && !selected_fields.contains(eagerFetch.getComment().toLowerCase())){
                                         continue;

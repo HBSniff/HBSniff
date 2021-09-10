@@ -21,6 +21,7 @@ import com.github.javaparser.ast.CompilationUnit;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.findCalledIn;
 
@@ -219,15 +220,17 @@ public class HqlAndContext implements Serializable {
                 '}';
     }
 
-    public static Set<String> extractSelectedFields(String hql){
+    public static Set<String> extractSelectedFields(String hql, Declaration dec){
         Set<String> result = new HashSet<>();
-        if(hql == null || !hql.toLowerCase().contains("select")) return result;
+        if(hql == null || !hql.toLowerCase().contains("select") || dec.getFields() == null) return result;
         hql = hql.toLowerCase().split("from")[0].replace("select ","");
         String[] hql_arr = hql.split(",");
         for(String selected_field: hql_arr){
             selected_field = selected_field.split(" as")[0];
             result.add(selected_field);
         }
+        Set<String> lowerCasedFields = dec.getFields().stream().map(i->i.getName().toLowerCase()).collect(Collectors.toSet());
+        result = result.stream().filter(lowerCasedFields::contains).collect(Collectors.toSet());
         return result;
     }
 }
