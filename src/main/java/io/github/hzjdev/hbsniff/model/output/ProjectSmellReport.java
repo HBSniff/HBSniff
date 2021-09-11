@@ -59,4 +59,15 @@ public class ProjectSmellReport implements Serializable {
         this.smells = smells;
         return this;
     }
+
+    public ProjectSmellReport cleanup() {
+        Map<Declaration, List<Smell>> cleanedSmells = new HashMap<>();
+        for(Declaration d : smells.keySet()){
+            if(smells.get(d).size()>1){
+                cleanedSmells.put(d,smells.get(d));
+            }
+        }
+        smells = cleanedSmells;
+        return this;
+    }
 }

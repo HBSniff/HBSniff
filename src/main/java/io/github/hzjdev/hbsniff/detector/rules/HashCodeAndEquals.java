@@ -116,6 +116,8 @@ public class HashCodeAndEquals extends SmellDetector {
                     comment += ("The class does not contain the identifier property <"
                             + field.getName() + "> in the equals method.\n");
                 }
+            }else{
+                comment += ("Equals method not implemented.\n");
             }
             if(hashCodeMethod!=null) {
                 hashCodeOk = hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
@@ -127,6 +129,8 @@ public class HashCodeAndEquals extends SmellDetector {
                     comment += ("The class does not contain the identifier property <"
                             + field.getName() + "> in the hashCode method.\n");
                 }
+            }else{
+                comment += ("HashCode method not implemented.\n");
             }
 
             if ((!equalsOk || !hashCodeOk )&& !comment.equals("")) {

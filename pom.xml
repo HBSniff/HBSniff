@@ -6,7 +6,7 @@
 
     <groupId>io.github.hzjdev.gbsniff</groupId>
     <artifactId>HBSniff</artifactId>
-    <version>1.6.4</version>
+    <version>1.6.5</version>
     <build>
         <plugins>
             <plugin>
@@ -95,6 +95,11 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.26</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.argparse4j</groupId>
+            <artifactId>argparse4j</artifactId>
+            <version>0.9.0</version>
         </dependency>
     </dependencies>
 </project>

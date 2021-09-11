@@ -222,7 +222,7 @@ public class HqlAndContext implements Serializable {
 
     public static Set<String> extractSelectedFields(String hql, Declaration dec){
         Set<String> result = new HashSet<>();
-        if(hql == null || !hql.toLowerCase().contains("select") || dec.getFields() == null) return result;
+        if(hql == null || !hql.toLowerCase().contains("select ") || dec.getFields() == null) return result;
         hql = hql.toLowerCase().split("from")[0].replace("select ","");
         String[] hql_arr = hql.split(",");
         for(String selected_field: hql_arr){

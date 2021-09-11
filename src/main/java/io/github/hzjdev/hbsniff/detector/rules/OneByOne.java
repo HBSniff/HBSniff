@@ -59,7 +59,7 @@ public class OneByOne extends SmellDetector {
                 Type t = vd.getType();
                 if (t != null) {
                     smell.setComment(vd.getNameAsString())
-                            .setName("One By One");
+                            .setName("One-By-One");
                     n.getRange().ifPresent(s -> smell.setPosition(s.toString()));
                     oneByOne.add(smell);
                     psr.getSmells().get(parentDeclaration).add(smell);

@@ -152,7 +152,7 @@ public class GetterSetter extends SmellDetector {
             }
 
             if (!passedGetter || !passedSetter) {
-                Smell smell = initSmell(entityNode).setName("GetterSetter").setComment(comment.toString());
+                Smell smell = initSmell(entityNode).setName("MissingGetterSetter").setComment(comment.toString());
                 psr.getSmells().get(entityNode).add(smell);
                 smells.add(smell);
             }

@@ -28,13 +28,21 @@ import io.github.hzjdev.hbsniff.model.HqlAndContext;
 import io.github.hzjdev.hbsniff.model.output.Metric;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellCSVLine;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellReport;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.*;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
@@ -49,6 +57,7 @@ public class Main {
      */
     public static void outputSmells(String jsonPath, String csvPath, ProjectSmellReport results) {
         //wirte to csv
+        results.cleanup();
         List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
         try (FileOutputStream fos = new FileOutputStream(csvPath);
              OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
@@ -93,7 +102,7 @@ public class Main {
      * @param root_path project path
      * @param output_path output path
      */
-    public static void exec(String project, String root_path, String output_path) {
+    public static void exec(String project, String root_path, String output_path, List<String> exclude) {
         //init context
         List<CompilationUnit> cus = parseFromDir(root_path + "\\" + project);
         List<CompilationUnit> entities = getEntities(cus);
@@ -103,12 +112,23 @@ public class Main {
         //detection
         SmellDetectorFactory
                 .createAll(cus, hqls, entities, psr)
-                .forEach(SmellDetector::exec);
-        List<Metric> metrics = MappingMetrics.exec(entities);
-
+                .forEach(sd->{
+                    if(exclude!=null && exclude.size()>0 && exclude.contains(sd.getClass().getSimpleName())){
+                        return;
+                    }
+                    try {
+                        sd.exec();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                });
         //output
         outputSmells(output_path + "\\" + project + "_smells.json", output_path + "\\" + project + "_smells.csv", psr);
-        outputMetrics(output_path + "\\" + project + "_metrics.csv", metrics);
+
+        if(exclude == null || !exclude.contains("MappingMetrics")) {
+            outputMetrics(output_path + "\\" + project + "_metrics.csv",  MappingMetrics.exec(entities));
+        }
+
     }
 
     /**
@@ -116,24 +136,49 @@ public class Main {
      * @param args arguments from commandline
      */
     public static void main(String[] args) {
-        String project;
-        String root_path;
-        String output_path;
+        ArgumentParser parser = ArgumentParsers.newFor("Main").build()
+                .defaultHelp(true)
+                .description("HBSniff: Java Hibernate Object Relational Mapping Smell Detector.");
+        parser.addArgument("-d", "--directory")
+                .help("Root directory of the project, e.g., if your project is in e:\\dir\\project, you should use \"e:\\dir\\\" for this param.");
+
+        parser.addArgument("-p", "--project")
+                .help("Project name/directory, e.g., if your project is in e:\\dir\\project, you should use \"project\" for this param.");
+
+        parser.addArgument("-o", "--output")
+                .help("Output directory of the project.");
+
+        parser.addArgument("-e", "--exclude")
+                .help("Smells to exclude. Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
+
+
+        String project = null;
+        String root_path = null;
+        String output_path = null;
+        List<String> exclude = null;
+        Namespace ns;
         try {
-            project = args[0];
-        } catch (Exception e) {
+            ns = parser.parseArgs(args);
+            project = ns.getString("project");
+            root_path = ns.getString("directory");
+            output_path = ns.getString("output");
+        } catch (ArgumentParserException e) {
+            parser.handleError(e);
+        }
+        if(project == null){
             project = "2ndInvesta";
-        }
-        try {
-            root_path = args[1];
-        } catch (Exception e) {
             root_path = "D:\\tools\\hql\\projects";
-        }
-        try {
-            output_path = args[2];
-        } catch (Exception e) {
             output_path = "D:\\tools\\hql\\projects";
         }
-        exec(project, root_path, output_path);
+        try {
+            ns = parser.parseArgs(args);
+            String excludeExpr = ns.getString("exclude");
+            if(excludeExpr != null) {
+                exclude = Arrays.asList(ns.getString("exclude").split(","));
+            }
+        } catch (Exception e) {
+            exclude = null;
+        }
+        exec(project, root_path, output_path, exclude);
     }
 }
