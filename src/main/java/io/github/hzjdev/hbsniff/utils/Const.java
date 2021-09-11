@@ -21,6 +21,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Const {
+    public final static String DEFAULT_PROJECT = "portal";
+    public final static String DEFAULT_ROOT_PATH = "D:\\tools\\hql\\projects";
+    public final static String DEFAULT_OUTPUT_PATH = "D:\\tools\\hql\\projects";
+
     public final static String IDENT_ANNOT_EXPR = "Id";
     public final static String TABLE_ANNOT_EXPR = "Table";
     public final static String GETTER_ANNOT_EXPR = "Getter"; //lombok annotation

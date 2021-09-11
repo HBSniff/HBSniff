@@ -21,14 +21,12 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.opencsv.CSVWriter;
-import io.github.hzjdev.hbsniff.detector.SmellDetector;
 import io.github.hzjdev.hbsniff.detector.SmellDetectorFactory;
 import io.github.hzjdev.hbsniff.metric.MappingMetrics;
 import io.github.hzjdev.hbsniff.model.HqlAndContext;
 import io.github.hzjdev.hbsniff.model.output.Metric;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellCSVLine;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellReport;
-import io.github.hzjdev.hbsniff.utils.ExcelGenerator;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -39,14 +37,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
-import static io.github.hzjdev.hbsniff.parser.EntityParser.*;
+import static io.github.hzjdev.hbsniff.parser.EntityParser.getEntities;
+import static io.github.hzjdev.hbsniff.parser.EntityParser.parseFromDir;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
+import static io.github.hzjdev.hbsniff.utils.Const.*;
 
 public class Main {
 
@@ -81,7 +78,7 @@ public class Main {
 
         //write to excel
         try {
-            ExcelGenerator.generate(xlsPath, results);
+            ProjectSmellReport.generateXlsReport(xlsPath, results);
         }catch (Exception e ){
             System.out.println("XLS Export Failed");
             e.printStackTrace();
@@ -148,18 +145,17 @@ public class Main {
         ArgumentParser parser = ArgumentParsers.newFor("Main").build()
                 .defaultHelp(true)
                 .description("HBSniff: Java Hibernate Object Relational Mapping Smell Detector.");
-        parser.addArgument("-d", "--directory")
+        parser.addArgument("-d", "--directory").required(true)
                 .help("Root directory of the project, e.g., if your project is in e:\\dir\\project, you should use \"e:\\dir\\\" for this param.");
 
-        parser.addArgument("-p", "--project")
+        parser.addArgument("-p", "--project").required(true)
                 .help("Project name/directory, e.g., if your project is in e:\\dir\\project, you should use \"project\" for this param.");
 
-        parser.addArgument("-o", "--output")
+        parser.addArgument("-o", "--output").required(true)
                 .help("Output directory of the project.");
 
-        parser.addArgument("-e", "--exclude")
-                .help("Smells to exclude. Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
-
+        parser.addArgument("-e", "--exclude").required(false)
+                .help("Smells to exclude (Optional). Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
 
         String project = null;
         String root_path = null;
@@ -174,10 +170,10 @@ public class Main {
         } catch (ArgumentParserException e) {
             parser.handleError(e);
         }
-        if(project == null){
-            project = "portal";
-            root_path = "D:\\tools\\hql\\projects";
-            output_path = "D:\\tools\\hql\\projects";
+        if(project == null || root_path == null || output_path == null){
+            project = DEFAULT_PROJECT;
+            root_path = DEFAULT_ROOT_PATH;
+            output_path = DEFAULT_OUTPUT_PATH;
         }
         try {
             ns = parser.parseArgs(args);

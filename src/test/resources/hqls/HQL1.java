@@ -1,8 +1,9 @@
 package dummy;
 
-import java.util.List;
-import javax.persistence.Query;
 import com.adserver.entities.AdCategory;
+
+import javax.persistence.Query;
+import java.util.List;
 
 public class HQL1{
 

@@ -1,16 +1,15 @@
 package dummy;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
 import br.com.setsoft.crud.CrudGenerico;
 import br.com.setsoft.modelo.Feedback;
 import br.com.setsoft.utilidade.Fabrica;
 import br.com.setsoft.utilidade.StringUtil;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HQL2 extends CrudGenerico<Feedback, Integer> {
 

@@ -19,9 +19,9 @@ package io.github.hzjdev.hbsniff.parser;
 
 import com.github.javaparser.ast.CompilationUnit;
 import io.github.hzjdev.hbsniff.model.Declaration;
-import org.junit.Test;
-import org.junit.Before; 
 import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;

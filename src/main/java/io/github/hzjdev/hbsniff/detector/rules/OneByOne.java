@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hbsniff.utils.Const.*;
 
 public class OneByOne extends SmellDetector {

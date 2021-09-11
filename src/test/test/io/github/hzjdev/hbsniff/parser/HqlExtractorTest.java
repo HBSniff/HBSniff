@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class HqlExtractorTest {
 

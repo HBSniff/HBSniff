@@ -22,12 +22,9 @@ import io.github.hzjdev.hbsniff.model.Declaration;
 import io.github.hzjdev.hbsniff.model.output.Smell;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
-import static io.github.hzjdev.hbsniff.parser.EntityParser.getSuperClassDeclarations;
 import static io.github.hzjdev.hbsniff.utils.Const.SERIALIZABLE_EXPR;
 
 public class NotSerializable extends SmellDetector {
