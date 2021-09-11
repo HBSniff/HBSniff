@@ -28,6 +28,7 @@ import io.github.hzjdev.hbsniff.model.HqlAndContext;
 import io.github.hzjdev.hbsniff.model.output.Metric;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellCSVLine;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellReport;
+import io.github.hzjdev.hbsniff.utils.ExcelGenerator;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -55,7 +56,7 @@ public class Main {
      * @param csvPath path of the csv file
      * @param results results
      */
-    public static void outputSmells(String jsonPath, String csvPath, ProjectSmellReport results) {
+    public static void outputSmells(String jsonPath, String csvPath, String xlsPath, ProjectSmellReport results) {
         //wirte to csv
         results.cleanup();
         List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
@@ -76,6 +77,14 @@ public class Main {
             out.println(gs.toJson(results));
         } catch (IOException e) {
             System.out.println("Output path unavailable: " + jsonPath);
+        }
+
+        //write to excel
+        try {
+            ExcelGenerator.generate(xlsPath, results);
+        }catch (Exception e ){
+            System.out.println("XLS Export Failed");
+            e.printStackTrace();
         }
     }
 
@@ -123,7 +132,7 @@ public class Main {
                     }
                 });
         //output
-        outputSmells(output_path + "\\" + project + "_smells.json", output_path + "\\" + project + "_smells.csv", psr);
+        outputSmells(output_path + "\\" + project + "_smells.json", output_path + "\\" + project + "_smells.csv", output_path + "\\" + project + "_smells.xls", psr);
 
         if(exclude == null || !exclude.contains("MappingMetrics")) {
             outputMetrics(output_path + "\\" + project + "_metrics.csv",  MappingMetrics.exec(entities));
@@ -166,7 +175,7 @@ public class Main {
             parser.handleError(e);
         }
         if(project == null){
-            project = "2ndInvesta";
+            project = "portal";
             root_path = "D:\\tools\\hql\\projects";
             output_path = "D:\\tools\\hql\\projects";
         }

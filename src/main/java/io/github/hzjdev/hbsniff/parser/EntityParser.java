@@ -62,6 +62,7 @@ public class EntityParser {
             for (AnnotationExpr annotation : annotations) {
                 if (annotation.getNameAsString().contains(ENTITY_ANNOT_EXPR)) {
                     results.add(cu);
+                    break;
                 }
             }
         }

@@ -223,11 +223,27 @@ public class HqlAndContext implements Serializable {
     public static Set<String> extractSelectedFields(String hql, Declaration dec){
         Set<String> result = new HashSet<>();
         if(hql == null || !hql.toLowerCase().contains("select ") || dec.getFields() == null) return result;
-        hql = hql.toLowerCase().split("from")[0].replace("select ","");
+        String[] hql_from_split = hql.toLowerCase().split("from");
+        hql = hql_from_split[0].replace("select ","");
+
         String[] hql_arr = hql.split(",");
         for(String selected_field: hql_arr){
             selected_field = selected_field.split(" as")[0];
-            result.add(selected_field);
+            boolean in_from = false;
+            if(hql_from_split.length>1){
+                String hql_from = hql_from_split[1].split("where")[0];
+                if(hql_from.contains("as "+selected_field)){
+                    String[] arr = hql_from.split("as "+selected_field)[0].split(" ");
+                    if(arr.length>0){
+                        String[] arr_dot = arr[arr.length-1].split("\\.");
+                        result.add(arr_dot[arr_dot.length-1]);
+                        in_from = true;
+                    }
+                }
+            }
+            if(!in_from) {
+                result.add(selected_field);
+            }
         }
         Set<String> lowerCasedFields = dec.getFields().stream().map(i->i.getName().toLowerCase()).collect(Collectors.toSet());
         result = result.stream().filter(lowerCasedFields::contains).collect(Collectors.toSet());

@@ -36,7 +36,7 @@ import static io.github.hzjdev.hbsniff.parser.EntityParser.findTypeDeclaration;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.getSuperClassDeclarations;
 import static io.github.hzjdev.hbsniff.utils.Utils.extractParametrePosition;
 
-public class Declaration implements Serializable {
+public class Declaration implements Serializable, Comparable {
     @Expose
     String name;
 
@@ -471,4 +471,8 @@ public class Declaration implements Serializable {
         this.constructors = constructors;
     }
 
+    @Override
+    public int compareTo(Object o) {
+        return this.getName().compareTo(((Declaration)o).getName());
+    }
 }

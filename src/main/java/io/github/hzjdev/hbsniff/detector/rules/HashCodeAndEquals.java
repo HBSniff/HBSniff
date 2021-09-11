@@ -113,11 +113,11 @@ public class HashCodeAndEquals extends SmellDetector {
                     equalsOk = accessedFieldsEquals != null && field != null && accessedFieldsEquals.contains(field.getName());
                 }
                 if (!equalsOk) {
-                    comment += ("The class does not contain the identifier property <"
-                            + field.getName() + "> in the equals method.\n");
+                    comment += ("Missing ID <"
+                            + field.getName() + "> from equals. ");
                 }
             }else{
-                comment += ("Equals method not implemented.\n");
+                comment += ("Equals method not implemented. ");
             }
             if(hashCodeMethod!=null) {
                 hashCodeOk = hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
@@ -126,11 +126,11 @@ public class HashCodeAndEquals extends SmellDetector {
                     hashCodeOk = accessedFieldsHash != null && field != null && accessedFieldsHash.contains(field.getName());
                 }
                 if (!hashCodeOk) {
-                    comment += ("The class does not contain the identifier property <"
-                            + field.getName() + "> in the hashCode method.\n");
+                    comment += ("Missing ID <"
+                            + field.getName() + "> from hashCode. ");
                 }
             }else{
-                comment += ("HashCode method not implemented.\n");
+                comment += ("HashCode method not implemented. ");
             }
 
             if ((!equalsOk || !hashCodeOk )&& !comment.equals("")) {

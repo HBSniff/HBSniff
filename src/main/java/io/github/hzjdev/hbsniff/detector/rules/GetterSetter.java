@@ -144,10 +144,10 @@ public class GetterSetter extends SmellDetector {
                 }
 
                 if (!passedGetter) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the get method.\n");
+                        comment.append("Missing Getter of <").append(fieldNode.getName()).append(">. ");
                 }
                 if (!passedSetter) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append(" doesn't implement the set method.\n");
+                    comment.append("Missing Setter of <").append(fieldNode.getName()).append(">. ");
                 }
             }
 

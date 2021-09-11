@@ -22,10 +22,8 @@ import com.google.gson.annotations.Expose;
 import io.github.hzjdev.hbsniff.model.Declaration;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.genDeclarationsFromCompilationUnits;
 
@@ -61,12 +59,17 @@ public class ProjectSmellReport implements Serializable {
     }
 
     public ProjectSmellReport cleanup() {
-        Map<Declaration, List<Smell>> cleanedSmells = new HashMap<>();
-        for(Declaration d : smells.keySet()){
-            if(smells.get(d).size()>1){
+
+        // delete classes with no smells
+        Map<Declaration, List<Smell>> cleanedSmells = new LinkedHashMap<>();
+        //sort alphabetically the classes
+        List<Declaration> sortedKeyset = smells.keySet().stream().sorted().collect(Collectors.toList());
+        for(Declaration d : sortedKeyset){
+            if(smells.get(d).size()>0){
                 cleanedSmells.put(d,smells.get(d));
             }
         }
+
         smells = cleanedSmells;
         return this;
     }
