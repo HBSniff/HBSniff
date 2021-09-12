@@ -63,7 +63,7 @@ public class HashCodeEqualsTest {
 
     @Test
     public void testHashCodeAndEqualsUseIdentifierPropertyRule() {
-        List<Smell> s = c.hashCodeAndEqualsNotUseIdentifierPropertyRule(toInput);
+        List<Smell> s = c.hashCodeAndEqualsUseIdentifierPropertyRule(toInput);
         assertEquals(s.size(), 1);
         Smell idPresented = s.stream().filter(i->i.getClassName().equals("IdInHashCodeEqualsEntity")).findFirst().get();
         assertEquals("IdInHashCodeEqualsEntity", idPresented.getClassName());
@@ -89,7 +89,7 @@ public class HashCodeEqualsTest {
     @Test
     public void testExec() {
         c.setEntityDeclarations((HashSet<Declaration>) toInput);
-        List<Smell> collectionSmell = c.hashCodeAndEqualsNotUseIdentifierPropertyRule(toInput);
+        List<Smell> collectionSmell = c.hashCodeAndEqualsUseIdentifierPropertyRule(toInput);
         collectionSmell.addAll(c.hashCodeAndEqualsRule(toInput));
         List<Smell> execSmell = c.exec();
         assertEquals(c.exec().size(), collectionSmell.size());

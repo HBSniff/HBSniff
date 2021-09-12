@@ -88,12 +88,19 @@ public class HashCodeAndEquals extends SmellDetector {
      * @param classes entities
      * @return list of smells
      */
-    public final List<Smell> hashCodeAndEqualsNotUseIdentifierPropertyRule(Set<Declaration> classes) {
+    public final List<Smell> hashCodeAndEqualsUseIdentifierPropertyRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
         for (Declaration entityNode : classes) {
             String comment = "";
+            boolean equalsSmelly = false;
+            boolean hashCodeSmelly = false;
+
             boolean annotationData = entityNode.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || entityNode.annotationIncludes(DATA_ANNOT_EXPR);;
-            if(annotationData) continue;
+            if(annotationData){
+                equalsSmelly = true;
+                hashCodeSmelly = true;
+                comment += ("Using Lombok Annotation.");
+            };
 
             Declaration equalsMethod = getEqualsMethod(entityNode);
             Declaration hashCodeMethod = getHashCodeMethod(entityNode);
@@ -104,32 +111,35 @@ public class HashCodeAndEquals extends SmellDetector {
             Set<String> accessedFieldsHash = null;
             List<Declaration> parents = getSuperClassDeclarations(entityNode);
             parents.add(entityNode);
-            boolean equalsOk = false;
-            boolean hashCodeOk = false;
             if(equalsMethod!=null) {
-                equalsOk = equalsMethod.checkMethodCalled(REFLECTION_EQUALS_CALL);
-                if (!equalsOk) {
+                equalsSmelly = equalsSmelly && equalsMethod.checkMethodCalled(REFLECTION_EQUALS_CALL);
+                if (!equalsSmelly) {
                     accessedFieldsEquals = equalsMethod.getAccessedFieldNames(parents);
-                    equalsOk = accessedFieldsEquals != null && field != null && accessedFieldsEquals.contains(field.getName());
-                }
-                if (equalsOk) {
-                    comment += ("Using ID <"
-                            + field.getName() + "> from equals. ");
+                    equalsSmelly = accessedFieldsEquals != null && field != null && accessedFieldsEquals.contains(field.getName());
+                    if (equalsSmelly) {
+                        comment += ("Using ID <"
+                                + field.getName() + "> from equals. ");
+                    }
+                }else{
+                    comment += ("Using Reflection Equals.");
                 }
             }
             if(hashCodeMethod!=null) {
-                hashCodeOk = hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
-                if (!hashCodeOk) {
+                hashCodeSmelly = hashCodeSmelly && hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
+
+                if (!hashCodeSmelly) {
                     accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
-                    hashCodeOk = accessedFieldsHash != null && field != null && accessedFieldsHash.contains(field.getName());
-                }
-                if (hashCodeOk) {
-                    comment += ("Using ID <"
-                            + field.getName() + "> from hashCode. ");
+                    hashCodeSmelly = accessedFieldsHash != null && field != null && accessedFieldsHash.contains(field.getName());
+                    if (hashCodeSmelly) {
+                        comment += ("Using ID <"
+                                + field.getName() + "> from hashCode. ");
+                    }
+                }else{
+                    comment += ("Using Hashcode Equals.");
                 }
             }
 
-            if ((equalsOk || hashCodeOk )&& !comment.equals("")) {
+            if ((equalsSmelly || hashCodeSmelly )&& !comment.equals("")) {
                 Smell smell = initSmell(entityNode).setName("UsingIdInHashCodeOrEquals").setComment(comment);
                 psr.getSmells().get(entityNode).add(smell);
                 result.add(smell);
@@ -170,7 +180,7 @@ public class HashCodeAndEquals extends SmellDetector {
      * @return list of smells
      */
     public List<Smell> exec() {
-        List<Smell> idRule = hashCodeAndEqualsNotUseIdentifierPropertyRule(entityDeclarations);
+        List<Smell> idRule = hashCodeAndEqualsUseIdentifierPropertyRule(entityDeclarations);
         idRule.addAll(hashCodeAndEqualsRule(entityDeclarations));
         return idRule;
     }
