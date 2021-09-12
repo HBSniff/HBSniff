@@ -40,7 +40,7 @@ public class FinalEntity extends SmellDetector {
             ClassOrInterfaceDeclaration cid = entityNode.getClassDeclr();
             if (cid == null) continue;
             if (cid.getModifiers() != null && cid.getModifiers().contains(Modifier.finalModifier())) {
-                Smell smell = initSmell(entityNode).setName("Final Class");
+                Smell smell = initSmell(entityNode).setName("Final Entity");
                 psr.getSmells().get(entityNode).add(smell);
                 smells.add(smell);
             }

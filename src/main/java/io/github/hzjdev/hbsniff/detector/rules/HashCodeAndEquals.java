@@ -112,12 +112,10 @@ public class HashCodeAndEquals extends SmellDetector {
                     accessedFieldsEquals = equalsMethod.getAccessedFieldNames(parents);
                     equalsOk = accessedFieldsEquals != null && field != null && accessedFieldsEquals.contains(field.getName());
                 }
-                if (!equalsOk) {
-                    comment += ("Missing ID <"
+                if (equalsOk) {
+                    comment += ("Using ID <"
                             + field.getName() + "> from equals. ");
                 }
-            }else{
-                comment += ("Equals method not implemented. ");
             }
             if(hashCodeMethod!=null) {
                 hashCodeOk = hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
@@ -125,16 +123,14 @@ public class HashCodeAndEquals extends SmellDetector {
                     accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
                     hashCodeOk = accessedFieldsHash != null && field != null && accessedFieldsHash.contains(field.getName());
                 }
-                if (!hashCodeOk) {
-                    comment += ("Missing ID <"
+                if (hashCodeOk) {
+                    comment += ("Using ID <"
                             + field.getName() + "> from hashCode. ");
                 }
-            }else{
-                comment += ("HashCode method not implemented. ");
             }
 
-            if ((!equalsOk || !hashCodeOk )&& !comment.equals("")) {
-                Smell smell = initSmell(entityNode).setName("MissingIdInHashCodeOrEquals").setComment(comment);
+            if ((equalsOk || hashCodeOk )&& !comment.equals("")) {
+                Smell smell = initSmell(entityNode).setName("UsingIdInHashCodeOrEquals").setComment(comment);
                 psr.getSmells().get(entityNode).add(smell);
                 result.add(smell);
             }

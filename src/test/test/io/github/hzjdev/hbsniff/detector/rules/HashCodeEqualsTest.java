@@ -62,14 +62,13 @@ public class HashCodeEqualsTest {
     }
 
     @Test
-    public void testHashCodeAndEqualsNotUseIdentifierPropertyRule() {
+    public void testHashCodeAndEqualsUseIdentifierPropertyRule() {
         List<Smell> s = c.hashCodeAndEqualsNotUseIdentifierPropertyRule(toInput);
-        assertEquals(s.size(), 2);
-        Smell idNotPresented = s.stream().filter(i->i.getClassName().equals("IdNotInHashCodeEqualsEntity")).findFirst().get();
-        assertEquals("IdNotInHashCodeEqualsEntity", idNotPresented.getClassName());
-        List<String> comments = Arrays.asList(idNotPresented.getComment().split("\n"));
-        assertTrue((comments.get(0).contains("hashCode") && comments.get(1).contains("equals")) ||
-                (comments.get(1).contains("hashCode") && comments.get(0).contains("equals")));
+        assertEquals(s.size(), 1);
+        Smell idPresented = s.stream().filter(i->i.getClassName().equals("IdInHashCodeEqualsEntity")).findFirst().get();
+        assertEquals("IdInHashCodeEqualsEntity", idPresented.getClassName());
+        List<String> comments = Arrays.asList(idPresented.getComment().split("\n"));
+        assertTrue((comments.get(0).contains("hashCode") || comments.get(0).contains("equals")));
     }
 
 
@@ -94,7 +93,7 @@ public class HashCodeEqualsTest {
         collectionSmell.addAll(c.hashCodeAndEqualsRule(toInput));
         List<Smell> execSmell = c.exec();
         assertEquals(c.exec().size(), collectionSmell.size());
-        assertEquals(c.exec().size(), 4);
+        assertEquals(c.exec().size(), 3);
 
         Set<String> execNames = execSmell.stream().map(Smell::getClassName).collect(Collectors.toSet());
         Set<String> smellNames = collectionSmell.stream().map(Smell::getClassName).collect(Collectors.toSet());

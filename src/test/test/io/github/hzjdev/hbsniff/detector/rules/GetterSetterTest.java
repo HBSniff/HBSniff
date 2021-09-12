@@ -61,9 +61,9 @@ public class GetterSetterTest {
         assertEquals(s.get(0).getClassName(), "InCompleteGetterSetterEntity");
         List<String> fields = Arrays.asList(s.get(0).getComment().split("\n"));
         for (String field : fields) {
-            assertTrue(field.contains("missingGetterSetterField") && (field.contains("get") || field.contains("set")));
+            assertTrue(field.contains("missingGetterSetterField") && (field.contains("Getter") || field.contains("Setter")));
         }
-        assertEquals(fields.size(), 2);
+        assertEquals(fields.size(), 1);
     }
 
     /**
