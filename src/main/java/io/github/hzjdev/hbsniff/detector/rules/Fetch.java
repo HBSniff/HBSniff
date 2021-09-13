@@ -120,39 +120,41 @@ public class Fetch extends SmellDetector {
      */
     public List<Smell> getJoinFetch(List<HqlAndContext> hqls, List<Smell> eagerFetches) {
         List<Smell> joinFetchSmell = new ArrayList<>();
-        for (HqlAndContext hql_ : hqls) {
+        for (HqlAndContext hqlAndContext : hqls) {
             StringBuilder hql = new StringBuilder();
-            for (String hql__ : hql_.getHql()) {
+            for (String hql__ : hqlAndContext.getHql()) {
                 hql.append(hql__).append(' ');
             }
-            String hql_s = hql.toString().toLowerCase();
-            if (!hql_s.contains("join fetch")) {
+            String hql_expr = hql.toString().toLowerCase();
+            if (!hql_expr.contains(JOIN_FETCH_EXPR)) {
                 String from_entity = null;
-                hql_s = cleanHql(hql_s);
-                if (!hql_s.startsWith("delete") && !hql_s.startsWith("update") && !hql_s.startsWith("insert")) {
+                hql_expr = cleanHql(hql_expr);
+                if (!hql_expr.startsWith(DELETE_EXPR) && !hql_expr.startsWith(UPDATE_EXPR) && !hql_expr.startsWith(INSERT_EXPR)) {
                     try {
-                        from_entity = hql_s.split("from ")[1].split(" ")[0];
+                        from_entity = hql_expr.split( FROM_EXPR+" ")[1].split(" ")[0];
                     } catch (Exception e) {
-                        from_entity = hql_.getReturnType();
+                        from_entity = hqlAndContext.getReturnType();
                     }
                     if (from_entity != null) {
                         String[] from_entity_arr = from_entity.split("\\.");
                         from_entity = from_entity_arr[from_entity_arr.length - 1];
                         for (Smell eagerFetch : eagerFetches) {
+                            // check if from entity in hql is an EAGER fetch smelled entity
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
                                 Declaration dec = findTypeDeclaration(eagerFetch.getClassName());
-                                Set<String> selected_fields = extractSelectedFields(hql_s, dec);
+                                // check if selected fields are annotated with FetchType.EAGER
+                                Set<String> selected_fields = extractSelectedFields(hql_expr, dec);
                                 if(dec!=null) {
                                     if(selected_fields.size()>0 && !selected_fields.contains(eagerFetch.getComment().toLowerCase())){
                                         continue;
                                     }
-                                    Smell smell = new Smell();
-                                    String path = hql_.getFullPath();
-                                    smell.setPosition(hql_.getCreateQueryPosition());
-                                    smell.setFile(path)
-                                            .setComment(eagerFetch.getComment() + "::"+eagerFetch.getClassName() + "::" +hql_.getMethodName() + ">" + hql.toString())
-                                            .setClassName(eagerFetch.getClassName());
-                                    smell.setName("Lacking Join Fetch");
+                                    // this case, eager fields may be selected by specified expr or select *.
+                                    Smell smell = new Smell()
+                                            .setPosition(hqlAndContext.getCreateQueryPosition())
+                                            .setFile(hqlAndContext.getFullPath())
+                                            .setComment(eagerFetch.getComment() + "::"+eagerFetch.getClassName() + "::" +hqlAndContext.getMethodName() + ">" + hql.toString())
+                                            .setClassName(eagerFetch.getClassName())
+                                            .setName("Lacking Join Fetch");
                                     joinFetchSmell.add(smell);
                                     psr.getSmells().get(dec).add(smell);
                                 }

@@ -282,6 +282,7 @@ public class EntityParser {
         List<Declaration> calledIn = new ArrayList<>();
         if (methodName != null) {
             for (CompilationUnit cu : cus) {
+                // check if typeName is imported
                 boolean imported = false;
                 TypeDeclaration primaryType = cu.getPrimaryType().orElse(null);
                 if(primaryType!=null){
@@ -294,16 +295,19 @@ public class EntityParser {
                         }
                     }
                 }
-                List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
-                for (MethodCallExpr mce : mces) {
-                    if (imported && mce.getNameAsString().equals(methodName)) {
-                        Optional<Node> parentMethod = mce.getParentNode();
-                        while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
-                            parentMethod = parentMethod.get().getParentNode();
-                        }
-                        MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
-                        if (parent != null) {
-                            calledIn.add(new Declaration(cu, parent));
+                // we find method call only if it is imported in the cu
+                if(imported) {
+                    List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
+                    for (MethodCallExpr mce : mces) {
+                        if (mce.getNameAsString().equals(methodName)) {
+                            Optional<Node> parentMethod = mce.getParentNode();
+                            while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
+                                parentMethod = parentMethod.get().getParentNode();
+                            }
+                            MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
+                            if (parent != null) {
+                                calledIn.add(new Declaration(cu, parent));
+                            }
                         }
                     }
                 }
@@ -321,6 +325,7 @@ public class EntityParser {
     public static Declaration findTypeDeclaration(String toFind) {
         initDeclarationCache();
         for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
+            // path match
             if(e.getKey()!=null) {
                 if (e.getKey().equals(toFind)) {
                     return e.getValue();
@@ -328,6 +333,7 @@ public class EntityParser {
             }
         }
         for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
+            // type/class name match
             if(e.getValue()!=null) {
                 if (e.getValue().getName().equals(toFind)) {
                     return e.getValue();
@@ -335,6 +341,7 @@ public class EntityParser {
             }
         }
         for(Map.Entry<String, Declaration> e: declarationCache.entrySet()){
+            // type/class name and file name match
             if(e.getKey()!=null) {
                 try {
                     if (e.getKey().split("\\\\")[0].split("/")[0].equals(toFind)){

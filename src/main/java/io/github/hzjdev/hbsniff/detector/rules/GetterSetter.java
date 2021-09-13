@@ -111,6 +111,7 @@ public class GetterSetter extends SmellDetector {
         boolean annotationData = false;
 
         for (Declaration entityNode : classes) {
+            // lombok annotations
             annotationData = entityNode.annotationIncludes(DATA_ANNOT_EXPR);
             if(annotationData) continue;
             annotationGetter = entityNode.annotationIncludes(GETTER_ANNOT_EXPR);
@@ -124,6 +125,7 @@ public class GetterSetter extends SmellDetector {
 
             for (ParametreOrField fieldNode : declaredFields) {
 
+                // ignore serial version uid field
                 if (fieldNode.isStatic() || fieldNode.getName().equals(SERIAL_VERSION_UID)) {
                     continue;
                 }

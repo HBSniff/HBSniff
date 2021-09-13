@@ -79,6 +79,7 @@ public class MissingManyToOne extends SmellDetector {
                 List<AnnotationExpr> annotations = cuType.findAll(AnnotationExpr.class);
                 for (AnnotationExpr annotation : annotations) {
                     if (annotation.getNameAsString().contains(ONE_TO_MANY_ANNOT_EXPR)) {
+                        // field annotated with @OneToMany
                         Optional<Node> parentField = annotation.getParentNode();
                         while (parentField.isPresent() && !(parentField.get() instanceof FieldDeclaration)) {
                             parentField = parentField.get().getParentNode();
@@ -88,6 +89,7 @@ public class MissingManyToOne extends SmellDetector {
                             final Smell smell = initSmell(parentDeclaration);
                             for (VariableDeclarator vd : pf.getVariables()) {
                                 Type t = vd.getType();
+                                // locate the corresponding @ManyToOne on the other side of the relationship
                                 ParametreOrField targetField = locateMissingManyToOneField(t.toString(), typeName);
                                 if (targetField != null) {
                                     smell.setComment(targetField.getName() + "::" + parentField.toString())

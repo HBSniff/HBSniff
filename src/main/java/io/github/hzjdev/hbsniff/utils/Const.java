@@ -21,8 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Const {
-    public final static String DEFAULT_PROJECT = "portal";
-    public final static String DEFAULT_ROOT_PATH = "D:\\tools\\hql\\projects";
+    public final static String DEFAULT_ROOT_PATH = "D:\\tools\\hql\\projects\\portal";
     public final static String DEFAULT_OUTPUT_PATH = "D:\\tools\\hql\\projects";
 
     public final static String IDENT_ANNOT_EXPR = "Id";
@@ -41,6 +40,17 @@ public class Const {
 
     public final static String EAGER_ANNOT_EXPR = "EAGER";
     public final static String LAZY_ANNOT_EXPR = "LAZY";
+    public final static String JOIN_FETCH_EXPR = "join fetch";
+    public final static String DELETE_EXPR = "delete";
+    public final static String UPDATE_EXPR = "update";
+    public final static String INSERT_EXPR = "insert";
+    public final static String SELECT_EXPR = "select";
+    public final static String AS_EXPR = "as";
+    public final static String FROM_EXPR = "from";
+    public final static String LIMIT_EXPR = "limit";
+    public final static String PAGE_EXPR = "page";
+    public final static String SET_FIRST_RESULT_EXPR = "setFirstResult";
+    public final static String SET_MAX_RESULTS_EXPR = "setMaxResults";
 
     public final static String MANY_TO_ONE_ANNOT_EXPR = "ManyToOne";
     public final static String ONE_TO_MANY_ANNOT_EXPR = "OneToMany";

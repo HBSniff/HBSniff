@@ -44,73 +44,23 @@ import static io.github.hzjdev.hbsniff.parser.EntityParser.getEntities;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.parseFromDir;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
 import static io.github.hzjdev.hbsniff.utils.Const.*;
+import static io.github.hzjdev.hbsniff.utils.Utils.outputMetrics;
+import static io.github.hzjdev.hbsniff.utils.Utils.outputSmells;
 
 public class Main {
 
-    /**
-     * export smell detection results
-     * @param jsonPath path of the json file
-     * @param csvPath path of the csv file
-     * @param results results
-     */
-    public static void outputSmells(String jsonPath, String csvPath, String xlsPath, ProjectSmellReport results) {
-        //wirte to csv
-        results.cleanup();
-        List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
-        try (FileOutputStream fos = new FileOutputStream(csvPath);
-             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-             CSVWriter writer = new CSVWriter(osw)) {
-            writer.writeAll(csvContent);
-        } catch (IOException e) {
-            System.out.println("Output path unavailable: " + csvPath);
-        }
-
-        //write to json
-        Gson gs = new GsonBuilder()
-                .setPrettyPrinting()
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
-        try (PrintWriter out = new PrintWriter(jsonPath)) {
-            out.println(gs.toJson(results));
-        } catch (IOException e) {
-            System.out.println("Output path unavailable: " + jsonPath);
-        }
-
-        //write to excel
-        try {
-            ProjectSmellReport.generateXlsReport(xlsPath, results);
-        }catch (Exception e ){
-            System.out.println("XLS Export Failed");
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * export metric calculation results
-     * @param csvPath path of the csv file
-     * @param metrics results
-     */
-    public static void outputMetrics(String csvPath, List<Metric> metrics) {
-        //wirte to csv
-        List<String[]> csvContent = Metric.toCSV(metrics);
-        try (FileOutputStream fos = new FileOutputStream(csvPath);
-             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-             CSVWriter writer = new CSVWriter(osw)) {
-            writer.writeAll(csvContent);
-        } catch (IOException e) {
-            System.out.println("Output path unavailable: " + csvPath);
-        }
-    }
 
     /**
      * start detection
-     * @param project project name
      * @param root_path project path
      * @param output_path output path
      */
-    public static void exec(String project, String root_path, String output_path, List<String> exclude) {
+    public static void exec(String root_path, String output_path, List<String> exclude) {
         //init context
-        List<CompilationUnit> cus = parseFromDir(root_path + "\\" + project);
+        if(root_path == null || output_path == null){ return; }
+        String[] pathArr = root_path.split("\\\\");
+        String projectName = pathArr[pathArr.length-1]; // projectName
+        List<CompilationUnit> cus = parseFromDir(root_path);
         List<CompilationUnit> entities = getEntities(cus);
         ProjectSmellReport psr = ProjectSmellReport.fromCompilationUnits(cus);
         List<HqlAndContext> hqls = getHqlNodes(cus);
@@ -128,11 +78,15 @@ public class Main {
                         e.printStackTrace();
                     }
                 });
+
         //output
-        outputSmells(output_path + "\\" + project + "_smells.json", output_path + "\\" + project + "_smells.csv", output_path + "\\" + project + "_smells.xls", psr);
+        outputSmells(output_path + "\\" + projectName + "_smells.json",
+                output_path + "\\" + projectName + "_smells.csv",
+                output_path + "\\" + projectName + "_smells.xls",
+                psr);
 
         if(exclude == null || !exclude.contains("MappingMetrics")) {
-            outputMetrics(output_path + "\\" + project + "_metrics.csv",  MappingMetrics.exec(entities));
+            outputMetrics(output_path + "\\" + projectName + "_metrics.csv",  MappingMetrics.exec(entities));
         }
 
     }
@@ -145,33 +99,27 @@ public class Main {
         ArgumentParser parser = ArgumentParsers.newFor("Main").build()
                 .defaultHelp(true)
                 .description("HBSniff: Java Hibernate Object Relational Mapping Smell Detector.");
-        parser.addArgument("-d", "--directory").required(true)
-                .help("Root directory of the project, e.g., if your project is in e:\\dir\\project, you should use \"e:\\dir\\\" for this param.");
-
-        parser.addArgument("-p", "--project").required(true)
-                .help("Project name/directory, e.g., if your project is in e:\\dir\\project, you should use \"project\" for this param.");
+        parser.addArgument("-i", "--input").required(true)
+                .help("Root directory of the project.");
 
         parser.addArgument("-o", "--output").required(true)
-                .help("Output directory of the project.");
+                .help("Output directory of the detection results.");
 
         parser.addArgument("-e", "--exclude").required(false)
                 .help("Smells to exclude (Optional). Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
 
-        String project = null;
         String root_path = null;
         String output_path = null;
         List<String> exclude = null;
         Namespace ns;
         try {
             ns = parser.parseArgs(args);
-            project = ns.getString("project");
-            root_path = ns.getString("directory");
+            root_path = ns.getString("input");
             output_path = ns.getString("output");
         } catch (ArgumentParserException e) {
             parser.handleError(e);
         }
-        if(project == null || root_path == null || output_path == null){
-            project = DEFAULT_PROJECT;
+        if(root_path == null || output_path == null){
             root_path = DEFAULT_ROOT_PATH;
             output_path = DEFAULT_OUTPUT_PATH;
         }
@@ -184,6 +132,6 @@ public class Main {
         } catch (Exception e) {
             exclude = null;
         }
-        exec(project, root_path, output_path, exclude);
+        exec(root_path, output_path, exclude);
     }
 }

@@ -20,7 +20,18 @@ package io.github.hzjdev.hbsniff.utils;
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.opencsv.CSVWriter;
+import io.github.hzjdev.hbsniff.model.output.Metric;
+import io.github.hzjdev.hbsniff.model.output.ProjectSmellCSVLine;
+import io.github.hzjdev.hbsniff.model.output.ProjectSmellReport;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +50,61 @@ public class Utils {
     private static final String[] sets = {"NavigableSet", "Set", "SortedSet", "AbstractSet", "ConcurrentHashMap.KeySetView", "ConcurrentSkipListSet", "CopyOnWriteArraySet", "EnumSet", "HashSet", "JobStateReasons", "LinkedHashSet", "TreeSet"};
     public static String BOOLEAN_CLASS = "Boolean";
     public static String BOOLEAN_PRIMITIVE = "boolean";
+
+    /**
+     * export smell detection results
+     * @param jsonPath path of the json file
+     * @param csvPath path of the csv file
+     * @param results results
+     */
+    public static void outputSmells(String jsonPath, String csvPath, String xlsPath, ProjectSmellReport results) {
+        //wirte to csv
+        results.cleanup();
+        List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
+        try (FileOutputStream fos = new FileOutputStream(csvPath);
+             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+            writer.writeAll(csvContent);
+        } catch (IOException e) {
+            System.out.println("Output path unavailable: " + csvPath);
+        }
+
+        //write to json
+        Gson gs = new GsonBuilder()
+                .setPrettyPrinting()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+        try (PrintWriter out = new PrintWriter(jsonPath)) {
+            out.println(gs.toJson(results));
+        } catch (IOException e) {
+            System.out.println("Output path unavailable: " + jsonPath);
+        }
+
+        //write to excel
+        try {
+            ProjectSmellReport.generateXlsReport(xlsPath, results);
+        }catch (Exception e ){
+            System.out.println("XLS Export Failed");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * export metric calculation results
+     * @param csvPath path of the csv file
+     * @param metrics results
+     */
+    public static void outputMetrics(String csvPath, List<Metric> metrics) {
+        //wirte to csv
+        List<String[]> csvContent = Metric.toCSV(metrics);
+        try (FileOutputStream fos = new FileOutputStream(csvPath);
+             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+            writer.writeAll(csvContent);
+        } catch (IOException e) {
+            System.out.println("Output path unavailable: " + csvPath);
+        }
+    }
 
     /**
      * Checks if the class name represents a java collection.

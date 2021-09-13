@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.findCalledIn;
+import static io.github.hzjdev.hbsniff.utils.Const.*;
 
 public class HqlAndContext implements Serializable {
     String id;
@@ -222,9 +223,9 @@ public class HqlAndContext implements Serializable {
 
     public static Set<String> extractSelectedFields(String hql, Declaration dec){
         Set<String> result = new HashSet<>();
-        if(hql == null || !hql.toLowerCase().contains("select ") || dec.getFields() == null) return result;
-        String[] hql_from_split = hql.toLowerCase().split("from");
-        hql = hql_from_split[0].replace("select ","");
+        if(hql == null || !hql.toLowerCase().contains(SELECT_EXPR+" ") || dec.getFields() == null) return result;
+        String[] hql_from_split = hql.toLowerCase().split(FROM_EXPR+" ");
+        hql = hql_from_split[0].replace(SELECT_EXPR+" ","");
 
         String[] hql_arr = hql.split(",");
         for(String selected_field: hql_arr){
@@ -232,7 +233,7 @@ public class HqlAndContext implements Serializable {
             boolean in_from = false;
             if(hql_from_split.length>1){
                 String hql_from = hql_from_split[1].split("where")[0];
-                if(hql_from.contains("as "+selected_field)){
+                if(hql_from.contains(AS_EXPR+" "+selected_field)){
                     String[] arr = hql_from.split("as "+selected_field)[0].split(" ");
                     if(arr.length>0){
                         String[] arr_dot = arr[arr.length-1].split("\\.");

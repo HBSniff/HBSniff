@@ -135,7 +135,7 @@ public class HashCodeAndEquals extends SmellDetector {
                                 + field.getName() + "> from hashCode. ");
                     }
                 }else{
-                    comment += ("Using Hashcode Equals.");
+                    comment += ("Using Reflection Hashcode.");
                 }
             }
 

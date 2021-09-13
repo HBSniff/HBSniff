@@ -55,6 +55,7 @@ public class MappingMetrics {
      * @param entities class Declaration
      */
     public static void initInheritance(List<Declaration> entities) {
+        // TATI NCRF ANV Calculation
         for (Declaration entity : entities) {
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
             String entityName = entity.getName();
@@ -64,6 +65,7 @@ public class MappingMetrics {
                 NCRFInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
                 ANVInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
                 correspondingInheritanceMap.computeIfAbsent(entityName, k -> new HashSet<>());
+                TATIInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
 
                 if (superClass.getAnnotations().stream().noneMatch(i ->
                         i.contains(TABLE_PER_CLASS_ANNOT_EXPR))) {
@@ -73,11 +75,11 @@ public class MappingMetrics {
                 }
 
                 ANVInheritanceMap.get(superClassName).add(entityName);
-                TATIInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
                 TATIInheritanceMap.get(superClassName).add(entity.getName());
                 TATIInheritanceMap.get(entityName).add(superClass.getName());
             }
         }
+        // NCT Calculation
         for (Declaration entity : entities) {
             String typeName = entity.getName();
             Set<String> corresponding = correspondingInheritanceMap.get(typeName);
@@ -86,7 +88,9 @@ public class MappingMetrics {
             }
             for (ParametreOrField p : entity.getFields()) {
                 final String parametreTypeName = p.getType().split("<")[0];
+                // find type decs of parametre p
                 Declaration t = entities.stream().filter(i -> i.getName().equals(parametreTypeName)).findFirst().orElse(null);
+                // get names of types
                 List<String> availableNames= entities.stream().map(Declaration::getName).collect(Collectors.toList());
                 if(availableNames.size() <1) break;
                 List<Declaration> superClasses = getSuperClassDeclarations(t).stream().filter(availableNames::contains).collect(Collectors.toList());
@@ -253,7 +257,6 @@ public class MappingMetrics {
      */
     public static List<Metric> exec(List<CompilationUnit> cus) {
         List<Declaration> entities = genDeclarationsFromCompilationUnits(cus);
-//        entities = getEntitiesWithTableAnnotation(entities);
         initInheritance(entities);
         List<Metric> result = TATI(entities);
         result.addAll(NCT(entities));

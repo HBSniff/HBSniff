@@ -26,6 +26,8 @@ import io.github.hzjdev.hbsniff.model.output.Smell;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.hzjdev.hbsniff.utils.Const.*;
+
 /**
  * detecting the misuse of pagination
  */
@@ -44,8 +46,8 @@ public class Pagination extends SmellDetector {
         for (HqlAndContext hql : hqls) {
             for (Declaration calledIn : hql.populateCalledIn(cus).getCalledIn()) {
                 String body = calledIn.getBody();
-                if (body.toLowerCase().contains("limit") || body.toLowerCase().contains("page")) {
-                    if (!hql.getMethodBody().contains(".setFirstResult(") || !hql.getMethodBody().contains(".setMaxResults(")) {
+                if (body.toLowerCase().contains(LIMIT_EXPR) || body.toLowerCase().contains(PAGE_EXPR)) {
+                    if (!hql.getMethodBody().contains("."+SET_FIRST_RESULT_EXPR+"(") || !hql.getMethodBody().contains("."+SET_MAX_RESULTS_EXPR+"(")) {
                         Declaration parentDeclaration = findDeclarationFromPath(calledIn.getFullPath());
                         if (parentDeclaration != null) {
                             Smell smell = initSmell(parentDeclaration)

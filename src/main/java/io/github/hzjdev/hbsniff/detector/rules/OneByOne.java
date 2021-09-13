@@ -93,6 +93,7 @@ public class OneByOne extends SmellDetector {
             CompilationUnit cu = parentDeclaration.getRawCU();
             List<NormalAnnotationExpr> annotations = cu.findAll(NormalAnnotationExpr.class);
             for (NormalAnnotationExpr annotation : annotations) {
+                // NormalAnnotationExpr are annotations with values like @Annotation(fetch= {xxx})
                 boolean fetchTypeExists = false;
                 for (MemberValuePair mvp : annotation.getPairs()) {
                     if(mvp.getNameAsString().equals(FETCH_ANNOT_EXPR)){
@@ -108,6 +109,7 @@ public class OneByOne extends SmellDetector {
             }
             List<MarkerAnnotationExpr> annotationsMarker = cu.findAll(MarkerAnnotationExpr.class);
             for (MarkerAnnotationExpr marker : annotationsMarker) {
+                // MarkerAnnotationExpr are annotations without values like @Annotation)
                 if (marker.getNameAsString().contains(TO_MANY_ANNOT_EXPR)) {
                     //@ManyToMany or @OneToMany with default fetch type LAZY
                     genSmell(marker, lazyFetches, parentDeclaration);
