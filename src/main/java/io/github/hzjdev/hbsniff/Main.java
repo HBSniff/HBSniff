@@ -18,32 +18,23 @@
 package io.github.hzjdev.hbsniff;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.opencsv.CSVWriter;
 import io.github.hzjdev.hbsniff.detector.SmellDetectorFactory;
 import io.github.hzjdev.hbsniff.metric.MappingMetrics;
 import io.github.hzjdev.hbsniff.model.HqlAndContext;
-import io.github.hzjdev.hbsniff.model.output.Metric;
-import io.github.hzjdev.hbsniff.model.output.ProjectSmellCSVLine;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellReport;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.getEntities;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.parseFromDir;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
-import static io.github.hzjdev.hbsniff.utils.Const.*;
+import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_OUTPUT_PATH;
+import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_ROOT_PATH;
 import static io.github.hzjdev.hbsniff.utils.Utils.outputMetrics;
 import static io.github.hzjdev.hbsniff.utils.Utils.outputSmells;
 
