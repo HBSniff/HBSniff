@@ -130,10 +130,6 @@ public class EntityParserTest {
         List<CompilationUnit> cus1 = EntityParser.parseFromDir(rootPath1);
 
         EntityParser.setCusCache(cus1);
-        Declaration paged = EntityParser.findTypeDeclaration("PagedCorrect");
-        List<Declaration> result = EntityParser.findCalledIn("findStudents", paged.getName(), cus1);
-        assertEquals(result.size(),1);
-        assertEquals(result.get(0).getName(),"students");
 
         List<Declaration> resultDeprecated = EntityParser.findCalledIn("findStudents", cus1);
         assertEquals(resultDeprecated.size(),2);

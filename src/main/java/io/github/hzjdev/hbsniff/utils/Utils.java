@@ -200,20 +200,15 @@ public class Utils {
         }
     }
 
-    /**
-     * concatenate hql from a BinaryExpr
-     * @param expr BinaryExpr input
-     * @return hql concatenated
-     */
-    public static String concatBinaryExpr(BinaryExpr expr) {
-        StringBuilder hql_concatenated = new StringBuilder();
+
+    private static void concatBinaryExpr(StringBuilder hql_concatenated, BinaryExpr expr) {
         String op = expr.asBinaryExpr().getOperator().toString();
         if (op.equals("PLUS")) {
             for (Node e : expr.getChildNodes()) {
                 if (e instanceof LiteralExpr) {
                     hql_concatenated.append(extractLiteralExpr((LiteralExpr) e));
                 } else if (e instanceof BinaryExpr) {
-                    hql_concatenated.append(concatBinaryExpr(((BinaryExpr) e).asBinaryExpr()));
+                    concatBinaryExpr(hql_concatenated, ((BinaryExpr) e).asBinaryExpr());
                 } else if (e instanceof NameExpr) {
                     hql_concatenated.append(":").append(((NameExpr) e).asNameExpr().getNameAsString());
                 } else if (e instanceof MethodCallExpr) {
@@ -230,6 +225,16 @@ public class Utils {
                 }
             }
         }
+    }
+
+    /**
+     * concatenate hql from a BinaryExpr
+     * @param expr BinaryExpr input
+     * @return hql concatenated
+     */
+    public static String concatBinaryExpr(BinaryExpr expr) {
+        StringBuilder hql_concatenated = new StringBuilder();
+        concatBinaryExpr(hql_concatenated, expr);
         return hql_concatenated.toString();
     }
 

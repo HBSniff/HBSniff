@@ -60,7 +60,7 @@ public class EntityParser {
         for (CompilationUnit cu : cus) {
             List<AnnotationExpr> annotations = cu.findAll(AnnotationExpr.class);
             for (AnnotationExpr annotation : annotations) {
-                if (annotation.getNameAsString().contains(ENTITY_ANNOT_EXPR)) {
+                if (annotation.getNameAsString().equals(ENTITY_ANNOT_EXPR)) {
                     results.add(cu);
                     break;
                 }
@@ -274,13 +274,13 @@ public class EntityParser {
 
     /**
      * Check any method is called in a scope CompilationUnits
-     * @param methodName method name
+     * @param md MethodDeclaration
      * @param cus search scope of CompilationUnits
      * @return List of the file which called the method
      */
-    public static List<Declaration> findCalledIn(String methodName, String typeName, List<CompilationUnit> cus) {
+    public static List<Declaration> findCalledIn(MethodDeclaration md, String typeName, List<CompilationUnit> cus) {
         List<Declaration> calledIn = new ArrayList<>();
-        if (methodName != null) {
+        if (md != null) {
             for (CompilationUnit cu : cus) {
                 // check if typeName is imported
                 boolean imported = false;
@@ -299,7 +299,7 @@ public class EntityParser {
                 if(imported) {
                     List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
                     for (MethodCallExpr mce : mces) {
-                        if (mce.getNameAsString().equals(methodName)) {
+                        if (mce.getNameAsString().equals(md.getNameAsString()) && mce.getArguments().size() == md.getParameters().size()) {
                             Optional<Node> parentMethod = mce.getParentNode();
                             while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
                                 parentMethod = parentMethod.get().getParentNode();

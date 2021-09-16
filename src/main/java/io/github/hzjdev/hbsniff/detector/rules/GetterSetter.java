@@ -88,7 +88,13 @@ public class GetterSetter extends SmellDetector {
         Declaration methodNode = entityNode.findDeclaration(methodGetField);
 
         if (methodNode == null || (methodNode.getParametres() != null && methodNode.getParametres().size() > 0)) {
-            return false;
+            // for example, a getter for boolean field may be straightly the name of the field.
+            methodNode = entityNode.findDeclaration(fieldNode.getName());
+            if(methodNode == null){
+                return false;
+            }else{
+                methodGetField = methodNode.getName();
+            }
         }
 
         String methodName = methodNode.getName();
@@ -125,8 +131,8 @@ public class GetterSetter extends SmellDetector {
 
             for (ParametreOrField fieldNode : declaredFields) {
 
-                // ignore serial version uid field
-                if (fieldNode.isStatic() || fieldNode.getName().equals(SERIAL_VERSION_UID)) {
+                // ignore serial version uid field, static fields, and fields annotated with @Transient
+                if (fieldNode.isStatic() || fieldNode.getName().equals(SERIAL_VERSION_UID) || fieldNode.getAnnotations().contains(TRANSIENT_ANNOT_EXPR)) {
                     continue;
                 }
 

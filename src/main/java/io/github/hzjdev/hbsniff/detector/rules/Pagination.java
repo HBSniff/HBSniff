@@ -47,7 +47,7 @@ public class Pagination extends SmellDetector {
             for (Declaration calledIn : hql.populateCalledIn(cus).getCalledIn()) {
                 String body = calledIn.getBody();
                 if (body.toLowerCase().contains(LIMIT_EXPR) || body.toLowerCase().contains(PAGE_EXPR)) {
-                    if (!hql.getMethodBody().contains("."+SET_FIRST_RESULT_EXPR+"(") || !hql.getMethodBody().contains("."+SET_MAX_RESULTS_EXPR+"(")) {
+                    if (!hql.getMethodBody().contains("."+SET_FIRST_RESULT_EXPR+"(") && !hql.getMethodBody().contains("."+SET_MAX_RESULTS_EXPR+"(") && !body.contains("."+SET_FIRST_RESULT_EXPR+"(") && !body.contains("."+SET_MAX_RESULTS_EXPR+"(")) {
                         Declaration parentDeclaration = findDeclarationFromPath(calledIn.getFullPath());
                         if (parentDeclaration != null) {
                             Smell smell = initSmell(parentDeclaration)

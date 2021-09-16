@@ -152,7 +152,7 @@ public class Fetch extends SmellDetector {
                                     Smell smell = new Smell()
                                             .setPosition(hqlAndContext.getCreateQueryPosition())
                                             .setFile(hqlAndContext.getFullPath())
-                                            .setComment(eagerFetch.getComment() + "::"+eagerFetch.getClassName() + "::" +hqlAndContext.getMethodName() + ">" + hql.toString())
+                                            .setComment(eagerFetch.getClassName() + "("+eagerFetch.getComment() +")"+ ">" +hqlAndContext.getTypeName()+"::"+hqlAndContext.getMethodName() + ">" + hql.toString())
                                             .setClassName(eagerFetch.getClassName())
                                             .setName("Lacking Join Fetch");
                                     joinFetchSmell.add(smell);

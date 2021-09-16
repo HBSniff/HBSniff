@@ -18,6 +18,7 @@
 package io.github.hzjdev.hbsniff.model;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.MethodDeclaration;
 
 import java.io.Serializable;
 import java.util.*;
@@ -42,6 +43,7 @@ public class HqlAndContext implements Serializable {
     String returnExpression;
     List<ParametreOrField> params;
     Declaration returnTypeDeclaration;
+    MethodDeclaration definedIn;
     List<Declaration> calledIn;
 
 
@@ -51,7 +53,7 @@ public class HqlAndContext implements Serializable {
 
     public HqlAndContext populateCalledIn(List<CompilationUnit> cus) {
         if(getTypeName()!=null) {
-            this.calledIn = findCalledIn(getMethodName(), getTypeName(), cus);
+            this.calledIn = findCalledIn(getDefinedIn(), getTypeName(), cus);
         }else{
             this.calledIn = findCalledIn(getMethodName(), cus);
         }
@@ -249,5 +251,14 @@ public class HqlAndContext implements Serializable {
         Set<String> lowerCasedFields = dec.getFields().stream().map(i->i.getName().toLowerCase()).collect(Collectors.toSet());
         result = result.stream().filter(lowerCasedFields::contains).collect(Collectors.toSet());
         return result;
+    }
+
+    public MethodDeclaration getDefinedIn() {
+        return definedIn;
+    }
+
+    public HqlAndContext setDefinedIn(MethodDeclaration definedIn) {
+        this.definedIn = definedIn;
+        return this;
     }
 }

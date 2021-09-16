@@ -101,7 +101,8 @@ public class Declaration implements Serializable, Comparable {
                     if (vd != null) {
                         ParametreOrField p = new ParametreOrField(vd.getTypeAsString(), vd.getNameAsString())
                                 .setPosition(extractParametrePosition(vd))
-                                .populateAnnotations(((FieldDeclaration) bd).getAnnotations());
+                                .populateAnnotations(((FieldDeclaration) bd).getAnnotations())
+                                .populateModifiers(((FieldDeclaration) bd).getModifiers());
                         getFields().add(p);
                     }
                 }
@@ -395,7 +396,6 @@ public class Declaration implements Serializable, Comparable {
 
     /**
      * check if extended or implemented type includes string
-     * @param cus scope of compilation unit
      * @return true if extended or implemented type includes string
      */
     public static void getExtendedOrImplementedTypes(Declaration toDetect, Set<Declaration> result, Set<Declaration> visited) {

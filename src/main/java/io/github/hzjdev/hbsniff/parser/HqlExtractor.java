@@ -180,7 +180,7 @@ public class HqlExtractor {
             if(td != null){
                 typeName = td.getNameAsString();
             }
-            hqlAndContext.setTypeName(typeName).setMethodName(methodName).setParams(params).setMethodBody(md.toString());
+            hqlAndContext.setTypeName(typeName).setMethodName(methodName).setParams(params).setMethodBody(md.toString()).setDefinedIn(md);
         }
     }
 
