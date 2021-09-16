@@ -36,12 +36,12 @@ public class FinalEntity extends SmellDetector {
      */
     public List<Smell> noFinalClassRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
-        for (Declaration entityNode : classes) {
-            ClassOrInterfaceDeclaration cid = entityNode.getClassDeclr();
+        for (Declaration clazz : classes) {
+            ClassOrInterfaceDeclaration cid = clazz.getClassDeclr();
             if (cid == null) continue;
             if (cid.getModifiers() != null && cid.getModifiers().contains(Modifier.finalModifier())) {
-                Smell smell = initSmell(entityNode).setName("Final Entity");
-                psr.getSmells().get(entityNode).add(smell);
+                Smell smell = initSmell(clazz).setName("Final Entity");
+                psr.getSmells().get(clazz).add(smell);
                 smells.add(smell);
             }
         }

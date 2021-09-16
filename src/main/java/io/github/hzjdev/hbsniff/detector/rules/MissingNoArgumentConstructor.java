@@ -36,25 +36,31 @@ public class MissingNoArgumentConstructor extends SmellDetector {
      */
     public final List<Smell> noArgumentConstructorRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
-        for (Declaration entityNode : classes) {
+        for (Declaration clazz : classes) {
 
             // Checks the class and the inherited methods from the super class
-            List<Declaration> constructors = entityNode.getConstructors();
-            boolean passed = false;
+            List<Declaration> constructors = clazz.getConstructors();
+            boolean smelly = true;
 
             if (constructors != null) {
+                if(constructors.size()<1){
+                    // java will implement default no arg constructor if no constructor is specified
+                    smelly = false;
+                }
                 for (Declaration methodNode : constructors) {
                     List<ParametreOrField> parameters = methodNode.getParametres();
                     if (parameters.isEmpty()) {
-                        passed = true;
+                        smelly = false;
                         break;
                     }
                 }
+            }else{
+                smelly = false;
             }
 
-            if (!passed) {
-                Smell smell = initSmell(entityNode).setName("MissingNoArgumentConstructor");
-                psr.getSmells().get(entityNode).add(smell);
+            if (smelly) {
+                Smell smell = initSmell(clazz).setName("MissingNoArgumentConstructor");
+                psr.getSmells().get(clazz).add(smell);
                 smells.add(smell);
             }
         }

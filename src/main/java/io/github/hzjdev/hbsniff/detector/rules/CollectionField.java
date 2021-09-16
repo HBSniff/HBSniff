@@ -67,17 +67,17 @@ public class CollectionField extends SmellDetector {
 
     /**
      * check if entities use set or list as interfaces
-     * @param allModelClasses entities
+     * @param entities entities
      * @return list of smells
      */
     @Deprecated
-    public List<Smell> useInterfaceSetOrListRule(Set<Declaration> allModelClasses) {
+    public List<Smell> useInterfaceSetOrListRule(Set<Declaration> entities) {
         List<Smell> smells = new ArrayList<>();
 
-        for (Declaration entityNode : allModelClasses) {
+        for (Declaration entity : entities) {
 
-            List<ParametreOrField> declaredFields = entityNode.getFields();
-            boolean passed = true;
+            List<ParametreOrField> declaredFields = entity.getFields();
+            boolean smelly = false;
             StringBuilder comment = new StringBuilder();
             for (ParametreOrField fieldNode : declaredFields) {
                 String type = fieldNode.getType();
@@ -86,14 +86,14 @@ public class CollectionField extends SmellDetector {
                 }
                 if (Utils.isCollection(type) && !type.equals(Utils.SET_NAME)
                         && !type.equals(Utils.LIST_NAME)) {
-                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entityNode.getName()).append("> implements interface Collection but it ").append("doesn't implements interface Set or interface List.\n");
-                    passed = false;
+                    comment.append("The field <").append(fieldNode.getName()).append("> of the class <").append(entity.getName()).append("> implements interface Collection but it ").append("doesn't implements interface Set or interface List.\n");
+                    smelly = true;
                 }
             }
 
-            if (!passed) {
-                Smell smell = initSmell(entityNode).setName("CollectionField").setComment(comment.toString());
-                psr.getSmells().get(entityNode).add(smell);
+            if (smelly) {
+                Smell smell = initSmell(entity).setName("CollectionField").setComment(comment.toString());
+                psr.getSmells().get(entity).add(smell);
                 smells.add(smell);
             }
         }

@@ -42,7 +42,7 @@ public class FinalEntityTest {
     @Before
     public void before() {
         String rootPath = "src/test/resources/entities/";
-        Declaration missingNoArgConstructorEntity = Declaration.fromPath(rootPath + "MissingNoArgConstructorFinalEntity.java");
+        Declaration missingNoArgConstructorEntity = Declaration.fromPath(rootPath + "DefaultNoArgConstructorFinalEntity.java");
         Declaration noArgConstructorEntity = Declaration.fromPath(rootPath + "NoArgConstructorEntity.java");
 
         toInput = new HashSet<>();
@@ -66,7 +66,7 @@ public class FinalEntityTest {
     public void testFinalClassRule() {
         List<Smell> s = c.noFinalClassRule(toInput);
         assertEquals(s.size(), 1);
-        assertEquals(s.get(0).getClassName(), "MissingNoArgConstructorFinalEntity");
+        assertEquals(s.get(0).getClassName(), "DefaultNoArgConstructorFinalEntity");
     }
 
     /**

@@ -37,11 +37,11 @@ public class MissingIdentifier extends SmellDetector {
      */
     public List<Smell> provideIdentifierPropertyRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
-        for (Declaration entityNode : classes) {
-            ParametreOrField field = getIdentifierProperty(entityNode);
+        for (Declaration clazz : classes) {
+            ParametreOrField field = getIdentifierProperty(clazz);
             if (field == null) {
-                Smell smell = initSmell(entityNode).setName("MissingId");
-                psr.getSmells().get(entityNode).add(smell);
+                Smell smell = initSmell(clazz).setName("MissingId");
+                psr.getSmells().get(clazz).add(smell);
                 smells.add(smell);
             }
         }

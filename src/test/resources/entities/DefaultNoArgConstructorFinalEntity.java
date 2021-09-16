@@ -21,7 +21,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-public final class MissingNoArgConstructorFinalEntity {
+public final class DefaultNoArgConstructorFinalEntity {
 
     @Id
     private String id;
@@ -34,7 +34,4 @@ public final class MissingNoArgConstructorFinalEntity {
         this.id = id;
     }
 
-    public MissingArgConstructorFinalEntity(String id){
-
-    }
 }

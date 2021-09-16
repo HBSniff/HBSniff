@@ -34,13 +34,13 @@ public class HashCodeAndEquals extends SmellDetector {
 
     /**
      * get equals method of a class
-     * @param classNode entity class
+     * @param clazz entity class
      * @return hashCode method Declaration
      */
-    protected final Declaration getEqualsMethod(final Declaration classNode) {
-        if (classNode == null) return null;
+    protected final Declaration getEqualsMethod(final Declaration clazz) {
+        if (clazz == null) return null;
         boolean check = false;
-        Declaration toJudge = classNode.findDeclaration(EQUALS_METHOD_NAME);
+        Declaration toJudge = clazz.findDeclaration(EQUALS_METHOD_NAME);
         if (toJudge != null) {
             List<ParametreOrField> params = toJudge.getParametres();
             if (params != null && params.size() == 1) {
@@ -49,7 +49,7 @@ public class HashCodeAndEquals extends SmellDetector {
             }
         }
         if (!check) {
-            for (Declaration superClassEntity : getSuperClassDeclarations(classNode)) {
+            for (Declaration superClassEntity : getSuperClassDeclarations(clazz)) {
                 toJudge = getEqualsMethod(superClassEntity);
                 if (toJudge != null) {
                     return toJudge;
@@ -90,27 +90,27 @@ public class HashCodeAndEquals extends SmellDetector {
      */
     public final List<Smell> hashCodeAndEqualsUseIdentifierPropertyRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
-        for (Declaration entityNode : classes) {
+        for (Declaration clazz : classes) {
             String comment = "";
             boolean equalsSmelly = false;
             boolean hashCodeSmelly = false;
 
-            boolean annotationData = entityNode.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || entityNode.annotationIncludes(DATA_ANNOT_EXPR);;
+            boolean annotationData = clazz.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || clazz.annotationIncludes(DATA_ANNOT_EXPR);;
             if(annotationData){
                 equalsSmelly = true;
                 hashCodeSmelly = true;
                 comment += ("Using Lombok Annotation.");
             };
 
-            Declaration equalsMethod = getEqualsMethod(entityNode);
-            Declaration hashCodeMethod = getHashCodeMethod(entityNode);
+            Declaration equalsMethod = getEqualsMethod(clazz);
+            Declaration hashCodeMethod = getHashCodeMethod(clazz);
 
-            ParametreOrField field = getIdentifierProperty(entityNode);
+            ParametreOrField field = getIdentifierProperty(clazz);
 
             Set<String> accessedFieldsEquals = null;
             Set<String> accessedFieldsHash = null;
-            List<Declaration> parents = getSuperClassDeclarations(entityNode);
-            parents.add(entityNode);
+            List<Declaration> parents = getSuperClassDeclarations(clazz);
+            parents.add(clazz);
             if(equalsMethod!=null) {
                 equalsSmelly = equalsSmelly && equalsMethod.checkMethodCalled(REFLECTION_EQUALS_CALL);
                 if (!equalsSmelly) {
@@ -140,8 +140,8 @@ public class HashCodeAndEquals extends SmellDetector {
             }
 
             if ((equalsSmelly || hashCodeSmelly )&& !comment.equals("")) {
-                Smell smell = initSmell(entityNode).setName("UsingIdInHashCodeOrEquals").setComment(comment);
-                psr.getSmells().get(entityNode).add(smell);
+                Smell smell = initSmell(clazz).setName("UsingIdInHashCodeOrEquals").setComment(comment);
+                psr.getSmells().get(clazz).add(smell);
                 result.add(smell);
             }
         }
@@ -155,20 +155,20 @@ public class HashCodeAndEquals extends SmellDetector {
      */
     public final List<Smell> hashCodeAndEqualsRule(Set<Declaration> classes) {
         List<Smell> result = new ArrayList<>();
-        for (Declaration entityNode : classes) {
-            boolean annotationData = entityNode.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || entityNode.annotationIncludes(DATA_ANNOT_EXPR);
+        for (Declaration clazz : classes) {
+            boolean annotationData = clazz.annotationIncludes(EQUALS_AND_HASH_CODE_ANNOT_EXPR) || clazz.annotationIncludes(DATA_ANNOT_EXPR);
             if(annotationData) continue;
 
-            Declaration equalsMethod = getEqualsMethod(entityNode);
-            Declaration hashCodeMethod = getHashCodeMethod(entityNode);
+            Declaration equalsMethod = getEqualsMethod(clazz);
+            Declaration hashCodeMethod = getHashCodeMethod(clazz);
             if (equalsMethod == null) {
-                Smell smell = initSmell(entityNode).setName("MissingEquals");
-                psr.getSmells().get(entityNode).add(smell);
+                Smell smell = initSmell(clazz).setName("MissingEquals");
+                psr.getSmells().get(clazz).add(smell);
                 result.add(smell);
             }
             if (hashCodeMethod == null) {
-                Smell smell = initSmell(entityNode).setName("MissingHashCode");
-                psr.getSmells().get(entityNode).add(smell);
+                Smell smell = initSmell(clazz).setName("MissingHashCode");
+                psr.getSmells().get(clazz).add(smell);
                 result.add(smell);
             }
         }

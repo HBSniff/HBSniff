@@ -37,23 +37,23 @@ public class NotSerializable extends SmellDetector {
     public final List<Smell> checkRule(Set<Declaration> classes) {
         List<Smell> smells = new ArrayList<>();
         for (Declaration entityNode : classes) {
-            boolean pass = false;
+            boolean clean = false;
             Set<Declaration> toDetect = entityNode.getExtendedOrImplementedTypes();
             for (Declaration superclass : toDetect) {
                 for (String i : superclass.getImplementedInterface()) {
                     if (i.contains(SERIALIZABLE_EXPR)) {
-                        pass = true;
+                        clean = true;
                         break;
                     }
                 }
                 for (String i : superclass.getSuperClass()) {
-                    if (!pass && i.contains(SERIALIZABLE_EXPR)) {
-                        pass = true;
+                    if (!clean && i.contains(SERIALIZABLE_EXPR)) {
+                        clean = true;
                         break;
                     }
                 }
             }
-            if (!pass) {
+            if (!clean) {
                 Smell smell = initSmell(entityNode).setName("NotSerializable");
                 psr.getSmells().get(entityNode).add(smell);
                 smells.add(smell);

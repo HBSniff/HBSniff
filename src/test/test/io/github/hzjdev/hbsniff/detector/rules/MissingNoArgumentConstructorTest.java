@@ -44,13 +44,16 @@ public class MissingNoArgumentConstructorTest {
         String rootPath = "src/test/resources/entities/";
         Declaration missingNoArgConstructorEntity = Declaration.fromPath(rootPath + "MissingNoArgConstructorFinalEntity.java");
         Declaration noArgConstructorEntity = Declaration.fromPath(rootPath + "NoArgConstructorEntity.java");
+        Declaration defaultArgConstructorEntity = Declaration.fromPath(rootPath + "DefaultNoArgConstructorFinalEntity.java");
 
         toInput = new HashSet<>();
         toInput.add(missingNoArgConstructorEntity);
         toInput.add(noArgConstructorEntity);
+        toInput.add(defaultArgConstructorEntity);
 
         psr.getSmells().put(missingNoArgConstructorEntity, new ArrayList<>());
         psr.getSmells().put(noArgConstructorEntity, new ArrayList<>());
+        psr.getSmells().put(defaultArgConstructorEntity, new ArrayList<>());
 
         c = (MissingNoArgumentConstructor) new MissingNoArgumentConstructor().populateContext(null, null, null, psr);
     }
