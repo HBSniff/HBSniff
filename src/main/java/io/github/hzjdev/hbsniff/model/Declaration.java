@@ -23,6 +23,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.SuperExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.google.gson.annotations.Expose;
 
@@ -217,9 +218,11 @@ public class Declaration implements Serializable, Comparable {
             }
             if (skip) continue;
             for (Declaration parent : superClasses) {
-                Declaration md = parent.findDeclaration(mc.getNameAsString());
-                if (md != null) {
-                    result.addAll(md.getAccessedFieldNamesInner(superClasses));
+                if(mc.findAll(SuperExpr.class).size()>0) {
+                    Declaration md = parent.findDeclaration(mc.getNameAsString());
+                    if (md != null) {
+                        result.addAll(md.getAccessedFieldNamesInner(superClasses));
+                    }
                 }
             }
         }

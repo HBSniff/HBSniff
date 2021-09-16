@@ -109,37 +109,38 @@ public class HashCodeAndEquals extends SmellDetector {
 
             Set<String> accessedFieldsEquals = null;
             Set<String> accessedFieldsHash = null;
-            List<Declaration> parents = getSuperClassDeclarations(clazz);
-            parents.add(clazz);
-            if(equalsMethod!=null) {
+            List<Declaration> scopeOfFieldAccess = new ArrayList<>();
+            scopeOfFieldAccess.add(clazz);
+            scopeOfFieldAccess.addAll(getSuperClassDeclarations(clazz));
+            if (equalsMethod != null) {
                 equalsSmelly = equalsSmelly && equalsMethod.checkMethodCalled(REFLECTION_EQUALS_CALL);
                 if (!equalsSmelly) {
-                    accessedFieldsEquals = equalsMethod.getAccessedFieldNames(parents);
+                    accessedFieldsEquals = equalsMethod.getAccessedFieldNames(scopeOfFieldAccess);
                     equalsSmelly = accessedFieldsEquals != null && field != null && accessedFieldsEquals.contains(field.getName());
                     if (equalsSmelly) {
                         comment += ("Using ID <"
                                 + field.getName() + "> from equals. ");
                     }
-                }else{
+                } else {
                     comment += ("Using Reflection Equals.");
                 }
             }
-            if(hashCodeMethod!=null) {
+            if (hashCodeMethod != null) {
                 hashCodeSmelly = hashCodeSmelly && hashCodeMethod.checkMethodCalled(REFLECTION_HASHCODE_CALL);
 
                 if (!hashCodeSmelly) {
-                    accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(parents);
+                    accessedFieldsHash = hashCodeMethod.getAccessedFieldNames(scopeOfFieldAccess);
                     hashCodeSmelly = accessedFieldsHash != null && field != null && accessedFieldsHash.contains(field.getName());
                     if (hashCodeSmelly) {
                         comment += ("Using ID <"
                                 + field.getName() + "> from hashCode. ");
                     }
-                }else{
+                } else {
                     comment += ("Using Reflection Hashcode.");
                 }
             }
 
-            if ((equalsSmelly || hashCodeSmelly )&& !comment.equals("")) {
+            if ((equalsSmelly || hashCodeSmelly) && !comment.equals("")) {
                 Smell smell = initSmell(clazz).setName("UsingIdInHashCodeOrEquals").setComment(comment);
                 psr.getSmells().get(clazz).add(smell);
                 result.add(smell);
