@@ -25,8 +25,7 @@ import io.github.hzjdev.hbsniff.model.output.Metric;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.github.hzjdev.hbsniff.parser.EntityParser.genDeclarationsFromCompilationUnits;
-import static io.github.hzjdev.hbsniff.parser.EntityParser.getSuperClassDeclarations;
+import static io.github.hzjdev.hbsniff.parser.EntityParser.*;
 import static io.github.hzjdev.hbsniff.utils.Const.*;
 
 /**
@@ -38,8 +37,8 @@ public class MappingMetrics {
     public static Map<String, Set<String>> NCRFInheritanceMap = new HashMap<>();
     public static Map<String, Set<String>> ANVInheritanceMap = new HashMap<>();
     public static Map<String, Set<String>> TATIInheritanceMap = new HashMap<>();
-    public static Map<String, Set<String>> correspondingInheritanceMap = new HashMap<>();
-    public static Map<String, Set<String>> NCTFields = new HashMap<>();
+    public static Map<String, Set<String>> NCTInheritanceMap = new HashMap<>();
+    public static Map<String, Set<String>> NCRFFields = new HashMap<>();
 
     /**
      * \ Create a Metric Instance by Class Declaration
@@ -59,54 +58,91 @@ public class MappingMetrics {
         for (Declaration entity : entities) {
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
             String entityName = entity.getName();
+            //  initialize
             TATIInheritanceMap.computeIfAbsent(entityName, k -> new HashSet<>());
+            if(superClasses.size() < 1){
+                continue;
+            }
+            Declaration topSuperClass = superClasses.get(superClasses.size() - 1);
             for (Declaration superClass : superClasses) {
                 String superClassName = superClass.getName();
-                NCRFInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
-                ANVInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
-                correspondingInheritanceMap.computeIfAbsent(entityName, k -> new HashSet<>());
+                //  initialize
                 TATIInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
 
-                if (superClass.getAnnotations().stream().noneMatch(i ->
-                        i.contains(TABLE_PER_CLASS_ANNOT_EXPR))) {
-                    correspondingInheritanceMap.get(entityName).add(superClassName);
-                } else {
-                    NCRFInheritanceMap.get(superClassName).add(entityName);
-                }
-
-                ANVInheritanceMap.get(superClassName).add(entityName);
+                // Before an object can be completely retrieved, it is necessary to
+                // identify the most specific class of this object (i.e., The bottom of the inheritance tree).
+                // It should be noted that identifying the most
+                // specific class is equivalent to identifying the tables that need to be queried in order to
+                // retrieve the requested object.
                 TATIInheritanceMap.get(superClassName).add(entity.getName());
                 TATIInheritanceMap.get(entityName).add(superClass.getName());
+
+                if (topSuperClass.getAnnotations().stream().anyMatch(i ->
+                        i.contains(TABLE_PER_CLASS_ANNOT_EXPR))) {
+                    // 2.3 One Inheritance Path – One Table
+                    // pros: better performance, no join
+                    // cons: redundant data, null
+
+                    // The ‘one inheritance path - one table’ mapping strategy only maps each concrete class to
+                    // a table.
+                    // NCRF(C) equals the number of relational fields in all tables (i.e., subclasses)
+                    // that correspond to each non-inherited non-key attribute of C.
+                    NCRFInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
+                    NCRFInheritanceMap.get(superClassName).add(entityName);
+                } else if(topSuperClass.getAnnotations().stream().anyMatch(i ->
+                        i.contains(SINGLE_TABLE_ANNOT_EXPR))){
+                    // 2.2 One Inheritance Tree – One Table
+                    // pros: non-null
+                    // cons: redundant data
+
+                    //  all classes of an inheritance hierarchy are mapped to the same relational table.
+                    // ANV measures additional storage space in terms of null values that result when different
+                    //classes are stored together in the same table using the ‘union superclass’ mapping strategy
+                    ANVInheritanceMap.computeIfAbsent(superClassName, k -> new HashSet<>());
+                    ANVInheritanceMap.get(superClassName).add(entityName);
+                }else if(topSuperClass.getAnnotations().stream().anyMatch(i ->
+                        i.contains(JOINED_ANNOT_EXPR))){
+                    // 2.1 One Class - One Table
+                    // distributing object data over multiple tables.
+                    // In order to link these tables, all tables share the same primary key.
+                    // pros: non-null, no redundant data
+                    // cons: low performance
+
+                    // NCT equals the number of tables that contain data from instances of a class C.
+                    // This number depends on the inheritance mapping
+                    // strategies that are used for the inheritance relationships on the path of class C to the root
+                    // class of the inheritance hierarchy.
+                    NCTInheritanceMap.computeIfAbsent(entityName, k -> new HashSet<>());
+                    NCTInheritanceMap.get(entityName).add(superClassName);
+                }
             }
         }
-        // NCT Calculation
+        // NCRF Calculation depends on field numbers, so we need to identify corresponding fields
         for (Declaration entity : entities) {
             String typeName = entity.getName();
-            Set<String> corresponding = correspondingInheritanceMap.get(typeName);
-            if (corresponding == null) {
-                corresponding = new HashSet<>();
+            Set<String> classesContainingFields = new HashSet<>();
+            classesContainingFields.add(typeName);
+            List<Declaration> superClasses = getSuperClassDeclarations(entity);
+            if(superClasses != null && superClasses.size()>0){
+                Declaration topSuperClass = superClasses.get(superClasses.size() - 1);
+                if(NCRFInheritanceMap.containsKey(topSuperClass.getName()) && NCRFInheritanceMap.containsKey(typeName)){
+                    classesContainingFields.addAll(NCRFInheritanceMap.get(typeName));
+                }
+            }else if(NCRFInheritanceMap.containsKey(typeName)){
+                classesContainingFields.addAll(NCRFInheritanceMap.get(typeName));
             }
+            NCRFFields.computeIfAbsent(typeName, k -> new HashSet<>());
+            Set<String> fields = new HashSet<>();
+            ParametreOrField field = getIdentifierProperty(entity);
             for (ParametreOrField p : entity.getFields()) {
-                final String parametreTypeName = p.getType().split("<")[0];
-                // find type decs of parametre p
-                Declaration t = entities.stream().filter(i -> i.getName().equals(parametreTypeName)).findFirst().orElse(null);
-                // get names of types
-                List<String> availableNames= entities.stream().map(Declaration::getName).collect(Collectors.toList());
-                if(availableNames.size() <1) break;
-                List<Declaration> superClasses = getSuperClassDeclarations(t).stream().filter(availableNames::contains).collect(Collectors.toList());
-                if (superClasses.size() > 0) {
-                    t = superClasses.get(superClasses.size() - 1);
-                }else{
-                    t = null;
-                }
-                if (t != null) {
-                    if (t.getAnnotations().stream().noneMatch(i ->
-                            i.contains(TABLE_PER_CLASS_ANNOT_EXPR))) {
-                        corresponding.add(parametreTypeName);
-                    }
+                if(p.equals(field)) continue;
+                fields.add(p.getName());
+            }
+            for(String c: classesContainingFields){
+                for(String f: fields){
+                    NCRFFields.get(typeName).add(c+"."+f);
                 }
             }
-            NCTFields.put(typeName, corresponding);
         }
     }
 
@@ -155,7 +191,7 @@ public class MappingMetrics {
     public static List<Metric> NCT(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
         for (Declaration entity : entities) {
-            Set<String> correspondingTables = NCTFields.get(entity.getName());
+            Set<String> correspondingTables = NCTInheritanceMap.get(entity.getName());
             if (correspondingTables != null) {
                 Metric s = initMetric(entity)
                         .setName("NCT")
@@ -165,7 +201,7 @@ public class MappingMetrics {
             } else {
                 Metric s = initMetric(entity)
                         .setName("NCT")
-                        .setIntensity(0.0); //self
+                        .setIntensity(1.0); //self
                 result.add(s);
             }
         }
@@ -181,12 +217,12 @@ public class MappingMetrics {
     public static List<Metric> NCRF(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
         for (Declaration entity : entities) {
-            Set<String> correspondingTables = NCRFInheritanceMap.get(entity.getName());
+            Set<String> correspondingTables = NCRFFields.get(entity.getName());
             if (correspondingTables != null && correspondingTables.size() > 0) {
                 Metric s = initMetric(entity)
                         .setName("NCRF")
                         .setComment(String.join(",", correspondingTables))
-                        .setIntensity(correspondingTables.size() + 1.0); //self
+                        .setIntensity(correspondingTables.size()+0.0); //self
                 result.add(s);
             } else {
                 Metric s = initMetric(entity)
@@ -211,12 +247,6 @@ public class MappingMetrics {
             List<Declaration> superClasses = getEntitiesWithTableAnnotation(getSuperClassDeclarations(entity));
             if (superClasses.size() < 1) continue;
             Declaration topClass = superClasses.get(superClasses.size() - 1);
-
-            if (topClass.getAnnotations().stream().noneMatch(i ->
-                    i.contains(SINGLE_TABLE_ANNOT_EXPR))) {
-                continue;
-            }
-
             Set<String> correspondingTables = ANVInheritanceMap.get(topClass.getName());
             if (correspondingTables == null) continue;
             int numCorrespondingFields = 0;

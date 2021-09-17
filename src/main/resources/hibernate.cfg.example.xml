@@ -33,6 +33,8 @@
         <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig3.ManagerFig3"/>
         <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig3.StudentFig3"/>
         <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig1.EmployeeFig1"/>
+        <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig1.EmployeeForJoinFig1"/>
+        <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig1.EmployeePerClassFig1"/>
         <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig1.ClerkFig1"/>
         <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig1.ManagerFig1"/>
         <mapping class="io.github.hzjdev.hbsniff.example.mapping.domain.fig1.StudentFig1"/>

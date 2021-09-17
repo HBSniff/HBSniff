@@ -6,7 +6,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "manager_fig1")
-public class ManagerFig1 extends PersonPerClassFig1 {
+public class ManagerFig1 extends EmployeePerClassFig1 {
 
     public Double bonus;
 

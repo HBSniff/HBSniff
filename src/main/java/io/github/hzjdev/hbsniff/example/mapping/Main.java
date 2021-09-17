@@ -1,6 +1,7 @@
 package io.github.hzjdev.hbsniff.example.mapping;
 
 import io.github.hzjdev.hbsniff.example.mapping.domain.fig1.ClerkFig1;
+import io.github.hzjdev.hbsniff.example.mapping.domain.fig1.EmployeeForJoinFig1;
 import io.github.hzjdev.hbsniff.example.mapping.domain.fig3.StudentFig3;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -29,6 +30,7 @@ public class Main {
 //            session.save(new ManagerFig1());
 //            session.save(new EmployeeFig1());
             session.save(new ClerkFig1());
+            session.save(new EmployeeForJoinFig1());
 
             tx.commit();
         } catch (Exception e) {

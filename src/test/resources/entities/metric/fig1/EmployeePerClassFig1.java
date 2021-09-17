@@ -22,14 +22,14 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "clerk_fig1")
-public class ClerkFig1 extends EmployeeForJoinFig1 {
-    public String occupation;
+@Table(name = "employee_fig1")
+public class EmployeePerClassFig1 extends PersonPerClassFig1 {
+    Double salary;
+    String department;
 
-    public ClerkFig1() {
-        occupation = "Heaven Alchemist";
-        name = "J. Taibai";
+    public EmployeePerClassFig1() {
+        salary = 666.66;
+        department = "Royal Vehicle Maintenance";
+        name = "W. Sun";
     }
-
 }
-

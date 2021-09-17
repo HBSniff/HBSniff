@@ -44,7 +44,7 @@ public class MappingMetricsTest {
     @Before
     public void before() throws FileNotFoundException {
         String rootPath = "src/test/resources/entities/metric/";
-        String[] fig1EntityNames = {"ClerkFig1.java", "EmployeeFig1.java", "ManagerFig1.java", "PersonSingleTableFig1.java", "PersonPerClassFig1.java", "PersonJoinFig1.java", "StudentFig1.java"};
+        String[] fig1EntityNames = {"ClerkFig1.java", "EmployeeFig1.java", "EmployeeForJoinFig1.java","ManagerFig1.java", "PersonSingleTableFig1.java", "PersonPerClassFig1.java", "EmployeePerClassFig1.java", "PersonJoinFig1.java", "StudentFig1.java"};
         String[] fig3EntityNames = {"EmployeeFig3.java", "ManagerFig3.java", "PersonSingleTableFig3.java", "StudentFig3.java"};
 
         for (String entity : fig1EntityNames) {
@@ -73,13 +73,6 @@ public class MappingMetricsTest {
         }
     }
 
-    @Test
-    public void initInheritance() {
-    }
-
-    @Test
-    public void getEntitiesWithTableAnnotation() {
-    }
 
     @Test
     public void TATI() {
@@ -91,10 +84,10 @@ public class MappingMetricsTest {
         for (Metric m : result) {
             String className = m.getClassName();
             if (className.equals("PersonPerClassFig1")) {
-                assertEquals(m.getIntensity() + 0.0, 2.0, 0.01);
+                assertEquals(m.getIntensity() + 0.0, 3.0, 0.01);
                 assertTrue(m.getComment().contains("StudentFig1") && m.getComment().contains("ManagerFig1"));
             } else if (className.equals("PersonJoinFig1")) {
-                assertEquals(m.getIntensity() + 0.0, 1.0, 0.01);
+                assertEquals(m.getIntensity() + 0.0, 2.0, 0.01);
                 assertTrue(m.getComment().contains("ClerkFig1"));
             } else if (className.equals("PersonSingleTableFig1")) {
                 assertEquals(m.getIntensity() + 0.0, 1.0, 0.01);
@@ -111,8 +104,10 @@ public class MappingMetricsTest {
         for (Metric m : result) {
             String className = m.getClassName();
             if (className.equals("ClerkFig1")) {
+                assertEquals(m.getIntensity() + 0.0, 3.0, 0.01);
+            } else if (className.equals("EmployeeForJoinFig1")) {
                 assertEquals(m.getIntensity() + 0.0, 2.0, 0.01);
-            } else if (className.equals("ManagerFig1")) {
+            }else {
                 assertEquals(m.getIntensity() + 0.0, 1.0, 0.01);
             }
         }
@@ -124,9 +119,13 @@ public class MappingMetricsTest {
         for (Metric m : result) {
             String className = m.getClassName();
             if (className.equals("PersonPerClassFig1")) {
-                assertEquals(m.getIntensity() + 0.0, 3.0, 0.01);
-            } else {
-                assertEquals(m.getIntensity() + 0.0, 0.0, 0.01);
+                assertEquals(m.getIntensity() + 0.0, 4.0, 0.01);
+            } else if (className.equals("EmployeePerClassFig1")){
+                assertEquals(m.getIntensity() + 0.0, 4.0, 0.01);
+            } else if (className.equals("ManagerFig1")){
+                assertEquals(m.getIntensity() + 0.0, 1.0, 0.01);
+            } else if (className.equals("StudentFig1")){
+                assertEquals(m.getIntensity() + 0.0, 1.0, 0.01);
             }
         }
     }
