@@ -77,6 +77,11 @@ public class Const {
     public final static String GETTER_METHOD_PREFIX_NORMAL = "get";
     public final static String GETTER_METHOD_PREFIX_BOOL = "is";
 
+    public final static String PRIMITIVE_INT = "int";
+    public final static String PRIMITIVE_LONG = "long";
+    public final static String INTEGER = "Integer";
+    public final static String LONG = "Long";
+
     public final static String HQL_PLUS_OP = "PLUS";
     public final static String HQL_ASSIGN_OP = "ASSIGN";
     public final static String SERIAL_VERSION_UID = "serialVersionUID";

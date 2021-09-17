@@ -18,10 +18,16 @@
 package io.github.hzjdev.hbsniff.detector.rules;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.SimpleName;
 import io.github.hzjdev.hbsniff.detector.SmellDetector;
 import io.github.hzjdev.hbsniff.model.Declaration;
 import io.github.hzjdev.hbsniff.model.HqlAndContext;
 import io.github.hzjdev.hbsniff.model.output.Smell;
+import com.github.javaparser.ast.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +52,7 @@ public class Pagination extends SmellDetector {
         for (HqlAndContext hql : hqls) {
             for (Declaration calledIn : hql.populateCalledIn(cus).getCalledIn()) {
                 String body = calledIn.getBody();
-                if (body.toLowerCase().contains(LIMIT_EXPR) || body.toLowerCase().contains(PAGE_EXPR)) {
+                if (containsPaginationKeyword(calledIn)) {
                     if (!hql.getMethodBody().contains("."+SET_FIRST_RESULT_EXPR+"(") && !hql.getMethodBody().contains("."+SET_MAX_RESULTS_EXPR+"(") && !body.contains("."+SET_FIRST_RESULT_EXPR+"(") && !body.contains("."+SET_MAX_RESULTS_EXPR+"(")) {
                         Declaration parentDeclaration = findDeclarationFromPath(calledIn.getFullPath());
                         if (parentDeclaration != null) {
@@ -57,13 +63,46 @@ public class Pagination extends SmellDetector {
                             pagedSmell.add(smell);
                             psr.getSmells().get(parentDeclaration).add(smell);
                         }
-
                     }
                 }
             }
         }
         return pagedSmell;
     }
+
+    /**
+     * Check if method declaration contains pagination keyword of Integer or Long and their primitive types
+     * @param method to check
+     * @return true if keyword is found
+     */
+    private boolean containsPaginationKeyword(Declaration method){
+        if(method == null || method.getRawCU() == null) return false;
+        for (SimpleName name : method.getRawBD().findAll(SimpleName.class)){
+            String name_str = name.asString();
+            if(name_str.toLowerCase().contains(LIMIT_EXPR) || name_str.toLowerCase().contains(PAGE_EXPR)){
+                Node parent = name;
+                while(parent.getParentNode().isPresent() && !(parent.getParentNode().get() instanceof MethodDeclaration) &&  !(parent.getParentNode().get() instanceof TypeDeclaration) && !(parent.getParentNode().get() instanceof ClassOrInterfaceDeclaration)){
+                    parent = parent.getParentNode().get();
+                    for(Type t :parent.findAll(Type.class)){
+                        if(t == null) continue;
+                        if (t.isPrimitiveType()){
+                            String primitive = t.asPrimitiveType().asString();
+                            if(primitive.equals(PRIMITIVE_INT) || primitive.equals(PRIMITIVE_LONG)){
+                                return true;
+                            }
+                        }else{
+                            String typeName = t.toString();
+                            if(typeName.equals(INTEGER) || typeName.equals(LONG)){
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
     /**
      * execute detection
