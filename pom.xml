@@ -6,7 +6,7 @@
 
     <groupId>io.github.hzjdev.gbsniff</groupId>
     <artifactId>HBSniff</artifactId>
-    <version>1.6.5</version>
+    <version>1.6.6</version>
     <build>
         <plugins>
             <plugin>
