@@ -80,8 +80,8 @@ public class MappingMetrics {
                 if (topSuperClass.getAnnotations().stream().anyMatch(i ->
                         i.contains(TABLE_PER_CLASS_ANNOT_EXPR))) {
                     // 2.3 One Inheritance Path – One Table
-                    // pros: better performance, no join
-                    // cons: redundant data, null
+//                    PROS: non-null
+//                    CONS: redundant data
 
                     // The ‘one inheritance path - one table’ mapping strategy only maps each concrete class to
                     // a table.
@@ -92,8 +92,8 @@ public class MappingMetrics {
                 } else if(topSuperClass.getAnnotations().stream().anyMatch(i ->
                         i.contains(SINGLE_TABLE_ANNOT_EXPR))){
                     // 2.2 One Inheritance Tree – One Table
-                    // pros: non-null
-                    // cons: redundant data
+//                    PROS: better performance, no join
+//                    CONS: null values
 
                     //  all classes of an inheritance hierarchy are mapped to the same relational table.
                     // ANV measures additional storage space in terms of null values that result when different
@@ -105,8 +105,8 @@ public class MappingMetrics {
                     // 2.1 One Class - One Table
                     // distributing object data over multiple tables.
                     // In order to link these tables, all tables share the same primary key.
-                    // pros: non-null, no redundant data
-                    // cons: low performance
+                    // PROS: non-null, no redundant data
+                    // CONS: low performance
 
                     // NCT equals the number of tables that contain data from instances of a class C.
                     // This number depends on the inheritance mapping
