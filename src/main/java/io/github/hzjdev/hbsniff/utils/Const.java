@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Const {
-    public final static String DEFAULT_ROOT_PATH = "D:\\tools\\hql\\projects\\BroadleafCommerce";
+    public final static String DEFAULT_INPUT_PATH = "D:\\tools\\hql\\projects\\BroadleafCommerce";
     public final static String DEFAULT_OUTPUT_PATH = "D:\\tools\\hql\\projects";
 
     public final static String IDENT_ANNOT_EXPR = "Id";

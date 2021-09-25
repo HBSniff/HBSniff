@@ -34,7 +34,7 @@ import static io.github.hzjdev.hbsniff.parser.EntityParser.getEntities;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.parseFromDir;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
 import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_OUTPUT_PATH;
-import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_ROOT_PATH;
+import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_INPUT_PATH;
 import static io.github.hzjdev.hbsniff.utils.Utils.outputMetrics;
 import static io.github.hzjdev.hbsniff.utils.Utils.outputSmells;
 
@@ -99,19 +99,19 @@ public class Main {
         parser.addArgument("-e", "--exclude").required(false)
                 .help("Smells to exclude (Optional). Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
 
-        String root_path = null;
+        String input_path = null;
         String output_path = null;
         List<String> exclude = null;
         Namespace ns;
         try {
             ns = parser.parseArgs(args);
-            root_path = ns.getString("input");
+            input_path = ns.getString("input");
             output_path = ns.getString("output");
         } catch (ArgumentParserException e) {
             parser.handleError(e);
         }
-        if(root_path == null || output_path == null){
-            root_path = DEFAULT_ROOT_PATH;
+        if(input_path == null || output_path == null){
+            input_path = DEFAULT_INPUT_PATH;
             output_path = DEFAULT_OUTPUT_PATH;
         }
         try {
@@ -123,6 +123,6 @@ public class Main {
         } catch (Exception e) {
             exclude = null;
         }
-        exec(root_path, output_path, exclude);
+        exec(input_path, output_path, exclude);
     }
 }
