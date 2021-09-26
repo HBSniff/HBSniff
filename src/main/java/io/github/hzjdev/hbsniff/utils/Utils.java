@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static io.github.hzjdev.hbsniff.utils.Const.*;
+
 public class Utils {
 
 
@@ -57,35 +59,42 @@ public class Utils {
      * @param csvPath path of the csv file
      * @param results results
      */
-    public static void outputSmells(String jsonPath, String csvPath, String xlsPath, ProjectSmellReport results) {
-        //wirte to csv
+    public static void outputSmells(String jsonPath, String csvPath, String xlsPath, ProjectSmellReport results, List<String> outputTypes) {
         results.cleanup();
-        List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
-        try (FileOutputStream fos = new FileOutputStream(csvPath);
-             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-             CSVWriter writer = new CSVWriter(osw)) {
-            writer.writeAll(csvContent);
-        } catch (IOException e) {
-            System.out.println("Output path unavailable: " + csvPath);
+
+        //wirte to csv
+        if(outputTypes.contains(CSV_FILE_TYPE)) {
+            List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
+            try (FileOutputStream fos = new FileOutputStream(csvPath);
+                 OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+                 CSVWriter writer = new CSVWriter(osw)) {
+                writer.writeAll(csvContent);
+            } catch (IOException e) {
+                System.out.println("Output path unavailable: " + csvPath);
+            }
         }
 
         //write to json
-        Gson gs = new GsonBuilder()
-                .setPrettyPrinting()
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
-        try (PrintWriter out = new PrintWriter(jsonPath)) {
-            out.println(gs.toJson(results));
-        } catch (IOException e) {
-            System.out.println("Output path unavailable: " + jsonPath);
+        if(outputTypes.contains(JSON_FILE_TYPE)) {
+            Gson gs = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .excludeFieldsWithoutExposeAnnotation()
+                    .create();
+            try (PrintWriter out = new PrintWriter(jsonPath)) {
+                out.println(gs.toJson(results));
+            } catch (IOException e) {
+                System.out.println("Output path unavailable: " + jsonPath);
+            }
         }
 
         //write to excel
-        try {
-            ProjectSmellReport.generateXlsReport(xlsPath, results);
-        }catch (Exception e ){
-            System.out.println("XLS Export Failed");
-            e.printStackTrace();
+        if(outputTypes.contains(XLS_FILE_TYPE)) {
+            try {
+                ProjectSmellReport.generateXlsReport(xlsPath, results);
+            } catch (Exception e) {
+                System.out.println("XLS Export Failed");
+                e.printStackTrace();
+            }
         }
     }
 

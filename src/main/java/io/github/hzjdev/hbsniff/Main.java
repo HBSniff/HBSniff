@@ -29,12 +29,12 @@ import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.github.hzjdev.hbsniff.parser.EntityParser.getEntities;
 import static io.github.hzjdev.hbsniff.parser.EntityParser.parseFromDir;
 import static io.github.hzjdev.hbsniff.parser.HqlExtractor.getHqlNodes;
-import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_OUTPUT_PATH;
-import static io.github.hzjdev.hbsniff.utils.Const.DEFAULT_INPUT_PATH;
+import static io.github.hzjdev.hbsniff.utils.Const.*;
 import static io.github.hzjdev.hbsniff.utils.Utils.outputMetrics;
 import static io.github.hzjdev.hbsniff.utils.Utils.outputSmells;
 
@@ -46,7 +46,7 @@ public class Main {
      * @param root_path project path
      * @param output_path output path
      */
-    public static void exec(String root_path, String output_path, List<String> exclude) {
+    public static void exec(String root_path, String output_path, List<String> exclude, List<String> outputTypes) {
         //init context
         if(root_path == null || output_path == null){ return; }
         String[] pathArr = root_path.split("\\\\");
@@ -74,7 +74,7 @@ public class Main {
         outputSmells(output_path + "\\" + projectName + "_smells.json",
                 output_path + "\\" + projectName + "_smells.csv",
                 output_path + "\\" + projectName + "_smells.xls",
-                psr);
+                psr, outputTypes);
 
         if(exclude == null || !exclude.contains("MappingMetrics")) {
             outputMetrics(output_path + "\\" + projectName + "_metrics.csv",  MappingMetrics.exec(entities));
@@ -87,7 +87,7 @@ public class Main {
      * @param args arguments from commandline
      */
     public static void main(String[] args) {
-        ArgumentParser parser = ArgumentParsers.newFor("Main").build()
+        ArgumentParser parser = ArgumentParsers.newFor("HBSniff.jar").build()
                 .defaultHelp(true)
                 .description("HBSniff: Java Hibernate Object Relational Mapping Smell Detector.");
         parser.addArgument("-i", "--input").required(true)
@@ -97,11 +97,15 @@ public class Main {
                 .help("Output directory of the detection results.");
 
         parser.addArgument("-e", "--exclude").required(false)
-                .help("Smells to exclude (Optional). Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
+                .help("Smells/Metrics to exclude (Optional). Split the smells by ',' if you wish to exclude multiple smells/metrics. If you want to exclude metrics, simply use \"MappingMetrics\" for this parameter. Names of Smells: CollectionField,FinalEntity,GetterSetter,HashCodeAndEquals,MissingIdentifier,MissingNoArgumentConstructor,NotSerializable,Fetch,OneByOne,MissingManyToOne,Pagination.");
+
+        parser.addArgument("-t", "--type").required(false)
+                .help("Types of the output files for smells.  Split the types by ','. Available Options: csv,json,xls. ");
 
         String input_path = null;
         String output_path = null;
         List<String> exclude = null;
+        List<String> types = Arrays.asList(CSV_FILE_TYPE, JSON_FILE_TYPE, XLS_FILE_TYPE);
         Namespace ns;
         try {
             ns = parser.parseArgs(args);
@@ -114,6 +118,7 @@ public class Main {
             input_path = DEFAULT_INPUT_PATH;
             output_path = DEFAULT_OUTPUT_PATH;
         }
+
         try {
             ns = parser.parseArgs(args);
             String excludeExpr = ns.getString("exclude");
@@ -123,6 +128,17 @@ public class Main {
         } catch (Exception e) {
             exclude = null;
         }
-        exec(input_path, output_path, exclude);
+
+        try {
+            ns = parser.parseArgs(args);
+            String typeExpr = ns.getString("type");
+            if (typeExpr != null) {
+                types = Arrays.stream(ns.getString("type").split(",")).map(String::toLowerCase).collect(Collectors.toList());
+            }
+        }catch (Exception e) {
+            // we do nothing if type is not parsed successfully
+        }
+
+        exec(input_path, output_path, exclude, types);
     }
 }

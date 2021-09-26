@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Const {
-    public final static String DEFAULT_INPUT_PATH = "D:\\tools\\hql\\projects\\BroadleafCommerce";
+    public final static String DEFAULT_INPUT_PATH = "D:\\tools\\hql\\projects\\portal";
     public final static String DEFAULT_OUTPUT_PATH = "D:\\tools\\hql\\projects";
 
     public final static String IDENT_ANNOT_EXPR = "Id";
@@ -90,4 +90,9 @@ public class Const {
 
     public final static Integer LEVEL_TO_POPULATE_DECLARATION = 4;
     public final static List<String> builtinTypes = Arrays.asList("Boolean,Byte,Short,Character,Integer,Long,Float,Double,boolean,byte,short,char,int,long,float,double,BigInteger,BigDecimal,String,List,ArrayList,Set,Collection,Iterator,LinkedList,LinkedHashSet,LinkedHashMap,Hashtable,HashSet,HashMap,Vector".split(","));
+
+    public final static String CSV_FILE_TYPE = "csv";
+    public final static String JSON_FILE_TYPE = "json";
+    public final static String XLS_FILE_TYPE = "xls";
+
 }
