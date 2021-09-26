@@ -321,6 +321,12 @@ public class EntityParser {
         return calledIn;
     }
 
+    /**
+     * helper method for findCalledIn locating method call in compilation unit
+     * @param cu the compilation unit to process
+     * @param md the method declaration to find
+     * @return the method that contains the method call
+     */
     private static MethodDeclaration findMethodCallInCompilationUnit(CompilationUnit cu, MethodDeclaration md){
         List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
         for (MethodCallExpr mce : mces) {
