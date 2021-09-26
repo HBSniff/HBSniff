@@ -22,6 +22,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -43,11 +44,13 @@ public class EntityParser {
 
 
     public static Map<String, Declaration> declarationCache = new HashMap<>(); // using a cache will optimize performance for big projects
+    public static Map<String, List<Declaration>> packageCache = new HashMap<>(); // this map classifies cus by their package
     public static List<CompilationUnit> cusCache;
 
     public static void setCusCache(List<CompilationUnit> cus) {
         cusCache = cus;
         declarationCache.clear();
+        packageCache.clear();
     }
 
     /**
@@ -275,12 +278,23 @@ public class EntityParser {
     /**
      * Check any method is called in a scope CompilationUnits
      * @param md MethodDeclaration
+     * @param typeName the name of the type containing the md
      * @param cus search scope of CompilationUnits
      * @return List of the file which called the method
      */
     public static List<Declaration> findCalledIn(MethodDeclaration md, String typeName, List<CompilationUnit> cus) {
         List<Declaration> calledIn = new ArrayList<>();
+        Declaration toLocate = findTypeDeclaration(typeName);
         if (md != null) {
+            // search if the considered cu and the cu containing method call is in the same package
+            if(toLocate!=null) {
+                for (Declaration dPkg : packageCache.get(getPackageName(toLocate.getRawCU()))) {
+                    MethodDeclaration toAdd = findMethodCallInCompilationUnit(dPkg.getRawCU(), md);
+                    if (toAdd != null) {
+                        calledIn.add(new Declaration(dPkg.getRawCU(), toAdd));
+                    }
+                }
+            }
             for (CompilationUnit cu : cus) {
                 // check if typeName is imported
                 boolean imported = false;
@@ -295,20 +309,11 @@ public class EntityParser {
                         }
                     }
                 }
-                // we find method call only if it is imported in the cu
+                // we find method call if it is imported in the cu
                 if(imported) {
-                    List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
-                    for (MethodCallExpr mce : mces) {
-                        if (mce.getNameAsString().equals(md.getNameAsString()) && mce.getArguments().size() == md.getParameters().size()) {
-                            Optional<Node> parentMethod = mce.getParentNode();
-                            while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
-                                parentMethod = parentMethod.get().getParentNode();
-                            }
-                            MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
-                            if (parent != null) {
-                                calledIn.add(new Declaration(cu, parent));
-                            }
-                        }
+                    MethodDeclaration toAdd = findMethodCallInCompilationUnit(cu,md);
+                    if(toAdd!=null) {
+                        calledIn.add(new Declaration(cu, toAdd));
                     }
                 }
             }
@@ -316,6 +321,22 @@ public class EntityParser {
         return calledIn;
     }
 
+    private static MethodDeclaration findMethodCallInCompilationUnit(CompilationUnit cu, MethodDeclaration md){
+        List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
+        for (MethodCallExpr mce : mces) {
+            if (mce.getNameAsString().equals(md.getNameAsString()) && mce.getArguments().size() == md.getParameters().size()) {
+                Optional<Node> parentMethod = mce.getParentNode();
+                while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
+                    parentMethod = parentMethod.get().getParentNode();
+                }
+                MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
+                if (parent != null) {
+                    return parent;
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * locate a type in CompilationUnits and generate a Declaration for it
@@ -372,6 +393,9 @@ public class EntityParser {
                     Declaration d = new Declaration(cu, td);
                     populateDeclaration(cusCache, path, 1, d);
                     declarationCache.put(path,d);
+                    String packageName = getPackageName(d.getRawCU());
+                    packageCache.computeIfAbsent(packageName, k -> new ArrayList<>());
+                    packageCache.get(packageName).add(d);
                 }
             }
         }
@@ -417,9 +441,26 @@ public class EntityParser {
                 }
             }
         }
-        filterCyclicDeclaration(d, new ArrayList<>());
-        declarationCache.put(fullPath, d);
+        if(d!=null) {
+            filterCyclicDeclaration(d, new ArrayList<>());
+            declarationCache.put(fullPath, d);
+            String packageName = getPackageName(d.getRawCU());
+            packageCache.computeIfAbsent(packageName, k -> new ArrayList<>());
+            packageCache.get(packageName).add(d);
+        }
         return d;
+    }
+
+    /**
+     * get package name of compilation unit
+     * @param cu compilation unit to process
+     * @return package name
+     */
+    public static String getPackageName(CompilationUnit cu){
+        if(cu.getPackageDeclaration().isPresent()){
+            return cu.getPackageDeclaration().get().getNameAsString();
+        }
+        return null;
     }
 
     /**
