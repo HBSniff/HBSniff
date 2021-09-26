@@ -22,3 +22,6 @@ Open cmd (Windows) or terminal (macOS, Linux).
 cd $downloadPath$
 java -jar HBSniff-1.6.7-jar-with-dependencies.jar -i $projectRootPath$ -o $outputPath$
 ```
+
+# Cite this Tool 
+Zijie Huang, Zhiqing Shao, Guisheng Fan, Huiqun Yu, Kang Yang, Ziyi Zhou. HBSniff: A Static Analysis Tool for Java Hibernate Object-Relational Mapping Code Smell Detection. Science of Computer Programming. Under Review. https://hbsniff.github.io/paper.pdf
