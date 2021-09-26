@@ -317,8 +317,7 @@ public class Declaration implements Serializable, Comparable {
     }
 
     /**
-     * check if extended or implemented type includes string
-     * @return true if extended or implemented type includes string
+     * get extended or implemented types
      */
     public static void getExtendedOrImplementedTypes(Declaration toDetect, Set<Declaration> result, Set<Declaration> visited) {
         if(toDetect == null || visited.contains(toDetect)) return;
