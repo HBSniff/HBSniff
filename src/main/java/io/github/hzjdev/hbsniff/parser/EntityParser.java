@@ -72,37 +72,6 @@ public class EntityParser {
         return results;
     }
 
-    /**
-     * parse all classes in a subdirectories of a path
-     * @param dirPath path to parse
-     * @param results list of compilation units
-     * @return  list of compilation units
-     */
-    private static List<CompilationUnit> parseFromDir(String dirPath, List<CompilationUnit> results) {
-        File[] files = new File(dirPath).listFiles();
-        if (files == null) {
-            return results;
-        }
-        for (File file : files) {
-            if (file.isDirectory()) {
-                parseFromDir(file.getAbsolutePath(), results);
-            } else {
-                if (file.getName().toLowerCase().endsWith(JAVA_SUFFIX)) {
-                    String path = file.getPath();
-                    try {
-                        CompilationUnit cu = StaticJavaParser.parse(new File(path));
-                        results.add(cu);
-                    } catch (ParseProblemException e) {
-//                      upstream parse error.
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return results;
-    }
 
     /**
      * parse all classes in a subdirectories of a path
@@ -186,25 +155,6 @@ public class EntityParser {
         return null;
     }
 
-    /**
-     * get superclasses of a class
-     * @param dec  the considered class
-     * @param result result of Declaration list
-     * @return result of Declaration list
-     */
-    private static List<Declaration> getSuperClassDeclarations(Declaration dec, List<Declaration> result) {
-        if (dec == null) {
-            return result;
-        }
-        List<String> superClasses = dec.getSuperClass();
-        for (String superClass : superClasses) {
-            Declaration superClassD = findTypeDeclaration(superClass);
-            if (superClassD == null) continue;
-            result.add(superClassD);
-            getSuperClassDeclarations(superClassD, result);
-        }
-        return result;
-    }
 
     /**
      * the public entrance of getSuperClassDeclarations
@@ -214,35 +164,6 @@ public class EntityParser {
     public static List<Declaration> getSuperClassDeclarations(Declaration dec) {
         List<Declaration> result = new ArrayList<>();
         return getSuperClassDeclarations(dec, result);
-    }
-
-    /**
-     * populate declarations with parsed information
-     * @param cus list of the scope of classes
-     * @param level level to parse
-     * @param d declaration to populate
-     */
-    private static void populateDeclaration(List<CompilationUnit> cus, String fullPath, Integer level, Declaration d) {
-        if (level <= LEVEL_TO_POPULATE_DECLARATION) {
-            d.setFields(d.getFields().stream().map(
-                    i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), fullPath, cus, level + 1)))
-                    .collect(Collectors.toList()));
-        }
-    }
-
-    /**
-     * extract Member types of a TypeDeclaration
-     * @param td TypeDeclaration to extract
-     * @return a list of ClassOrInterfaceDeclaration
-     */
-    private static List<ClassOrInterfaceDeclaration> extractMemberTypes(TypeDeclaration td) {
-        List<ClassOrInterfaceDeclaration> res = new ArrayList<>();
-        for (Object member : td.getMembers()) {
-            if (member instanceof ClassOrInterfaceDeclaration) {
-                res.add((ClassOrInterfaceDeclaration) member);
-            }
-        }
-        return res;
     }
 
 
@@ -322,29 +243,6 @@ public class EntityParser {
     }
 
     /**
-     * helper method for findCalledIn locating method call in compilation unit
-     * @param cu the compilation unit to process
-     * @param md the method declaration to find
-     * @return the method that contains the method call
-     */
-    private static MethodDeclaration findMethodCallInCompilationUnit(CompilationUnit cu, MethodDeclaration md){
-        List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
-        for (MethodCallExpr mce : mces) {
-            if (mce.getNameAsString().equals(md.getNameAsString()) && mce.getArguments().size() == md.getParameters().size()) {
-                Optional<Node> parentMethod = mce.getParentNode();
-                while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
-                    parentMethod = parentMethod.get().getParentNode();
-                }
-                MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
-                if (parent != null) {
-                    return parent;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
      * locate a type in CompilationUnits and generate a Declaration for it
      * @param toFind type name of the Declaration from cache
      * @return the result Declaration
@@ -381,31 +279,7 @@ public class EntityParser {
         return null;
     }
 
-    /**
-     * initialize declarationCache
-     */
-    private static void initDeclarationCache(){
-        if(cusCache == null) return;
-        if(declarationCache.size()<1){
-            for (CompilationUnit cu : cusCache) {
-                if(cu == null){
-                    continue;
-                }
-                String path = "";
-                if (cu.getStorage().isPresent()) {
-                    path = cu.getStorage().get().getPath().toString();
-                }
-                for (TypeDeclaration td : cu.getTypes()) {
-                    Declaration d = new Declaration(cu, td);
-                    populateDeclaration(cusCache, path, 1, d);
-                    declarationCache.put(path,d);
-                    String packageName = getPackageName(d.getRawCU());
-                    packageCache.computeIfAbsent(packageName, k -> new ArrayList<>());
-                    packageCache.get(packageName).add(d);
-                }
-            }
-        }
-    }
+
     /**
      * locate a type in CompilationUnits and generate a Declaration for it
      * @param toFind type name of the Declaration
@@ -429,7 +303,7 @@ public class EntityParser {
             toFind = extractTypeFromCollection(toFind);
             for (CompilationUnit cu : cus) {
                 if(!cu.getStorage().isPresent() || !(fullPath.equals(cu.getStorage().get().getPath().toString()))){
-                   continue;
+                    continue;
                 }
                 for (TypeDeclaration td : cu.getTypes()) {
                     if (td.getNameAsString().equals(toFind)) {
@@ -462,11 +336,38 @@ public class EntityParser {
      * @param cu compilation unit to process
      * @return package name
      */
-    public static String getPackageName(CompilationUnit cu){
+    private static String getPackageName(CompilationUnit cu){
         if(cu.getPackageDeclaration().isPresent()){
             return cu.getPackageDeclaration().get().getNameAsString();
         }
         return null;
+    }
+
+
+    /**
+     * initialize declarationCache
+     */
+    private static void initDeclarationCache(){
+        if(cusCache == null) return;
+        if(declarationCache.size()<1){
+            for (CompilationUnit cu : cusCache) {
+                if(cu == null){
+                    continue;
+                }
+                String path = "";
+                if (cu.getStorage().isPresent()) {
+                    path = cu.getStorage().get().getPath().toString();
+                }
+                for (TypeDeclaration td : cu.getTypes()) {
+                    Declaration d = new Declaration(cu, td);
+                    populateDeclaration(cusCache, path, 1, d);
+                    declarationCache.put(path,d);
+                    String packageName = getPackageName(d.getRawCU());
+                    packageCache.computeIfAbsent(packageName, k -> new ArrayList<>());
+                    packageCache.get(packageName).add(d);
+                }
+            }
+        }
     }
 
     /**
@@ -494,5 +395,110 @@ public class EntityParser {
         d.setFields(newParams);
     }
 
+
+    /**
+     * helper method for findCalledIn locating method call in compilation unit
+     * @param cu the compilation unit to process
+     * @param md the method declaration to find
+     * @return the method that contains the method call
+     */
+    private static MethodDeclaration findMethodCallInCompilationUnit(CompilationUnit cu, MethodDeclaration md){
+        List<MethodCallExpr> mces = cu.findAll(MethodCallExpr.class);
+        for (MethodCallExpr mce : mces) {
+            if (mce.getNameAsString().equals(md.getNameAsString()) && mce.getArguments().size() == md.getParameters().size()) {
+                Optional<Node> parentMethod = mce.getParentNode();
+                while (parentMethod.isPresent() && !(parentMethod.get() instanceof MethodDeclaration)) {
+                    parentMethod = parentMethod.get().getParentNode();
+                }
+                MethodDeclaration parent = (MethodDeclaration) parentMethod.orElse(null);
+                if (parent != null) {
+                    return parent;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * parse all classes in a subdirectories of a path
+     * @param dirPath path to parse
+     * @param results list of compilation units
+     * @return  list of compilation units
+     */
+    private static List<CompilationUnit> parseFromDir(String dirPath, List<CompilationUnit> results) {
+        File[] files = new File(dirPath).listFiles();
+        if (files == null) {
+            return results;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                parseFromDir(file.getAbsolutePath(), results);
+            } else {
+                if (file.getName().toLowerCase().endsWith(JAVA_SUFFIX)) {
+                    String path = file.getPath();
+                    try {
+                        CompilationUnit cu = StaticJavaParser.parse(new File(path));
+                        results.add(cu);
+                    } catch (ParseProblemException e) {
+//                      upstream parse error.
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return results;
+    }
+
+
+    /**
+     * get superclasses of a class
+     * @param dec  the considered class
+     * @param result result of Declaration list
+     * @return result of Declaration list
+     */
+    private static List<Declaration> getSuperClassDeclarations(Declaration dec, List<Declaration> result) {
+        if (dec == null) {
+            return result;
+        }
+        List<String> superClasses = dec.getSuperClass();
+        for (String superClass : superClasses) {
+            Declaration superClassD = findTypeDeclaration(superClass);
+            if (superClassD == null) continue;
+            result.add(superClassD);
+            getSuperClassDeclarations(superClassD, result);
+        }
+        return result;
+    }
+
+
+    /**
+     * populate declarations with parsed information
+     * @param cus list of the scope of classes
+     * @param level level to parse
+     * @param d declaration to populate
+     */
+    private static void populateDeclaration(List<CompilationUnit> cus, String fullPath, Integer level, Declaration d) {
+        if (level <= LEVEL_TO_POPULATE_DECLARATION) {
+            d.setFields(d.getFields().stream().map(
+                    i -> i.setTypeDeclaration(findTypeDeclaration(i.getName(), fullPath, cus, level + 1)))
+                    .collect(Collectors.toList()));
+        }
+    }
+    /**
+     * extract Member types of a TypeDeclaration
+     * @param td TypeDeclaration to extract
+     * @return a list of ClassOrInterfaceDeclaration
+     */
+    private static List<ClassOrInterfaceDeclaration> extractMemberTypes(TypeDeclaration td) {
+        List<ClassOrInterfaceDeclaration> res = new ArrayList<>();
+        for (Object member : td.getMembers()) {
+            if (member instanceof ClassOrInterfaceDeclaration) {
+                res.add((ClassOrInterfaceDeclaration) member);
+            }
+        }
+        return res;
+    }
 
 }

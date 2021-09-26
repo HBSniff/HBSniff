@@ -300,6 +300,51 @@ public class Declaration implements Serializable, Comparable {
         return result;
     }
 
+
+
+    /**
+     * check if annotations includes string
+     * @param s string to check
+     * @return true if annotations includes string
+     */
+    public boolean annotationIncludes(String s) {
+        for (String annotation : getAnnotations()) {
+            if (annotation.contains(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * check if extended or implemented type includes string
+     * @return true if extended or implemented type includes string
+     */
+    public static void getExtendedOrImplementedTypes(Declaration toDetect, Set<Declaration> result, Set<Declaration> visited) {
+        if(toDetect == null || visited.contains(toDetect)) return;
+        Set<Declaration> superClasses = new HashSet<>(getSuperClassDeclarations(toDetect));
+        visited.add(toDetect);
+        superClasses.add(toDetect);
+        for (Declaration superclass : superClasses) {
+            for (String i : superclass.getImplementedInterface()) {
+                Declaration d = findTypeDeclaration(i);
+                if (d!=null) {
+                    getExtendedOrImplementedTypes(d, result,visited);
+                    result.add(d);
+                }
+            }
+        }
+        result.addAll(superClasses);
+    }
+
+    public Set<Declaration> getExtendedOrImplementedTypes() {
+        Set<Declaration> result = new HashSet<>();
+        getExtendedOrImplementedTypes(this, result, new HashSet<>());
+        return result;
+    }
+
+
+    /// getter setters
     public List<ParametreOrField> getFields() {
         return fields;
     }
@@ -377,48 +422,6 @@ public class Declaration implements Serializable, Comparable {
     public Declaration setBody(String body) {
         this.body = body;
         return this;
-    }
-
-
-    /**
-     * check if annotations includes string
-     * @param s string to check
-     * @return true if annotations includes string
-     */
-    public boolean annotationIncludes(String s) {
-        for (String annotation : getAnnotations()) {
-            if (annotation.contains(s)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * check if extended or implemented type includes string
-     * @return true if extended or implemented type includes string
-     */
-    public static void getExtendedOrImplementedTypes(Declaration toDetect, Set<Declaration> result, Set<Declaration> visited) {
-        if(toDetect == null || visited.contains(toDetect)) return;
-        Set<Declaration> superClasses = new HashSet<>(getSuperClassDeclarations(toDetect));
-        visited.add(toDetect);
-        superClasses.add(toDetect);
-        for (Declaration superclass : superClasses) {
-            for (String i : superclass.getImplementedInterface()) {
-                Declaration d = findTypeDeclaration(i);
-                if (d!=null) {
-                    getExtendedOrImplementedTypes(d, result,visited);
-                    result.add(d);
-                }
-            }
-        }
-        result.addAll(superClasses);
-    }
-
-    public Set<Declaration> getExtendedOrImplementedTypes() {
-        Set<Declaration> result = new HashSet<>();
-        getExtendedOrImplementedTypes(this, result, new HashSet<>());
-        return result;
     }
 
     public DeclarationType getDeclarationType() {
