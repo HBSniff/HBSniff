@@ -1,8 +1,10 @@
 # HBSniff
 HBSniff (**H**i**B**ernate **Sniff**er) is a static analysis tool for Java Hibernate ORM (Object-Relational Mapping) code smell detection.     
 
+# For Reviewers
 Latest Release: https://github.com/HBSniff/HBSniff/releases/tag/v1.6.7        
 Documentations: https://HBSniff.github.io/     
+Example Projects for Evaluation: https://doi.org/10.6084/m9.figshare.16682029.v1
 
 # Highlights
 * No Project Compilation Needed ([JavaParser-based](https://javaparser.org/))
