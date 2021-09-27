@@ -121,15 +121,18 @@ public class MappingMetrics {
         for (Declaration entity : entities) {
             String typeName = entity.getName();
             Set<String> classesContainingFields = new HashSet<>();
-            classesContainingFields.add(typeName);
             List<Declaration> superClasses = getSuperClassDeclarations(entity);
             if(superClasses != null && superClasses.size()>0){
                 Declaration topSuperClass = superClasses.get(superClasses.size() - 1);
-                if(NCRFInheritanceMap.containsKey(topSuperClass.getName()) && NCRFInheritanceMap.containsKey(typeName)){
-                    classesContainingFields.addAll(NCRFInheritanceMap.get(typeName));
+                if(NCRFInheritanceMap.containsKey(topSuperClass.getName())){
+                    if(NCRFInheritanceMap.containsKey(typeName)) {
+                        classesContainingFields.addAll(NCRFInheritanceMap.get(typeName));
+                    }
+                    classesContainingFields.add(typeName);
                 }
             }else if(NCRFInheritanceMap.containsKey(typeName)){
                 classesContainingFields.addAll(NCRFInheritanceMap.get(typeName));
+                classesContainingFields.add(typeName);
             }
             NCRFFields.computeIfAbsent(typeName, k -> new HashSet<>());
             Set<String> fields = new HashSet<>();
