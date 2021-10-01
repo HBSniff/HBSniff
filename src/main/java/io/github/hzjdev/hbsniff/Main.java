@@ -80,7 +80,7 @@ public class Main {
 
         if(exclude == null || !exclude.contains("MappingMetrics")) {
             outputMetrics(
-                    Paths.get(output_path,projectName,"_metrics",DOT,CSV_FILE_TYPE).toAbsolutePath().toString(),
+                    Paths.get(output_path,projectName+"_metrics"+DOT+CSV_FILE_TYPE).toAbsolutePath().toString(),
                     MappingMetrics.exec(entities)
             );
         }
