@@ -55,22 +55,21 @@ public class Utils {
 
     /**
      * export smell detection results
-     * @param jsonPath path of the json file
-     * @param csvPath path of the csv file
+     * @param path path of the exported data file
      * @param results results
      */
-    public static void outputSmells(String jsonPath, String csvPath, String xlsPath, ProjectSmellReport results, List<String> outputTypes) {
+    public static void outputSmells(String path, ProjectSmellReport results, List<String> outputTypes) {
         results.cleanup();
 
         //wirte to csv
         if(outputTypes.contains(CSV_FILE_TYPE)) {
             List<String[]> csvContent = ProjectSmellCSVLine.toCSV(ProjectSmellCSVLine.fromProjectSmellJSONReport(results));
-            try (FileOutputStream fos = new FileOutputStream(csvPath);
+            try (FileOutputStream fos = new FileOutputStream(path+DOT+CSV_FILE_TYPE);
                  OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
                  CSVWriter writer = new CSVWriter(osw)) {
                 writer.writeAll(csvContent);
             } catch (IOException e) {
-                System.out.println("Output path unavailable: " + csvPath);
+                System.out.println("Output path unavailable: " + path+DOT+CSV_FILE_TYPE);
             }
         }
 
@@ -80,17 +79,17 @@ public class Utils {
                     .setPrettyPrinting()
                     .excludeFieldsWithoutExposeAnnotation()
                     .create();
-            try (PrintWriter out = new PrintWriter(jsonPath)) {
+            try (PrintWriter out = new PrintWriter(path+DOT+JSON_FILE_TYPE)) {
                 out.println(gs.toJson(results));
             } catch (IOException e) {
-                System.out.println("Output path unavailable: " + jsonPath);
+                System.out.println("Output path unavailable: " + path+DOT+JSON_FILE_TYPE);
             }
         }
 
         //write to excel
         if(outputTypes.contains(XLS_FILE_TYPE)) {
             try {
-                ProjectSmellReport.generateXlsReport(xlsPath, results);
+                ProjectSmellReport.generateXlsReport(path+DOT+XLS_FILE_TYPE, results);
             } catch (Exception e) {
                 System.out.println("XLS Export Failed");
                 e.printStackTrace();

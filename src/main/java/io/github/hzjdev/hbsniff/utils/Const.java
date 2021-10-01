@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Const {
-    public final static String DEFAULT_INPUT_PATH = "D:\\tools\\hql\\projects\\portal";
-    public final static String DEFAULT_OUTPUT_PATH = "D:\\tools\\hql\\projects";
+    public final static String DEFAULT_INPUT_PATH = "D:\\tools\\hql\\projects\\WeixinMultiPlatform";
+    public final static String DEFAULT_OUTPUT_PATH = "D:\\tools\\hql\\reports";
 
     public final static String IDENT_ANNOT_EXPR = "Id";
     public final static String TABLE_ANNOT_EXPR = "Table";
@@ -94,5 +94,6 @@ public class Const {
     public final static String CSV_FILE_TYPE = "csv";
     public final static String JSON_FILE_TYPE = "json";
     public final static String XLS_FILE_TYPE = "xls";
+    public final static String DOT = ".";
 
 }

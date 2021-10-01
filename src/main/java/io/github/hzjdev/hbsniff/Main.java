@@ -27,6 +27,8 @@ import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,8 +51,7 @@ public class Main {
     public static void exec(String root_path, String output_path, List<String> exclude, List<String> outputTypes) {
         //init context
         if(root_path == null || output_path == null){ return; }
-        String[] pathArr = root_path.split("\\\\");
-        String projectName = pathArr[pathArr.length-1]; // projectName
+        String projectName = Paths.get(root_path).getFileName().toString();
         List<CompilationUnit> cus = parseFromDir(root_path);
         List<CompilationUnit> entities = getEntities(cus);
         ProjectSmellReport psr = ProjectSmellReport.fromCompilationUnits(cus);
@@ -70,14 +71,18 @@ public class Main {
                     }
                 });
 
+        Path p = Paths.get(output_path);
         //output
-        outputSmells(output_path + "\\" + projectName + "_smells.json",
-                output_path + "\\" + projectName + "_smells.csv",
-                output_path + "\\" + projectName + "_smells.xls",
-                psr, outputTypes);
+        outputSmells(
+                Paths.get(output_path,projectName).toAbsolutePath().toString(),
+                psr,
+                outputTypes);
 
         if(exclude == null || !exclude.contains("MappingMetrics")) {
-            outputMetrics(output_path + "\\" + projectName + "_metrics.csv",  MappingMetrics.exec(entities));
+            outputMetrics(
+                    Paths.get(output_path,projectName,"_metrics",DOT,CSV_FILE_TYPE).toAbsolutePath().toString(),
+                    MappingMetrics.exec(entities)
+            );
         }
 
     }
