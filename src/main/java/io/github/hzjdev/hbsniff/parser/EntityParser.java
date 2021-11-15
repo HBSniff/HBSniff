@@ -230,6 +230,20 @@ public class EntityParser {
                         }
                     }
                 }
+
+                // *****BUG FIX SCP R1 (Reviewer 3)*****
+                // find method call from implemented interface or extended types
+                if(!imported && toLocate!=null) {
+                    for (Declaration t : toLocate.getExtendedOrImplementedTypes()) {
+                        for (ImportDeclaration id : cu.getImports()) {
+                            if (id.getNameAsString().contains(t.getName())) {
+                                imported = true;
+                            }
+                        }
+                    }
+                }
+                // *****BUG FIX SCP R1 (Reviewer 3)*****
+
                 // we find method call if it is imported in the cu
                 if(imported) {
                     MethodDeclaration toAdd = findMethodCallInCompilationUnit(cu,md);
