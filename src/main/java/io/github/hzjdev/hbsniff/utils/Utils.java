@@ -59,6 +59,11 @@ public class Utils {
      * @param results results
      */
     public static void outputSmells(String path, ProjectSmellReport results, List<String> outputTypes) {
+        if(results.isEmpty()){
+            System.out.println("The analyzed project does not contain any concerned Hibernate smell.");
+            return;
+        }
+
         results.cleanup();
 
         //wirte to csv
@@ -103,6 +108,11 @@ public class Utils {
      * @param metrics results
      */
     public static void outputMetrics(String csvPath, List<Metric> metrics) {
+        if(metrics == null || metrics.isEmpty()){
+            System.out.println("Metrics are not available for the analyzed project.");
+            return;
+        }
+
         //wirte to csv
         List<String[]> csvContent = Metric.toCSV(metrics);
         try (FileOutputStream fos = new FileOutputStream(csvPath);

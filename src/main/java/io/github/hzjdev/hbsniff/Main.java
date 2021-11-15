@@ -71,7 +71,6 @@ public class Main {
                     }
                 });
 
-        Path p = Paths.get(output_path);
         //output
         outputSmells(
                 Paths.get(output_path,projectName).toAbsolutePath().toString(),

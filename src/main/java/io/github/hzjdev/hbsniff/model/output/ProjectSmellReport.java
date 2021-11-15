@@ -55,15 +55,28 @@ public class ProjectSmellReport implements Serializable {
         return toReturn;
     }
 
+    /**
+     * the getter of the smells Map containing the tuple of a Declaration and its corresponding smells
+     * @return the smells Map
+     */
     public Map<Declaration, List<Smell>> getSmells() {
         return smells;
     }
 
+    /**
+     * the setter of the smells Map containing the tuple of a Declaration and its corresponding smells
+     * @param smells the map to set
+     * @return the smells Map
+     */
     public ProjectSmellReport setSmells(Map<Declaration, List<Smell>> smells) {
         this.smells = smells;
         return this;
     }
 
+    /**
+     * delete the classes with no smells and sort the classes alphabetically for better presentation
+     * @return the class itself
+     */
     public ProjectSmellReport cleanup() {
 
         // delete classes with no smells
@@ -78,6 +91,20 @@ public class ProjectSmellReport implements Serializable {
 
         smells = cleanedSmells;
         return this;
+    }
+
+    /**
+     * delete the classes with no smells and sort the classes alphabetically for better presentation
+     * @return the class itself
+     */
+    public boolean isEmpty() {
+        for(Declaration d:  smells.keySet()){
+            List<Smell> val = smells.get(d);
+            if(val!=null && !val.isEmpty()){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
