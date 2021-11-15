@@ -142,7 +142,7 @@ public class Fetch extends SmellDetector {
                             // check if from entity in hql is an EAGER fetch smelled entity
                             if (eagerFetch.getClassName().toLowerCase().equals(from_entity)) {
                                 Declaration dec = findTypeDeclaration(eagerFetch.getClassName());
-                                // check if selected fields are annotated with FetchType.EAGER
+                                // check if the selected fields of dec in hql are annotated with FetchType.EAGER
                                 Set<String> selected_fields = extractSelectedFields(hql_expr, dec);
                                 if(dec!=null) {
                                     if(selected_fields.size()>0 && !selected_fields.contains(eagerFetch.getComment().toLowerCase())){

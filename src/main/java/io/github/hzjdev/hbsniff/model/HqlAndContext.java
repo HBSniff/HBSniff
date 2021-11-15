@@ -46,11 +46,18 @@ public class HqlAndContext implements Serializable {
     MethodDeclaration definedIn;
     List<Declaration> calledIn;
 
-
+    /**
+     * constructor, initialize an UUID for every HqlAndContext Object if generated
+     */
     public HqlAndContext() {
         setId(UUID.randomUUID().toString().replaceAll("-", ""));
     }
 
+    /**
+     * find the method in which the method containing the hql is called
+     * @param cus the scope to search
+     * @return the result object
+     */
     public HqlAndContext populateCalledIn(List<CompilationUnit> cus) {
         if(getTypeName()!=null) {
             this.calledIn = findCalledIn(getDefinedIn(), getTypeName(), cus);
@@ -59,6 +66,53 @@ public class HqlAndContext implements Serializable {
         }
         return this;
     }
+
+    /**
+     * extract the names of the selected fields of dec
+     * @param hql the hql to extract
+     * @param dec the declaration concerned
+     * @return the set of the names of the selected fields
+     */
+    public static Set<String> extractSelectedFields(String hql, Declaration dec){
+        Set<String> result = new HashSet<>();
+        if(hql == null || !hql.toLowerCase().contains(SELECT_EXPR+" ") || dec.getFields() == null)
+            // if no select presents
+            return result;
+
+        String[] hql_from_split = hql.toLowerCase().split(FROM_EXPR+" "); // hql_from_split[0] is the strings before from
+        hql = hql_from_split[0].replace(SELECT_EXPR+" ",""); // the content between select and from of an hql
+
+        String[] hql_arr = hql.split(","); // hql_arr contains multiple selected columns
+        for(String selected_field: hql_arr){
+            // for every selected column
+            // we should ignore its alias
+            selected_field = selected_field.split(" as")[0];
+            boolean in_from = false; // check if this selected column is in the entity presents in from
+            if(hql_from_split.length>1){
+                // from is presented
+                String hql_from = hql_from_split[1].split("where")[0]; // the content between from and where of the hql
+                if(hql_from.contains(AS_EXPR+" "+selected_field)){ // alias in from is presented
+                    String[] arr = hql_from.split("as "+selected_field)[0].split(" ");
+                    // split the expression with alias in from
+                    if(arr.length>0){
+                        String[] arr_dot = arr[arr.length-1].split("\\."); // extract the last part of the expression split by dots
+                        result.add(arr_dot[arr_dot.length-1]); // this is the real name of an alias presented in from
+                        in_from = true;
+                    }
+                }
+            }
+            if(!in_from) { // the real name of the selected column is in the select phrase
+                result.add(selected_field); // so we add it to our set
+            }
+        }
+        // we filter our results to keep only the fields present in dec
+        Set<String> lowerCasedFields = dec.getFields().stream().map(i->i.getName().toLowerCase()).collect(Collectors.toSet());
+        result = result.stream().filter(lowerCasedFields::contains).collect(Collectors.toSet());
+        return result;
+    }
+
+
+    // accessors, hashcode, equals, compareto, tostring methods.
 
     public String getTypeName() {
         return typeName;
@@ -223,35 +277,6 @@ public class HqlAndContext implements Serializable {
                 '}';
     }
 
-    public static Set<String> extractSelectedFields(String hql, Declaration dec){
-        Set<String> result = new HashSet<>();
-        if(hql == null || !hql.toLowerCase().contains(SELECT_EXPR+" ") || dec.getFields() == null) return result;
-        String[] hql_from_split = hql.toLowerCase().split(FROM_EXPR+" ");
-        hql = hql_from_split[0].replace(SELECT_EXPR+" ","");
-
-        String[] hql_arr = hql.split(",");
-        for(String selected_field: hql_arr){
-            selected_field = selected_field.split(" as")[0];
-            boolean in_from = false;
-            if(hql_from_split.length>1){
-                String hql_from = hql_from_split[1].split("where")[0];
-                if(hql_from.contains(AS_EXPR+" "+selected_field)){
-                    String[] arr = hql_from.split("as "+selected_field)[0].split(" ");
-                    if(arr.length>0){
-                        String[] arr_dot = arr[arr.length-1].split("\\.");
-                        result.add(arr_dot[arr_dot.length-1]);
-                        in_from = true;
-                    }
-                }
-            }
-            if(!in_from) {
-                result.add(selected_field);
-            }
-        }
-        Set<String> lowerCasedFields = dec.getFields().stream().map(i->i.getName().toLowerCase()).collect(Collectors.toSet());
-        result = result.stream().filter(lowerCasedFields::contains).collect(Collectors.toSet());
-        return result;
-    }
 
     public MethodDeclaration getDefinedIn() {
         return definedIn;

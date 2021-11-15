@@ -46,12 +46,19 @@ public class ParametreOrField implements Serializable {
     @Expose(serialize = false)
     Declaration typeDeclaration;
 
+    /**
+     * constructor
+     * @param type name of the parametre type
+     * @param name name of the parametre
+     */
     public ParametreOrField(String type, String name) {
         this.type = type;
         this.name = name;
         this.annotations = new ArrayList<>();
         this.modifiers = new ArrayList<>();
     }
+
+    // accessors, equals, hashcode, tostring.
 
     public List<String> getModifiers() {
         return modifiers;

@@ -73,6 +73,10 @@ public class Declaration implements Serializable, Comparable {
     @Expose(serialize = false)
     BodyDeclaration rawBD;
 
+    /**
+     * Constructor
+     * @param cu compilationUnit to construct the entity
+     */
     public Declaration(CompilationUnit cu) {
         this(cu, cu.getPrimaryType().get());
     }
@@ -336,23 +340,21 @@ public class Declaration implements Serializable, Comparable {
         result.addAll(superClasses);
     }
 
+    /**
+     * get the extended or implemented types of a class
+     * @return a set of Declarations of the extended or implemented types
+     */
     public Set<Declaration> getExtendedOrImplementedTypes() {
         Set<Declaration> result = new HashSet<>();
         getExtendedOrImplementedTypes(this, result, new HashSet<>());
         return result;
     }
 
-
-    /// getter setters
-    public List<ParametreOrField> getFields() {
-        return fields;
-    }
-
-    public Declaration setFields(List<ParametreOrField> fields) {
-        this.fields = fields;
-        return this;
-    }
-
+    /**
+     * locate a Declaration with a specific name in members of this Declaration
+     * @param name the name to search in members
+     * @return the Declaration of the found entity with the name specified
+     */
     public Declaration findDeclaration(String name) {
         if (members == null) return null;
         for (Declaration d : members) {
@@ -361,6 +363,18 @@ public class Declaration implements Serializable, Comparable {
             }
         }
         return null;
+    }
+
+
+    /// accessors, hashCode and equals.
+
+    public List<ParametreOrField> getFields() {
+        return fields;
+    }
+
+    public Declaration setFields(List<ParametreOrField> fields) {
+        this.fields = fields;
+        return this;
     }
 
     public CompilationUnit getRawCU() {
