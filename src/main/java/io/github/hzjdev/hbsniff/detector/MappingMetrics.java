@@ -15,7 +15,7 @@
  *     along with HBSniff.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.hzjdev.hbsniff.metric;
+package io.github.hzjdev.hbsniff.detector;
 
 import com.github.javaparser.ast.CompilationUnit;
 import io.github.hzjdev.hbsniff.model.Declaration;

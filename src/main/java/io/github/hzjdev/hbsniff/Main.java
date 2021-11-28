@@ -19,7 +19,7 @@ package io.github.hzjdev.hbsniff;
 
 import com.github.javaparser.ast.CompilationUnit;
 import io.github.hzjdev.hbsniff.detector.SmellDetectorFactory;
-import io.github.hzjdev.hbsniff.metric.MappingMetrics;
+import io.github.hzjdev.hbsniff.detector.MappingMetrics;
 import io.github.hzjdev.hbsniff.model.HqlAndContext;
 import io.github.hzjdev.hbsniff.model.output.ProjectSmellReport;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -27,7 +27,6 @@ import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
