@@ -34,6 +34,11 @@ public class ProjectSmellCSVLine implements Serializable {
         };
     }
 
+    /**
+     * generate a list of this object from the ProjectSmellReport object
+     * @param psr detection results
+     * @return a list of the csv line objectg
+     */
     public static List<ProjectSmellCSVLine> fromProjectSmellJSONReport(ProjectSmellReport psr) {
         List<ProjectSmellCSVLine> results = new ArrayList<>();
         if (psr == null) {
@@ -45,6 +50,11 @@ public class ProjectSmellCSVLine implements Serializable {
         return results;
     }
 
+    /**
+     * generate csv
+     * @param lines the detection results
+     * @return the lines of csv
+     */
     public static List<String[]> toCSV(List<ProjectSmellCSVLine> lines) {
         String[] heads = {"smell", "file", "className", "comment", "position"};
         List<String[]> result = new ArrayList<>();
