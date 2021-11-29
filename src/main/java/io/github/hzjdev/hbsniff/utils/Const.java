@@ -51,10 +51,17 @@ public class Const {
     public final static String AS_EXPR = "as";
     public final static String FROM_EXPR = "from";
     public final static String LIMIT_EXPR = "limit";
+    public final static String COUNT_EXPR = "count";
+    public final static String CRITERIA_EXPR = "criteria";
+    public final static String SKIP_EXPR = "skip";
+    public final static String SIZE_EXPR = "size";
     public final static String PAGE_EXPR = "page";
     public final static String SET_FIRST_RESULT_EXPR = "setFirstResult";
     public final static String SET_MAX_RESULTS_EXPR = "setMaxResults";
-
+    public final static String[] PAGINATION_KEYWORDS = {
+            "."+SET_FIRST_RESULT_EXPR+"(", "."+SET_MAX_RESULTS_EXPR+"(", "."+SET_FIRST_RESULT_EXPR+"(", "."+SET_MAX_RESULTS_EXPR+"(",
+            CRITERIA_EXPR, COUNT_EXPR, SKIP_EXPR, SIZE_EXPR, PAGE_EXPR
+    };
     public final static String MANY_TO_ONE_ANNOT_EXPR = "ManyToOne";
     public final static String ONE_TO_MANY_ANNOT_EXPR = "OneToMany";
     public final static String TO_MANY_ANNOT_EXPR = "ToMany";
@@ -89,7 +96,7 @@ public class Const {
     public final static String SERIAL_VERSION_UID = "serialVersionUID";
 
     public final static Integer LEVEL_TO_POPULATE_DECLARATION = 4;
-    public final static List<String> builtinTypes = Arrays.asList("Boolean,Byte,Short,Character,Integer,Long,Float,Double,boolean,byte,short,char,int,long,float,double,BigInteger,BigDecimal,String,List,ArrayList,Set,Collection,Iterator,LinkedList,LinkedHashSet,LinkedHashMap,Hashtable,HashSet,HashMap,Vector".split(","));
+    public final static List<String> BUILTIN_TYPES = Arrays.asList("Boolean,Byte,Short,Character,Integer,Long,Float,Double,boolean,byte,short,char,int,long,float,double,BigInteger,BigDecimal,String,List,ArrayList,Set,Collection,Iterator,LinkedList,LinkedHashSet,LinkedHashMap,Hashtable,HashSet,HashMap,Vector".split(","));
 
     public final static String CSV_FILE_TYPE = "csv";
     public final static String JSON_FILE_TYPE = "json";

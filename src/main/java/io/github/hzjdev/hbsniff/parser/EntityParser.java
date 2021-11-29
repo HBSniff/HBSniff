@@ -22,7 +22,6 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -307,7 +306,7 @@ public class EntityParser {
         if (cusCache == null) {
             cusCache = cus;
         }
-        if (Const.builtinTypes.contains(toFind)) {
+        if (Const.BUILTIN_TYPES.contains(toFind)) {
             return null;
         }
         if (fullPath != null) {

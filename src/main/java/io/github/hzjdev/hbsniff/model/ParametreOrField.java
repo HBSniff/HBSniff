@@ -58,6 +58,47 @@ public class ParametreOrField implements Serializable {
         this.modifiers = new ArrayList<>();
     }
 
+    /**
+     * add annotation informations
+     * @param annotationExprs annotations
+     * @return this object
+     */
+    public ParametreOrField populateAnnotations(List<AnnotationExpr> annotationExprs) {
+        for (AnnotationExpr expr : annotationExprs) {
+            annotations.add(expr.toString());
+        }
+        return this;
+
+    }
+
+    /**
+     * check if annotations includes string
+     * @param s string to check
+     * @return true if annotations includes string
+     */
+    public boolean annotationIncludes(String s) {
+        for (String annotation : annotations) {
+            if (annotation.contains(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * check if the parametre/field is static
+     * @return true if static
+     */
+    public boolean isStatic() {
+        for (String modifier : modifiers) {
+            if (Modifier.Keyword.STATIC.asString().equals(modifier)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     // accessors, equals, hashcode, tostring.
 
     public List<String> getModifiers() {
@@ -117,41 +158,6 @@ public class ParametreOrField implements Serializable {
 
     public void setAnnotations(List<String> annotations) {
         this.annotations = annotations;
-    }
-
-    public ParametreOrField populateAnnotations(List<AnnotationExpr> annotationExprs) {
-        for (AnnotationExpr expr : annotationExprs) {
-            annotations.add(expr.toString());
-        }
-        return this;
-
-    }
-
-    /**
-     * check if annotations includes string
-     * @param s string to check
-     * @return true if annotations includes string
-     */
-    public boolean annotationIncludes(String s) {
-        for (String annotation : annotations) {
-            if (annotation.contains(s)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * check if the parametre/field is static
-     * @return true if static
-     */
-    public boolean isStatic() {
-        for (String modifier : modifiers) {
-            if (Modifier.Keyword.STATIC.asString().equals(modifier)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

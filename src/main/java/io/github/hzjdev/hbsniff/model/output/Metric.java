@@ -28,6 +28,11 @@ public class Metric extends Smell {
     @Expose
     Double intensity;
 
+    /**
+     * convert metric detection results to csv
+     * @param lines detectino results
+     * @return strings of contents of csv
+     */
     public static List<String[]> toCSV(List<Metric> lines) {
         String[] heads = {"metric", "file", "className", "comment", "position", "value"};
         List<String[]> result = new ArrayList<>();
