@@ -478,9 +478,10 @@ public class EntityParser {
         List<String> superClasses = dec.getSuperClass();
         for (String superClass : superClasses) {
             Declaration superClassD = findTypeDeclaration(superClass);
-            if (superClassD == null) continue;
-            result.add(superClassD);
-            getSuperClassDeclarations(superClassD, result);
+            if (superClassD!=null && !result.contains(superClassD)) {
+                result.add(superClassD);
+                getSuperClassDeclarations(superClassD, result);
+            }
         }
         return result;
     }

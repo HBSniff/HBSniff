@@ -132,17 +132,19 @@ public class HqlExtractor {
      */
     private static String findHqlVariableNameFromMethodCall(MethodCallExpr mce){
         String hqlCandidate = null;
-        if(mce.getArgument(0) instanceof MethodCallExpr){
-            List<NameExpr> names = mce.getArgument(0).asMethodCallExpr().findAll(NameExpr.class);
-            if(names.size()>0){
-                hqlCandidate = names.get(0).getNameAsString();
+        if(mce!=null && mce.getTypeArguments().isPresent()) {
+            if (mce.getArgument(0) instanceof MethodCallExpr) {
+                List<NameExpr> names = mce.getArgument(0).asMethodCallExpr().findAll(NameExpr.class);
+                if (names.size() > 0) {
+                    hqlCandidate = names.get(0).getNameAsString();
+                }
+            } else if (mce.getArgument(0) instanceof NameExpr) {
+                hqlCandidate = mce.getArgument(0).toString();
+            } else if (mce.getArgument(0) instanceof ClassExpr) {
+                hqlCandidate = null; //.class
+            } else {
+                hqlCandidate = mce.getArgument(0).toString();
             }
-        }else if(mce.getArgument(0) instanceof NameExpr){
-            hqlCandidate = mce.getArgument(0).toString();
-        }else if(mce.getArgument(0) instanceof ClassExpr){
-            hqlCandidate = null; //.class
-        }else{
-            hqlCandidate = mce.getArgument(0).toString();
         }
         return hqlCandidate;
     }
