@@ -48,7 +48,9 @@ public class MappingMetrics {
     private static Metric initMetric(Declaration entity) {
         return new Metric().setClassName(entity.getName()).setFile(entity.getFullPath()).setPosition(entity.getPosition());
     }
-
+    private static Metric initMetric(String name) {
+        return new Metric().setClassName(name).setFile("").setPosition("");
+    }
     /**
      * \ Calculate Inheritance Relationships for the Metrics
      * @param entities class Declaration
@@ -292,7 +294,7 @@ public class MappingMetrics {
     public static List<Metric> N_Entities(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
         String components = "";
-        Metric s = initMetric(null)
+        Metric s = initMetric("N_Entities") //TODO: should not specialize an entity for a general metric, to fix later
                 .setName("N_Entities")
                 .setComment(components)
                 .setIntensity(entities.size()+0.0);
