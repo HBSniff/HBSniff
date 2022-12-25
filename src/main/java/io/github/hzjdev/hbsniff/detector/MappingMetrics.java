@@ -284,6 +284,23 @@ public class MappingMetrics {
     }
 
     /**
+     * Additional Null Values
+     *
+     * @param entities input classes
+     * @return results for every class
+     */
+    public static List<Metric> N_Entities(List<Declaration> entities) {
+        List<Metric> result = new ArrayList<>();
+        String components = "";
+        Metric s = initMetric(null)
+                .setName("N_Entities")
+                .setComment(components)
+                .setIntensity(entities.size()+0.0);
+        result.add(s);
+        return result;
+    }
+
+    /**
      * Execute
      * @param cus all classes to detect
      * @return metric values
@@ -295,6 +312,7 @@ public class MappingMetrics {
         result.addAll(NCT(entities));
         result.addAll(NCRF(entities));
         result.addAll(ANV(entities));
+        result.addAll(N_Entities(entities));
         return result;
     }
 }
