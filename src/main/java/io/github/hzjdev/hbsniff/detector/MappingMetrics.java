@@ -284,10 +284,10 @@ public class MappingMetrics {
     }
 
     /**
-     * Additional Null Values
+     * Number of entities
      *
      * @param entities input classes
-     * @return results for every class
+     * @return results for the whole system
      */
     public static List<Metric> N_Entities(List<Declaration> entities) {
         List<Metric> result = new ArrayList<>();
