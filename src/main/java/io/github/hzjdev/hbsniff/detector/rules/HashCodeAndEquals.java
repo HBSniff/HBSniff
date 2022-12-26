@@ -49,7 +49,9 @@ public class HashCodeAndEquals extends SmellDetector {
             }
         }
         if (!check) {
-            for (Declaration superClassEntity : getSuperClassDeclarations(clazz)) {
+            List<Declaration> superClassDeclarations = getSuperClassDeclarations(clazz);
+            for (Declaration superClassEntity : superClassDeclarations) {
+                if(superClassEntity.equals(clazz)) continue;
                 toJudge = getEqualsMethod(superClassEntity);
                 if (toJudge != null) {
                     return toJudge;
@@ -74,6 +76,7 @@ public class HashCodeAndEquals extends SmellDetector {
         }
         if (!check) {
             for (Declaration superClassEntity : getSuperClassDeclarations(classNode)) {
+                if(superClassEntity.equals(classNode)) continue;
                 toJudge = getHashCodeMethod(superClassEntity);
                 if (toJudge != null) {
                     return toJudge;

@@ -122,6 +122,7 @@ public class EntityParser {
             }
         }
         for (Declaration superClassEntity : getSuperClassDeclarations(entity)) {
+            if(superClassEntity.equals(entity)) continue;
             ParametreOrField fieldNode = getIdentifierProperty(superClassEntity);
             if (fieldNode != null) {
                 return fieldNode; // any field of superclasses is annotated by @Id
